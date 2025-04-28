@@ -1,7 +1,10 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#define SL_TYPE int
 
 #if !defined(SL_TYPE) || !defined(SL_NAME)
 
@@ -27,27 +30,42 @@
 
 #endif
 
-#define CAT_(a,b) a##b
-#define CAT(a,b) CAT_(a,b)
+#undef sl_u
+#undef SL_U_MAX
+#define sl_u uintptr_t
+#define SL_U_MAX UINTPTR_MAX
+
+#define SL_CAT_(a,b) a##b
+#define SL_CAT(a,b) SL_CAT_(a,b)
 
 /*
 IDEAS:
     - offset memory between buckets instead of next pointer (we have to keep track of the last elm then, shouldn't be a problem. Only caveat is that it's not exactly standard compliant to do that)
     - each new bucket is double the size of the prev
 */
+/*
+plan:
+    - make sure to delete empty nodes
+    - make the last elm jump of each bucket point to the next non empty elm in the next bucket (by using intptr_t)
+    - the loop will then be like `for(T *curElm = sl->buckets->elms + sl->buckets->first_elm_idx ; curElm != sl->last_elm ; i += jump_list[i] )
+        {body
+        i++;}
+*/
 
-#define sl_bucket_t             CAT(SL_NAME, _bucket_t)
-#define sl_init                 CAT(SL_NAME, _init)
-#define sl_put                  CAT(SL_NAME, _put)
-#define sl_pop                  CAT(SL_NAME, _pop)
-#define sl_loop                 CAT(SL_NAME, _loop)
-#define sl_deinit               CAT(SL_NAME, _deinit)
+#define sl_bucket_t SL_CAT(SL_NAME, _bucket_t)
+#define sl_init     SL_CAT(SL_NAME, _init)
+#define sl_put      SL_CAT(SL_NAME, _put)
+#define sl_pop      SL_CAT(SL_NAME, _pop)
+#define sl_loop     SL_CAT(SL_NAME, _loop)
+#define sl_deinit   SL_CAT(SL_NAME, _deinit)
 
 #if !defined(SL_ONLY_DECL)
-    #define sl_bucket_init          CAT(SL_NAME, _bucket_init)
-    #define sl_bucket_put           CAT(SL_NAME, _bucket_put)
-    #define sl_bucket_pop           CAT(SL_NAME, _bucket_pop)
-    #define sl_bucket_is_elm_within CAT(SL_NAME, _bucket_is_elm_within)
+    #define sl_bucket_init          SL_CAT(SL_NAME, _bucket_init)
+    #define sl_bucket_put           SL_CAT(SL_NAME, _bucket_put)
+    #define sl_bucket_pop           SL_CAT(SL_NAME, _bucket_pop)
+    #define sl_bucket_is_elm_within SL_CAT(SL_NAME, _bucket_is_elm_within)
+    #define sl_bucket_first_elm     SL_CAT(SL_NAME, _bucket_first_elm)
+    #define sl_bucket_last_elm      SL_CAT(SL_NAME, _bucket_last_elm)
 #endif
 
 #define SL_FOREACH(sl, body) \
@@ -73,19 +91,25 @@ typedef struct SL_NAME
 {
     sl_bucket_t *buckets;
     sl_bucket_t *tail;
+    SL_TYPE *last_elm;
     size_t count;
     size_t bucket_count;
 } SL_NAME;
 
-#if defined(SL_ONLY_DECL)
-
 void sl_init(SL_NAME *sl);
-SL_TYPE *sl_put(SL_NAME *sl, SL_TYPE newElm);
+SL_TYPE *sl_put(SL_NAME *sl, SL_TYPE new_elm);
 void sl_pop(SL_NAME *sl, SL_TYPE *elm);
 void sl_loop(const SL_NAME *sl, void(*f)(SL_TYPE*,void*), void *arg);
 void sl_deinit(SL_NAME *sl);
 
-#else
+#if !defined(SL_ONLY_DECL)
+
+void sl_bucket_init(sl_bucket_t *bucket);
+SL_TYPE *sl_bucket_put(sl_bucket_t *bucket, SL_TYPE new_elm);
+bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm);
+bool sl_bucket_is_elm_within(const sl_bucket_t *bucket, const SL_TYPE *elm);
+sl_u sl_bucket_first_elm(sl_bucket_t *bucket);
+sl_u sl_bucket_last_elm(sl_bucket_t *bucket);
 
 void sl_init(SL_NAME *sl)
 {
@@ -94,10 +118,11 @@ void sl_init(SL_NAME *sl)
         .tail         = NULL,
         .count        = 0,
         .bucket_count = 0,
+        .last_elm     = NULL
     };
 }
 
-SL_TYPE *sl_bucket_put(sl_bucket_t *bucket, SL_TYPE newElm)
+SL_TYPE *sl_bucket_put(sl_bucket_t *bucket, SL_TYPE new_elm)
 {
     int emptyIndex = 0;
     for( ; emptyIndex < SL_BUCKET_SIZE ; emptyIndex++)
@@ -108,7 +133,7 @@ SL_TYPE *sl_bucket_put(sl_bucket_t *bucket, SL_TYPE newElm)
     return NULL;
     
     emptyIndexFound:
-    bucket->elms[emptyIndex] = newElm;
+    bucket->elms[emptyIndex] = new_elm;
     
     bucket->jump_list[emptyIndex] = 0;
     
@@ -129,11 +154,16 @@ bool sl_bucket_is_elm_within(const sl_bucket_t *bucket, const SL_TYPE *elm)
     return ielm >= ibegin && ielm < iend;
 }
 
-void sl_bucket_pop(sl_bucket_t *bucket, SL_TYPE *elm)
+
+// Things we want:
+// after a pop, check if we just popped the last_elm
+// if so, find and set it again
+// DONE
+bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
 {
     sl_u index = elm - bucket->elms;
     if(bucket->jump_list[index] != 0)
-        return;
+        return false;
     
     if(index != SL_BUCKET_SIZE - 1)
         bucket->jump_list[index] = bucket->jump_list[index + 1] + 1;
@@ -159,12 +189,75 @@ void sl_bucket_pop(sl_bucket_t *bucket, SL_TYPE *elm)
                 if(bucket->jump_list[j] == 0)
                 {
                     bucket->first_elm_idx = j;
-                    return;
+                    goto check_if_bucket_empty;
                 }
             }
             bucket->first_elm_idx = SL_U_MAX;
         }
     }
+    
+    check_if_bucket_empty:
+    
+    bool is_empty = true;
+    sl_u last_elm_in_bucket;
+    for(last_elm_in_bucket = 0 ; last_elm_in_bucket < SL_BUCKET_SIZE ; last_elm_in_bucket++)
+    {
+        if(bucket->jump_list[last_elm_in_bucket] == 0)
+        {
+            is_empty = false;
+            break;
+        }
+    }
+    
+    if(sl->last_elm == &bucket->elms[index])
+    {
+        if(is_empty)
+        {
+            if(sl->bucket_count == 1)
+            {
+                sl->last_elm = NULL;
+            }
+            else
+            {
+                // look in the previous bucket
+                sl_bucket_t *current = sl->buckets;
+                while(current->next != sl->tail)
+                {
+                    current = current->next;
+                }
+                
+                sl_u last_elm_idx = sl_bucket_last_elm(current);
+                sl->last_elm = &current->elms[last_elm_idx];
+            }
+        }
+        else
+        {
+            // look in current bucket
+            sl->last_elm = &bucket->elms[last_elm_in_bucket];
+        }
+    }
+    
+    return is_empty;
+}
+
+sl_u sl_bucket_first_elm(sl_bucket_t *bucket)
+{
+    for(sl_u i = 0 ; i < SL_BUCKET_SIZE ; i--)
+    {
+        if(bucket->jump_list[i] == 0)
+            return i;
+    }
+    return (sl_u)-1;
+}
+
+sl_u sl_bucket_last_elm(sl_bucket_t *bucket)
+{
+    for(sl_u i = SL_BUCKET_SIZE - 2 ; i >= 0 ; i--)
+    {
+        if(bucket->jump_list[i] == 0)
+            return i;
+    }
+    return (sl_u)-1;
 }
 
 void sl_bucket_init(sl_bucket_t *bucket)
@@ -179,17 +272,40 @@ void sl_bucket_init(sl_bucket_t *bucket)
     bucket->jump_list[SL_BUCKET_SIZE] = 1;
 }
 
-SL_TYPE *sl_put(SL_NAME *sl, SL_TYPE newElm)
+SL_TYPE *sl_put(SL_NAME *sl, SL_TYPE new_elm)
 {
-    SL_TYPE *elmAdded = NULL;
+    SL_TYPE *elm_added = NULL;
     
     for(sl_bucket_t *bucket = sl->buckets ; bucket != NULL ; bucket = bucket->next)
     {
-        elmAdded = sl_bucket_put(bucket, newElm);
-        if(elmAdded != NULL)
+        elm_added = sl_bucket_put(bucket, new_elm);
+        if(elm_added != NULL)
         {
             sl->count += 1;
-            return elmAdded;
+            sl_u index = elm_added - bucket->elms;
+            
+            sl_u last_elm_in_bucket;
+            for(last_elm_in_bucket = SL_BUCKET_SIZE - 2 ; last_elm_in_bucket >= 0 ; last_elm_in_bucket--)
+            {
+                if(bucket->jump_list[last_elm_in_bucket] == 0)
+                    break;
+            }
+            
+            if(bucket == sl->tail)
+            {
+                sl->last_elm = &bucket->elms[last_elm_in_bucket];
+            }
+            else
+            {
+                // TODO make the jump_list[i] go to the next bucket if it is elm_added
+                if(elm_added - bucket->elms == last_elm_in_bucket)
+                {
+                    sl_bucket_t *next_bucket = bucket->next;
+                    
+                }
+            }
+            
+            return elm_added;
         }
     }
     
@@ -201,22 +317,40 @@ SL_TYPE *sl_put(SL_NAME *sl, SL_TYPE newElm)
     else
         sl->buckets = new_bucket;
     
+    sl->bucket_count += 1;
     sl->tail = new_bucket;
-    elmAdded = sl_bucket_put(new_bucket, newElm);
+    elm_added = sl_bucket_put(new_bucket, new_elm);
     sl->count += 1;
-    return elmAdded;
+    sl->last_elm = elm_added;
+    return elm_added;
 }
 
 void sl_pop(SL_NAME *sl, SL_TYPE *elm)
 {
+    sl_bucket_t *prev = NULL;
     for(sl_bucket_t *bucket = sl->buckets ; bucket != NULL ; bucket = bucket->next)
     {
         if(sl_bucket_is_elm_within(bucket, elm))
         {
-            sl_bucket_pop(bucket, elm);
+            if(sl_bucket_pop(sl, bucket, elm))
+            {
+                if(prev != NULL)
+                {
+                    prev->next = bucket->next;
+                }
+                else
+                {
+                    sl->buckets = bucket->next;
+                }
+                if(bucket == sl->tail)
+                    sl->tail = prev;
+                free(bucket);
+                sl->bucket_count -= 1;
+            }
             sl->count -= 1;
             return;
         }
+        prev = bucket;
     }
 }
 
@@ -253,9 +387,13 @@ void sl_deinit(SL_NAME *sl)
 #undef sl_put
 #undef sl_pop
 #undef sl_loop
+
 #undef sl_bucket_init
 #undef sl_bucket_put
 #undef sl_bucket_pop
 #undef sl_bucket_is_elm_within
-#undef CAT_
-#undef CAT
+#undef sl_bucket_first_elm
+#undef sl_bucket_last_elm
+
+#undef SL_CAT_
+#undef SL_CAT
