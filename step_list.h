@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #define SL_TYPE int
 
@@ -58,6 +59,7 @@ plan:
 #define sl_pop      SL_CAT(SL_NAME, _pop)
 #define sl_loop     SL_CAT(SL_NAME, _loop)
 #define sl_deinit   SL_CAT(SL_NAME, _deinit)
+#define sl_validate SL_CAT(SL_NAME, _validate)
 
 #if !defined(SL_ONLY_DECL)
     #define sl_bucket_init          SL_CAT(SL_NAME, _bucket_init)
@@ -154,11 +156,6 @@ bool sl_bucket_is_elm_within(const sl_bucket_t *bucket, const SL_TYPE *elm)
     return ielm >= ibegin && ielm < iend;
 }
 
-
-// Things we want:
-// after a pop, check if we just popped the last_elm
-// if so, find and set it again
-// DONE
 bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
 {
     sl_u index = elm - bucket->elms;
@@ -176,39 +173,22 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
         bucket->jump_list[i] = bucket->jump_list[index] + (index - i);
     }
     
+    bool is_empty = false;
     if(index == bucket->first_elm_idx)
     {
-        if(i >= 0)
+        for(int j = index + 1 ; j < SL_BUCKET_SIZE ; j++)
         {
-            bucket->first_elm_idx = i;
-        }
-        else
-        {
-            for(int j = index + 1 ; j < SL_BUCKET_SIZE ; j++)
+            if(bucket->jump_list[j] == 0)
             {
-                if(bucket->jump_list[j] == 0)
-                {
-                    bucket->first_elm_idx = j;
-                    goto check_if_bucket_empty;
-                }
+                bucket->first_elm_idx = j;
+                goto reassign_last_elm_if_needed;
             }
-            bucket->first_elm_idx = SL_U_MAX;
         }
+        bool is_empty = true;
+        bucket->first_elm_idx = SL_U_MAX; // this doesn't really matter, this node will get deleted since it's empty
     }
     
-    check_if_bucket_empty:
-    
-    bool is_empty = true;
-    sl_u last_elm_in_bucket;
-    for(last_elm_in_bucket = 0 ; last_elm_in_bucket < SL_BUCKET_SIZE ; last_elm_in_bucket++)
-    {
-        if(bucket->jump_list[last_elm_in_bucket] == 0)
-        {
-            is_empty = false;
-            break;
-        }
-    }
-    
+    reassign_last_elm_if_needed:
     if(sl->last_elm == &bucket->elms[index])
     {
         if(is_empty)
@@ -221,7 +201,7 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
             {
                 // look in the previous bucket
                 sl_bucket_t *current = sl->buckets;
-                while(current->next != sl->tail)
+                while(current->next != bucket)
                 {
                     current = current->next;
                 }
@@ -233,7 +213,69 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
         else
         {
             // look in current bucket
+            sl_u last_elm_in_bucket;
+            for(last_elm_in_bucket = 0 ; last_elm_in_bucket < SL_BUCKET_SIZE ; last_elm_in_bucket++)
+            {
+                if(bucket->jump_list[last_elm_in_bucket] == 0)
+                {
+                    is_empty = false;
+                    break;
+                }
+            }
+            
             sl->last_elm = &bucket->elms[last_elm_in_bucket];
+        }
+    }
+    
+    if(!is_empty)
+    {
+        // check if we just deleted the last_elm of the bucket
+        // if so then pick a new one and make it link to the next bucket
+        sl_u last_elm = sl_bucket_last_elm(bucket);
+        if(last_elm < index)
+        {
+            sl_bucket_t *next_bucket = bucket->next;
+            if(next_bucket != NULL)
+            {
+                sl_u first_elm_in_next_bucket = sl_bucket_first_elm(next_bucket);
+                // Concern: jump_list won't be offsetted correctly.
+                // probably fine because the difference in address between elms and jump_list is the same in all nodes
+                uintptr_t addrs_of_first_elm_in_next_bucket   = (uintptr_t) &next_bucket->elms[first_elm_in_next_bucket];
+                
+                for(sl_u k = last_elm + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
+                {
+                    uintptr_t addrs_of_curr_elm = (uintptr_t) &bucket->elms[k - 1];
+                    bucket->jump_list[k] = addrs_of_first_elm_in_next_bucket - addrs_of_curr_elm;
+                }
+            }
+        }
+        
+        // check if we just deleted the first_elm of the bucket
+        // if so then pick a new one and make it link to the prev bucket
+        if(bucket != sl->buckets)
+        {
+            sl_u first_elm_in_this_bucket = sl_bucket_first_elm(bucket);
+            if(first_elm_in_this_bucket > index)
+            {
+                sl_bucket_t *prev_bucket;
+                
+                {
+                    sl_bucket_t *current = sl->buckets;
+                    while(current->next != bucket)
+                    {
+                        current = current->next;
+                    }
+                    prev_bucket = current;
+                }
+                
+                sl_u last_elm_in_prev_bucket = sl_bucket_last_elm(prev_bucket);
+                uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[first_elm_in_this_bucket];
+                for(sl_u k = last_elm_in_prev_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
+                {
+                    uintptr_t addrs_of_curr_elm = (uintptr_t) &prev_bucket->elms[k];
+                    prev_bucket->jump_list[k] = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+                }
+            }
         }
     }
     
@@ -373,6 +415,38 @@ void sl_deinit(SL_NAME *sl)
         sl_bucket_t *next = current->next;
         free(current);
         current = next;
+    }
+}
+
+bool sl_validate(SL_NAME *sl)
+{
+    sl_bucket_t *bucket = sl->buckets;
+    while(bucket != NULL)
+    {
+        sl_u first_elm_idx = sl_bucket_first_elm(bucket);
+        int count = 0;
+        for(sl_u i = first_elm_idx ; i < SL_BUCKET_SIZE + 1 ; ++i, i += bucket->jump_list[i])
+        {
+            if(bucket->jump_list[i] != 0)
+            {
+                return false;
+            }
+            count++;
+        }
+        
+        int count2 = 0;
+        for(sl_u j = 0 ; j < SL_BUCKET_SIZE + 1 ; j++)
+        {
+            if(bucket->jump_list[j] == 0)
+                count2++;
+        }
+        
+        if(count != count2)
+        {
+            fprintf(stderr, "An element with jump=0 is skipped over");
+        }
+        
+        bucket = bucket->next;
     }
 }
 
