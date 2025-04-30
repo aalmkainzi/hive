@@ -418,6 +418,9 @@ void sl_deinit(SL_NAME *sl)
     }
 }
 
+// TODO
+// cur problem: we need to know which bucket we're on to access the correct jump_list
+// fix: instead of indexing into jump_list, offset the current jump pointer by the jump amount just like the value pointer
 bool sl_validate(SL_NAME *sl)
 {
     sl_bucket_t *bucket = sl->buckets;
@@ -444,6 +447,16 @@ bool sl_validate(SL_NAME *sl)
         if(count != count2)
         {
             fprintf(stderr, "An element with jump=0 is skipped over");
+        }
+        
+        sl_u last_elm_idx = &sl->tail->elms[sl_bucket_last_elm(sl->tail)] - sl->tail->elms;
+        uintptr_t last_jump = (uintptr_t) &sl->tail->jump_list[last_elm_idx];
+        uintptr_t current_jump = (uintptr_t) &bucket->jump_list[ first_elm_idx ];
+        
+        while(current_jump != last_jump)
+        {
+            
+            current_jump += *(sl_u*)current_jump;
         }
         
         bucket = bucket->next;
