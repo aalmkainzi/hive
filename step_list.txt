@@ -17,9 +17,14 @@ the step-list property:
 //      that becomes the jump offset:
 //      offset_ptr += ((*offset_ptr) / sizeof(SL_TYPE)) * sizeof(*offset_ptr)
 //      THIS ACTUALLY DOESNT MAKE SENSE
-
+//
 //      3)
 //      make jump_list instead be an array of
 //      struct { sl_bucket_t *bucket_of_next_elm ; sl_u index; }
 //      or maybe
 //      struct { SL_TYPE *next_elm ; sl_u *next_offset; }
+//
+//     4)
+//     do it like struct entry_t { sl_u step; SL_TYPE val; };
+//     
+//     4 is probably the way to go.
