@@ -160,6 +160,7 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
     
     for(ptrdiff_t i = index - 1 ; i >= 0 && bucket->elms[i].next_elm_offset != 0 ; i--)
     {
+        // TODO fact check the (index - i)
         bucket->elms[i].next_elm_offset = bucket->elms[index].next_elm_offset + (index - i);
     }
     
