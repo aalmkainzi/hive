@@ -213,56 +213,44 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
         }
     }
     
-    if(!is_empty)
+    // if the current bucket empty and is not the head
+    // then go to the previous bucket and correct its offsets
+    if(bucket != sl->buckets)
     {
-        // check if we just deleted the last_elm of the bucket
-        // if so then pick a new one and make it link to the next bucket
-//         sl_index_t last_elm_in_this_bucket = sl_bucket_last_elm(bucket);
-//         if(last_elm_in_this_bucket < index)
-//         {
-//             sl_bucket_t *next_bucket = bucket->next;
-//             if(next_bucket != NULL)
-//             {
-//                 sl_index_t first_elm_in_next_bucket = sl_bucket_first_elm(next_bucket);
-//                 // Concern: jump_list won't be offsetted correctly.
-//                 // probably fine because the difference in address between elms and jump_list is the same in all nodes
-//                 uintptr_t addrs_of_first_elm_in_next_bucket   = (uintptr_t) &next_bucket->elms[first_elm_in_next_bucket];
-//                 
-//                 for(sl_index_t k = last_elm_in_this_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
-//                 {
-//                     uintptr_t addrs_of_curr_elm = (uintptr_t) &bucket->elms[k - 1];
-//                     bucket->elms[k].next_elm_offset = addrs_of_first_elm_in_next_bucket - addrs_of_curr_elm;
-//                 }
-//             }
-//         }
-        // THE ABOVE CODE IS ACTUALLY COMPLETLY UNNECESSARY
-        
-        // check if we just deleted the first_elm of the bucket
-        // if so then pick a new one and make it link to the prev bucket
-        if(bucket != sl->buckets)
+        if(!is_empty)
         {
-            sl_index_t first_elm_in_this_bucket = sl_bucket_first_elm(bucket);
-            if(first_elm_in_this_bucket > index)
+            // check if we just deleted the first_elm of the bucket
+            // if so then pick a new one and make it link to the prev bucket
+            // if(bucket != sl->buckets)
             {
-                sl_bucket_t *prev_bucket;
-                
+                sl_index_t first_elm_in_this_bucket = sl_bucket_first_elm(bucket);
+                if(first_elm_in_this_bucket > index)
                 {
-                    sl_bucket_t *current = sl->buckets;
-                    while(current->next != bucket)
+                    sl_bucket_t *prev_bucket;
+                    
                     {
-                        current = current->next;
+                        sl_bucket_t *current = sl->buckets;
+                        while(current->next != bucket)
+                        {
+                            current = current->next;
+                        }
+                        prev_bucket = current;
                     }
-                    prev_bucket = current;
-                }
-                
-                sl_index_t last_elm_in_prev_bucket = sl_bucket_last_elm(prev_bucket);
-                uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[first_elm_in_this_bucket];
-                for(sl_index_t k = last_elm_in_prev_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
-                {
-                    uintptr_t addrs_of_curr_elm = (uintptr_t) &prev_bucket->elms[k];
-                    prev_bucket->elms[k].next_elm_offset = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+                    
+                    sl_index_t last_elm_in_prev_bucket = sl_bucket_last_elm(prev_bucket);
+                    uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[first_elm_in_this_bucket];
+                    for(sl_index_t k = last_elm_in_prev_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
+                    {
+                        uintptr_t addrs_of_curr_elm = (uintptr_t) &prev_bucket->elms[k];
+                        prev_bucket->elms[k].next_elm_offset = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+                    }
                 }
             }
+        }
+        else
+        {
+            // find the first elm in the next bucket, make the previous bucket offset to it
+            // if no next bucket, make the prev bucket point to its last dummy elm at [SL_BUCKET_SIZE]
         }
     }
     
