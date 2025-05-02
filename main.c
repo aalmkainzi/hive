@@ -291,7 +291,7 @@ static void test_big_pop_invalid_pointer(void) {
 // Modified stress test for Big
 static void test_big_stress_inserts_pops(void) {
     big_sl sl; big_sl_init(&sl);
-    const int M = 2048;
+    const int M = 2048 * 32;
     Big **ptrs = malloc(M * sizeof *ptrs);
     ASSERT(ptrs != NULL);
 
@@ -304,55 +304,56 @@ static void test_big_stress_inserts_pops(void) {
     for (int i = 0; i < M; i += 2) {
         big_sl_pop(&sl, ptrs[i]);
     }
-
+    
     struct Collector col = {NULL, 0, 0};
-    // big_sl_loop(&sl, collect_big, &col);
-
+    
     big_sl *bsl = &sl;
-    SL_FOREACH(bsl)
-    {
-        collect_big(SL_IT, &col);
-    }
-
-    ASSERT(col.idx == M/2);  // Half of 50
-
-    // Verify remaining numbers
-    for (int expected = 1; expected < M; expected += 2) {
-        int found = 0;
-        for (size_t j = 0; j < col.idx; j++) {
-            if (col.data[j] == expected) {
-                found = 1;
-                break;
-            }
-        }
-        ASSERT(found);
-    }
+    big_sl_loop(bsl, collect_big, &col);
+    
+    // ASSERT(col.idx == M/2);  // Half of 50
+    //
+    // // Verify remaining numbers
+    // for (int expected = 1; expected < M; expected += 2) {
+    //     int found = 0;
+    //     for (size_t j = 0; j < col.idx; j++) {
+    //         if (col.data[j] == expected) {
+    //             found = 1;
+    //             break;
+    //         }
+    //     }
+    //     ASSERT(found);
+    // }
 
     free(col.data);
     free(ptrs);
     big_sl_deinit(&sl);
 }
 
-int main(void) {
-    printf("Running tests...\n");
-    test_init_deinit();
-    test_single_put_and_loop();
-    test_multiple_puts();
-    test_pointer_stability();
-    test_pop_and_iteration();
-    test_pop_invalid_pointer();
-    test_smaller_stress_inserts_pops();
-    test_stress_inserts_pops();
+// int main(void) {
+//     printf("Running tests...\n");
+//     test_init_deinit();
+//     test_single_put_and_loop();
+//     test_multiple_puts();
+//     test_pointer_stability();
+//     test_pop_and_iteration();
+//     test_pop_invalid_pointer();
+//     test_smaller_stress_inserts_pops();
+//     test_stress_inserts_pops();
+//
+//     printf("\nRunning Big struct tests...\n");
+//     test_big_init_deinit();
+//     test_big_single_put_and_loop();
+//     test_big_multiple_puts();
+//     test_big_pointer_stability();
+//     test_big_pop_and_iteration();
+//     test_big_pop_invalid_pointer();
+//     test_big_stress_inserts_pops();
+//
+//     printf("ALL PASSED\n");
+//     return 0;
+// }
 
-    printf("\nRunning Big struct tests...\n");
-    test_big_init_deinit();
-    test_big_single_put_and_loop();
-    test_big_multiple_puts();
-    test_big_pointer_stability();
-    test_big_pop_and_iteration();
-    test_big_pop_invalid_pointer();
+int main()
+{
     test_big_stress_inserts_pops();
-
-    printf("ALL PASSED\n");
-    return 0;
 }

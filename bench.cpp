@@ -76,9 +76,10 @@ static void BM_List_Iteration(benchmark::State& state)
         {
             sum += value.i;
         }
+        
         benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
     }
-    benchmark::DoNotOptimize(sum);
 }
 
 static void BM_step_list(benchmark::State& state) {
@@ -96,11 +97,13 @@ static void BM_step_list(benchmark::State& state) {
     // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
         // This code gets timed
-        // int_sl_loop(&sl, accumSum, (void*) &sum);
-        SL_FOREACH(ssl)
-        {
-            sum += SL_IT->i;
-        }
+        big_sl_loop(&sl, accumSum, (void*) &sum);
+        // SL_FOREACH(ssl)
+        // {
+        //     sum += SL_IT->i;
+        // }
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
     }
     
     free(ptrs);
@@ -140,8 +143,8 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
             sum += value.i;
         }
         benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
     }
-    benchmark::DoNotOptimize(sum);
 }
 
 BENCHMARK(BM_List_Iteration)->Arg(2048 * 64);

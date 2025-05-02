@@ -13,7 +13,7 @@
 
 #if !defined(SL_BUCKET_SIZE)
 
-    #define SL_BUCKET_SIZE 255
+    #define SL_BUCKET_SIZE (511)
 
 #endif
 
@@ -25,16 +25,17 @@
 
 /*
 IDEAS:
-    - offset memory between buckets instead of next pointer (we have to keep track of the last elm then, shouldn't be a problem. Only caveat is that it's not exactly standard compliant to do that)
-    - each new bucket is double the size of the prev
+    - split the jump into its own buffer again, but do:
+    ```
+    struct offset_buffer_entry
+    {
+        uintptr_t elm_offset;
+        uintptr_t offset_offset;
+    };
+    ```
 */
 /*
 plan:
-    - make sure to delete empty nodes
-    - make the last elm jump of each bucket point to the next non empty elm in the next bucket (by using intptr_t)
-    - the loop will then be like `for(T *curElm = sl->buckets->elms + sl->buckets->first_elm_idx ; curElm != sl->last_elm ; i += jump_list[i] )
-        {body
-        i++;}
 */
 
 #define sl_bucket_t SL_CAT(SL_NAME, _bucket_t)
