@@ -3,18 +3,28 @@
 #include "plf_colony.h"
 #include "benchmark/benchmark.h"
 
+typedef struct Big
+{
+    char _m[256 - 4];
+    int i;
+
+    bool operator==(const Big& other) const {
+        return this->i == other.i;
+    }
+} Big;
+
 extern "C"
 {
-#define SL_ONLY_DECL
-#define SL_TYPE int
-#define SL_NAME int_sl
+// #define SL_ONLY_DECL
+#define SL_TYPE Big
+#define SL_NAME big_sl
 
 #include "step_list.h"
 }
 
-void accumSum(int *elm, void *arg)
+void accumSum(Big *elm, void *arg)
 {
-    *(int*)arg += *elm;
+    *(int*)arg += elm->i;
 }
 
 #define ARR_LEN(arr) \
@@ -31,13 +41,15 @@ for( \
 
 static void BM_List_Iteration(benchmark::State& state)
 {
-    std::list<int> ls;
+    std::list<Big> ls;
     const int N = state.range(0);
     
     std::vector<decltype(ls.begin())> elms;
     // Pre-populate the vector with N elements.
     for (int i = 0; i < N; ++i) {
-        ls.push_back(i);
+        Big b;
+        b.i = i;
+        ls.push_back(b);
         auto lsit = ls.begin();
         std::advance(lsit, i);
         elms.push_back(lsit);
@@ -62,7 +74,7 @@ static void BM_List_Iteration(benchmark::State& state)
         // Iterate over vector using a range-based for loop.
         for (const auto& value : ls)
         {
-            sum += value;
+            sum += value.i;
         }
         benchmark::ClobberMemory();
     }
@@ -71,39 +83,39 @@ static void BM_List_Iteration(benchmark::State& state)
 
 static void BM_step_list(benchmark::State& state) {
     // Perform setup here
-    int_sl sl; int_sl_init(&sl);
+    big_sl sl; big_sl_init(&sl);
     const int M = state.range(0);
-    int **ptrs = (int**) malloc(M * sizeof *ptrs);
+    Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
     for (int i = 0; i < M; i++)
-        ptrs[i] = int_sl_put(&sl, i);
+        ptrs[i] = big_sl_put(&sl, (Big){.i = i});
     for (int i = 0; i < M; i += 2)
-        int_sl_pop(&sl, ptrs[i]);
+        big_sl_pop(&sl, ptrs[i]);
     
     volatile unsigned int sum = 0;
-    int_sl *ssl = &sl;
+    big_sl *ssl = &sl;
     // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
         // This code gets timed
         // int_sl_loop(&sl, accumSum, (void*) &sum);
         SL_FOREACH(ssl)
         {
-            sum += *SL_IT;
+            sum += SL_IT->i;
         }
     }
     
     free(ptrs);
-    int_sl_deinit(&sl);
+    big_sl_deinit(&sl);
 }
 
 static void BM_PLFColony_Iteration(benchmark::State& state)
 {
-    plf::colony<int> i_colony;
+    plf::colony<Big> i_colony;
     const int N = state.range(0);
     
     std::vector<decltype(i_colony.begin())> elms;
     // Pre-populate the vector with N elements.
     for (int i = 0; i < N; ++i) {
-        elms.push_back(i_colony.insert(rand() - i));
+        elms.push_back(i_colony.insert((Big){.i=rand() - i}));
     }
     
     for(int i = 0 ; i < N ; i += 2)
@@ -125,7 +137,7 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
         // Iterate over vector using a range-based for loop.
         for (const auto& value : i_colony)
         {
-            sum += value;
+            sum += value.i;
         }
         benchmark::ClobberMemory();
     }
@@ -140,12 +152,12 @@ BENCHMARK_MAIN();
 
 // Structure to hold comparison context
 struct CompareContext {
-    const plf::colony<int>& vec;
+    const plf::colony<Big>& vec;
     bool match = true;
 };
 
 // Callback function for int_sl_loop
-static void compare_int(int* v, void* arg) {
+static void compare_int(Big* v, void* arg) {
     CompareContext* ctx = static_cast<CompareContext*>(arg);
     if (std::find(ctx->vec.begin(), ctx->vec.end(), *v) == ctx->vec.end()) {
         ctx->match = false;
@@ -153,12 +165,12 @@ static void compare_int(int* v, void* arg) {
 }
 
 // Function to compare int_sl and std::vector<int>
-bool step_list_equals_vector(const int_sl* sl, const plf::colony<int>& vec) {
+bool step_list_equals_vector(const big_sl* sl, const plf::colony<Big>& vec) {
     if (sl->count != vec.size()) {
         return false;
     }
     CompareContext ctx{vec};
-    int_sl_loop(sl, compare_int, (void*) &ctx);
+    big_sl_loop(sl, compare_int, (void*) &ctx);
     return ctx.match;
 }
 

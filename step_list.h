@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define SL_TYPE int
-
 #if !defined(SL_TYPE) || !defined(SL_NAME)
 
     #error "SL_TYPE and SL_NAME must be defined"
@@ -55,6 +53,7 @@ plan:
     #define sl_bucket_is_elm_within SL_CAT(SL_NAME, _bucket_is_elm_within)
     #define sl_bucket_first_elm     SL_CAT(SL_NAME, _bucket_first_elm)
     #define sl_bucket_last_elm      SL_CAT(SL_NAME, _bucket_last_elm)
+    #define sl_bucket_prev          SL_CAT(SL_NAME, _bucket_prev)
 #endif
 
 #define ARR_LEN(arr) \
@@ -511,6 +510,7 @@ bool sl_validate(SL_NAME *sl)
         
         bucket = bucket->next;
     }
+    return true;
 }
 
 #endif
