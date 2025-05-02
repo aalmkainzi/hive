@@ -44,7 +44,6 @@ static void test_init_deinit(void) {
     int_sl_deinit(&sl);
 }
 
-
 static void test_single_put_and_loop(void) {
     int_sl sl; int_sl_init(&sl);
     int *p = int_sl_put(&sl, 42);
@@ -116,7 +115,6 @@ static void test_pop_invalid_pointer(void) {
     int_sl_deinit(&sl);
 }
 
-
 static void test_stress_inserts_pops(void) {
     int_sl sl; int_sl_init(&sl);
     const int M = 10000;
@@ -143,6 +141,46 @@ static void test_stress_inserts_pops(void) {
     int_sl_deinit(&sl);
 }
 
+static void test_smaller_stress_inserts_pops(void) {
+    int_sl sl; int_sl_init(&sl);
+    const int M = 500;
+    int **ptrs = malloc(M * sizeof *ptrs);
+    ASSERT(ptrs != NULL);
+    
+    // Insert M elements
+    for (int i = 0; i < M; i++) {
+        ptrs[i] = int_sl_put(&sl, i);
+        ASSERT(ptrs[i] != NULL);
+    }
+    
+    // Pop every other element (25 pops)
+    for (int i = 0; i < M; i += 2) {
+        int_sl_pop(&sl, ptrs[i]);
+    }
+    
+    // Verify remaining elements
+    struct Collector c = {NULL, 0, 0};
+    int_sl_loop(&sl, collect_int, &c);
+    ASSERT(c.idx == (M/2));  // Should have 25 elements remaining
+    
+    // Check all odd numbers 1, 3, 5...49 exist
+    for (int expected = 1; expected < M; expected += 2) {
+        int found = 0;
+        for (size_t j = 0; j < c.idx; j++) {
+            if (c.data[j] == expected) {
+                found = 1;
+                break;
+            }
+        }
+        ASSERT(found);
+    }
+    
+    free(c.data);
+    free(ptrs);
+    int_sl_deinit(&sl);
+}
+
+
 int main(void) {
     printf("Running tests...\n");
     test_init_deinit();
@@ -151,6 +189,7 @@ int main(void) {
     test_pointer_stability();
     test_pop_and_iteration();
     test_pop_invalid_pointer();
+    test_smaller_stress_inserts_pops();
     test_stress_inserts_pops();
     printf("ALL PASSED\n");
     return 0;
