@@ -17,16 +17,17 @@ void accumSum(int *elm, void *arg)
     *(int*)arg += *elm;
 }
 
-#define SL_FOREACH(sl, body) \
-for(typeof((sl)->buckets) sl_it_bucket = (sl)->buckets ; sl_it_bucket != NULL ; sl_it_bucket = sl_it_bucket->next) \
-for(sl_u sl_it_elms = sl_it_bucket->first_elm_idx ; sl_it_elms < (sizeof(sl_it_bucket->elms) / sizeof(*(sl_it_bucket->elms))) - 1 ; sl_it_elms += sl_it_bucket->jump_list[sl_it_elms]) \
-do { \
-    body \
-    sl_it_elms++; \
-} while(0)
+#define ARR_LEN(arr) \
+sizeof(arr) / sizeof(arr[0])
 
+#define SL_FOREACH(sl) \
+for( \
+    typeof(&sl->buckets->elms[0]) current_entry = &sl->buckets->elms[sl->buckets->first_elm_idx], last_entry = &sl->tail->elms[ARR_LEN(sl->buckets->elms)-1] ; \
+    current_entry != last_entry ; \
+    ++current_entry, current_entry = (typeof(&sl->buckets->elms[0]))((unsigned char*)current_entry + current_entry->next_elm_offset))
+    
 #define SL_IT \
-((int*const) &sl_it_bucket->elms[sl_it_elms])
+((typeof(current_entry->value)*const) &current_entry->value)
 
 static void BM_List_Iteration(benchmark::State& state)
 {
@@ -54,6 +55,7 @@ static void BM_List_Iteration(benchmark::State& state)
         }
     }
     
+    // printf("std::list size = %zu\n", ls.size());
     volatile unsigned int sum = 0;
     for (auto _ : state)
     {
@@ -78,11 +80,15 @@ static void BM_step_list(benchmark::State& state) {
         int_sl_pop(&sl, ptrs[i]);
     
     volatile unsigned int sum = 0;
-    
+    int_sl *ssl = &sl;
+    // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
         // This code gets timed
         // int_sl_loop(&sl, accumSum, (void*) &sum);
-        SL_FOREACH(&sl, sum += *SL_IT;);
+        SL_FOREACH(ssl)
+        {
+            sum += *SL_IT;
+        }
     }
     
     free(ptrs);
@@ -112,6 +118,7 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
         }
     }
     
+    // printf("std::list size = %zu\n", i_colony.size());
     volatile unsigned int sum = 0;
     for (auto _ : state)
     {
@@ -125,8 +132,7 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     benchmark::DoNotOptimize(sum);
 }
 
-
-BENCHMARK(BM_List_Iteration)->Arg(2048 * 32);
+BENCHMARK(BM_List_Iteration)->Arg(2048 * 64);
 BENCHMARK(BM_step_list)->Arg(2048 * 64);
 BENCHMARK(BM_PLFColony_Iteration)->Arg(2048 * 64);
 

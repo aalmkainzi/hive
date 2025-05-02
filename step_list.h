@@ -15,7 +15,7 @@
 
 #if !defined(SL_BUCKET_SIZE)
 
-    #define SL_BUCKET_SIZE 10
+    #define SL_BUCKET_SIZE 255
 
 #endif
 
@@ -57,16 +57,17 @@ plan:
     #define sl_bucket_last_elm      SL_CAT(SL_NAME, _bucket_last_elm)
 #endif
 
-#define SL_FOREACH(sl, body) \
-for(typeof((sl)->buckets) sl_it_bucket = (sl)->buckets ; sl_it_bucket != NULL ; sl_it_bucket = sl_it_bucket->next) \
-for(sl_u sl_it_elms = sl_it_bucket->first_elm_idx ; sl_it_elms < (sizeof(sl_it_bucket->elms) / sizeof(*(sl_it_bucket->elms))) - 1 ; sl_it_elms += sl_it_bucket->jump_list[sl_it_elms]) \
-do { \
-    body \
-    sl_it_elms++; \
-} while(0)
+#define ARR_LEN(arr) \
+sizeof(arr) / sizeof(arr[0])
+
+#define SL_FOREACH(sl) \
+for( \
+typeof(&sl->buckets->elms[0]) current_entry = &sl->buckets->elms[sl->buckets->first_elm_idx], last_entry = &sl->tail->elms[ARR_LEN(sl->buckets->elms)-1] ; \
+current_entry != last_entry ; \
+++current_entry, current_entry = (typeof(&sl->buckets->elms[0]))((unsigned char*)current_entry + current_entry->next_elm_offset))
 
 #define SL_IT \
-((int*const) &sl_it_bucket->elms[sl_it_elms])
+((typeof(current_entry->value)*const) &current_entry->value)
 
 typedef struct sl_entry_t
 {
