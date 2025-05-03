@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define SL_TYPE int
 #if !defined(SL_TYPE) || !defined(SL_NAME)
 
     #error "SL_TYPE and SL_NAME must be defined"
@@ -33,21 +34,26 @@ IDEAS:
         uintptr_t offset_offset;
     };
     ```
+    TODO holdonholdonholdon
+    do we even need to do that?
+    the offset between any index in the offest array and the same index in the elm array is always the same, no?
 */
 /*
 plan:
 */
 
-#define sl_bucket_t SL_CAT(SL_NAME, _bucket_t)
-#define sl_entry_t  SL_CAT(SL_NAME, _entry_t)
-#define sl_init     SL_CAT(SL_NAME, _init)
-#define sl_put      SL_CAT(SL_NAME, _put)
-#define sl_pop      SL_CAT(SL_NAME, _pop)
-#define sl_loop     SL_CAT(SL_NAME, _loop)
-#define sl_deinit   SL_CAT(SL_NAME, _deinit)
-#define sl_validate SL_CAT(SL_NAME, _validate)
+#define sl_bucket_t       SL_CAT(SL_NAME, _bucket_t)
+#define sl_entry_t        SL_CAT(SL_NAME, _entry_t)
+#define sl_offset_entry_t SL_CAT(SL_NAME, _offset_entry_t)
+#define sl_init           SL_CAT(SL_NAME, _init)
+#define sl_put            SL_CAT(SL_NAME, _put)
+#define sl_pop            SL_CAT(SL_NAME, _pop)
+#define sl_loop           SL_CAT(SL_NAME, _loop)
+#define sl_deinit         SL_CAT(SL_NAME, _deinit)
+#define sl_validate       SL_CAT(SL_NAME, _validate)
 
 #if !defined(SL_ONLY_DECL)
+    #define sl_elms_offsets_offset  SL_CAT(SL_NAME, _elms_offsets_offset)
     #define sl_bucket_init          SL_CAT(SL_NAME, _bucket_init)
     #define sl_bucket_put           SL_CAT(SL_NAME, _bucket_put)
     #define sl_bucket_pop           SL_CAT(SL_NAME, _bucket_pop)
@@ -72,13 +78,19 @@ current_entry != last_entry ; \
 typedef struct sl_entry_t
 {
     typeof(SL_TYPE) value;
-    uintptr_t next_elm_offset;
+    // uintptr_t next_elm_offset;
 } sl_entry_t;
+
+typedef struct sl_offset_entry_t
+{
+    uintptr_t elm_offset;
+} sl_offset_entry_t;
 
 typedef struct sl_bucket_t
 {
     sl_index_t first_elm_idx;
     sl_entry_t elms[SL_BUCKET_SIZE + 1];
+    sl_offset_entry_t offsets[SL_BUCKET_SIZE + 1];
     struct sl_bucket_t *next;
 } sl_bucket_t;
 
@@ -98,6 +110,11 @@ void sl_loop(const SL_NAME *sl, void(*f)(SL_TYPE*,void*), void *arg);
 void sl_deinit(SL_NAME *sl);
 
 #if !defined(SL_ONLY_DECL)
+
+// offset from offsets to elms
+// used like
+// elm_ptr = (uintptr_t)offsets[i] + sl_elms_offsets_offset;
+const uintptr_t sl_elms_offsets_offset = offsetof(sl_bucket_t, elms) - offsetof(sl_bucket_t, offsets);
 
 void sl_bucket_init(sl_bucket_t *bucket);
 SL_TYPE *sl_bucket_put(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE new_elm);
@@ -123,7 +140,7 @@ SL_TYPE *sl_bucket_put(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE new_elm)
     int emptyIndex = 0;
     for( ; emptyIndex < SL_BUCKET_SIZE ; emptyIndex++)
     {
-        if(bucket->elms[emptyIndex].next_elm_offset != 0)
+        if(bucket->offsets[emptyIndex].elm_offset != 0)
             goto emptyIndexFound;
     }
     return NULL;
@@ -131,17 +148,21 @@ SL_TYPE *sl_bucket_put(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE new_elm)
     emptyIndexFound:
     bucket->elms[emptyIndex].value = new_elm;
     
-    bucket->elms[emptyIndex].next_elm_offset = 0;
+    bucket->offsets[emptyIndex].elm_offset = 0;
+    bucket->offsets[emptyIndex].offset_entry_offset = 0;
     
     if(emptyIndex < bucket->first_elm_idx)
     {
         bucket->first_elm_idx = emptyIndex;
         uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[bucket->first_elm_idx];
+        uintptr_t addrs_of_first_offset_in_this_bucket = (uintptr_t) &bucket->offsets[bucket->first_elm_idx];
         // TODO make all the prev empty elms in this bucket offset to the new first elm
         for(sl_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
         {
             uintptr_t addrs_of_curr_elm = (uintptr_t) &bucket->elms[i];
-            bucket->elms[i].next_elm_offset = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+            uintptr_t addrs_of_curr_offset = (uintptr_t) &bucket->offsets[i];
+            bucket->offsets[i].elm_offset = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+            bucket->offsets[i].offset_entry_offset = addrs_of_first_offset_in_this_bucket - addrs_of_curr_offset;
         }
         
         if(bucket != sl->buckets)
@@ -151,10 +172,13 @@ SL_TYPE *sl_bucket_put(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE new_elm)
             
             sl_index_t last_elm_in_prev_bucket = sl_bucket_last_elm(prev_bucket);
             uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[bucket->first_elm_idx];
+            uintptr_t addrs_of_first_offset_in_this_bucket = (uintptr_t) &bucket->offsets[bucket->first_elm_idx];
             for(sl_index_t k = last_elm_in_prev_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
             {
-                uintptr_t addrs_of_curr_elm = (uintptr_t) &prev_bucket->elms[k];
-                prev_bucket->elms[k].next_elm_offset = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+                uintptr_t addrs_of_curr_elm    = (uintptr_t) &prev_bucket->elms[k];
+                uintptr_t addrs_of_curr_offset = (uintptr_t) &prev_bucket->offsets[k];
+                prev_bucket->offsets[k].elm_offset = addrs_of_first_elm_in_this_bucket - addrs_of_curr_elm;
+                prev_bucket->offsets[k].elm_offset = addrs_of_first_offset_in_this_bucket - addrs_of_curr_offset;
             }
         }
     }
@@ -175,7 +199,7 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
 {
     sl_entry_t *as_entry = (sl_entry_t*) elm;
     ptrdiff_t index = as_entry - bucket->elms;
-    if(bucket->elms[index].next_elm_offset != 0)
+    if(bucket->offsets[index].elm_offset != 0)
         return false;
     
     bool is_first_elm = false;
@@ -186,12 +210,14 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
     }
     
     // index + 1 is always safe to access because we have a dummy index (the actual size of the array is SL_BUCKET_SIZE + 1)
-    bucket->elms[index].next_elm_offset = bucket->elms[index + 1].next_elm_offset + (1 * sizeof(sl_entry_t));
+    bucket->offsets[index].elm_offset = bucket->offsets[index + 1].elm_offset + (1 * sizeof(sl_entry_t));
+    bucket->offsets[index].offset_entry_offset = bucket->offsets[index + 1].offset_entry_offset + (1 * sizeof(sl_offset_entry_t));
     
-    for(ptrdiff_t i = index - 1 ; i >= 0 && bucket->elms[i].next_elm_offset != 0 ; i--)
+    for(ptrdiff_t i = index - 1 ; i >= 0 && bucket->offsets[i].elm_offset != 0 ; i--)
     {
         // TODO fact check the (index - i)
-        bucket->elms[i].next_elm_offset = bucket->elms[index].next_elm_offset + ((index - i) * sizeof(sl_entry_t));
+        bucket->offsets[i].elm_offset = bucket->offsets[index].elm_offset + ((index - i) * sizeof(sl_entry_t));
+        bucket->offsets[i].offset_entry_offset = bucket->offsets[index].offset_entry_offset + ((index - i) * sizeof(sl_offset_entry_t));
     }
     
     bool is_empty = false;
