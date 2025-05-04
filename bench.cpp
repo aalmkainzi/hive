@@ -80,9 +80,7 @@ static void BM_step_list(benchmark::State& state) {
     
     volatile unsigned int sum = 0;
     big_sl *ssl = &sl;
-    // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
-        // big_sl_foreach(&sl, accumSum, (void*) &sum);
         
         SL_FOREACH(ssl, sum += SL_IT->i; );
         
@@ -106,11 +104,7 @@ static void BM_step_list_iter(benchmark::State& state) {
     
     volatile unsigned int sum = 0;
     big_sl *ssl = &sl;
-    // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
-        // big_sl_foreach(&sl, accumSum, (void*) &sum);
-        
-        SL_FOREACH(ssl, sum += SL_IT->i; );
         
         for(big_sl_iter_t it  = big_sl_begin(&sl),
                           end = big_sl_end(&sl)  ;
@@ -193,11 +187,11 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     }
 }
 
-// BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 8);
-BENCHMARK(BM_step_list)->RangeMultiplier(2)->Range(16, 2048 * 32);
-BENCHMARK(BM_step_list_func)->RangeMultiplier(2)->Range(16, 2048 * 32);
-BENCHMARK(BM_step_list_iter)->RangeMultiplier(2)->Range(16, 2048 * 32);
-//BENCHMARK(BM_PLFColony_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 8);
+//BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 64);
+//BENCHMARK(BM_step_list)->RangeMultiplier(2)->Range(16, 2048 * 64);
+//BENCHMARK(BM_step_list_func)->RangeMultiplier(2)->Range(16, 2048 * 64);
+BENCHMARK(BM_step_list_iter)->RangeMultiplier(2)->Range(16, 2048 * 128);
+BENCHMARK(BM_PLFColony_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 128);
 
 BENCHMARK_MAIN();
 
