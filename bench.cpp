@@ -15,7 +15,7 @@ typedef struct Big
 
 extern "C"
 {
-// #define SL_ONLY_DECL
+#define SL_IMPL
 #define SL_TYPE Big
 #define SL_NAME big_sl
 
@@ -33,7 +33,6 @@ static void BM_List_Iteration(benchmark::State& state)
     const int N = state.range(0);
     
     std::vector<decltype(ls.begin())> elms;
-    // Pre-populate the vector with N elements.
     for (int i = 0; i < N; ++i) {
         Big b;
         b.i = i;
@@ -59,7 +58,6 @@ static void BM_List_Iteration(benchmark::State& state)
     volatile unsigned int sum = 0;
     for (auto _ : state)
     {
-        // Iterate over vector using a range-based for loop.
         for (const auto& value : ls)
         {
             sum += value.i;
@@ -84,10 +82,73 @@ static void BM_step_list(benchmark::State& state) {
     big_sl *ssl = &sl;
     // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
-        // This code gets timed
-        // big_sl_loop(&sl, accumSum, (void*) &sum);
+        // big_sl_foreach(&sl, accumSum, (void*) &sum);
         
         SL_FOREACH(ssl, sum += SL_IT->i; );
+        
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
+    }
+    
+    free(ptrs);
+    big_sl_deinit(&sl);
+}
+
+static void BM_step_list_iter(benchmark::State& state) {
+    // Perform setup here
+    big_sl sl; big_sl_init(&sl);
+    const int M = state.range(0);
+    Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
+    for (int i = 0; i < M; i++)
+        ptrs[i] = big_sl_put(&sl, (Big){.i = i});
+    for (int i = 0; i < M; i += 2)
+        big_sl_pop(&sl, ptrs[i]);
+    
+    volatile unsigned int sum = 0;
+    big_sl *ssl = &sl;
+    // printf("sl size = %zu\n", sl.count);
+    for (auto _ : state) {
+        // big_sl_foreach(&sl, accumSum, (void*) &sum);
+        
+        SL_FOREACH(ssl, sum += SL_IT->i; );
+        
+        for(big_sl_iter_t it  = big_sl_begin(&sl),
+                          end = big_sl_end(&sl)  ;
+            !big_sl_iter_eq(it, end)             ;
+            it = big_sl_iter_next(it) )
+        {
+            sum += big_sl_iter_elm(it)->i;
+        }
+        
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
+    }
+    
+    free(ptrs);
+    big_sl_deinit(&sl);
+}
+
+void add_sum(Big *big, void *arg)
+{
+    *(int*)arg += big->i;
+}
+
+static void BM_step_list_func(benchmark::State& state) {
+    // Perform setup here
+    big_sl sl; big_sl_init(&sl);
+    const int M = state.range(0);
+    Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
+    for (int i = 0; i < M; i++)
+        ptrs[i] = big_sl_put(&sl, (Big){.i = i});
+    for (int i = 0; i < M; i += 2)
+        big_sl_pop(&sl, ptrs[i]);
+    
+    volatile unsigned int sum = 0;
+    big_sl *ssl = &sl;
+    // printf("sl size = %zu\n", sl.count);
+    for (auto _ : state) {
+        
+        big_sl_foreach(ssl, add_sum, (void*)&sum);
         
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
@@ -103,7 +164,6 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     const int N = state.range(0);
     
     std::vector<decltype(i_colony.begin())> elms;
-    // Pre-populate the vector with N elements.
     for (int i = 0; i < N; ++i) {
         elms.push_back(i_colony.insert((Big){.i=rand() - i}));
     }
@@ -124,7 +184,6 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     volatile unsigned int sum = 0;
     for (auto _ : state)
     {
-        // Iterate over vector using a range-based for loop.
         for (const auto& value : i_colony)
         {
             sum += value.i;
@@ -134,33 +193,33 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     }
 }
 
-BENCHMARK(BM_List_Iteration)->Arg(2048 * 32);
-BENCHMARK(BM_step_list)->Arg(2048 * 32);
-BENCHMARK(BM_PLFColony_Iteration)->Arg(2048 * 32);
+// BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 8);
+BENCHMARK(BM_step_list)->RangeMultiplier(2)->Range(16, 2048 * 32);
+BENCHMARK(BM_step_list_func)->RangeMultiplier(2)->Range(16, 2048 * 32);
+BENCHMARK(BM_step_list_iter)->RangeMultiplier(2)->Range(16, 2048 * 32);
+//BENCHMARK(BM_PLFColony_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 8);
 
 BENCHMARK_MAIN();
 
-// Structure to hold comparison context
 struct CompareContext {
     const plf::colony<Big>& vec;
     bool match = true;
 };
 
-// Callback function for int_sl_loop
 static void compare_int(Big* v, void* arg) {
     CompareContext* ctx = static_cast<CompareContext*>(arg);
-    if (std::find(ctx->vec.begin(), ctx->vec.end(), *v) == ctx->vec.end()) {
+    if (std::find(ctx->vec.begin(), ctx->vec.end(), *v) == ctx->vec.end())
+    {
         ctx->match = false;
     }
 }
 
-// Function to compare int_sl and std::vector<int>
 bool step_list_equals_vector(const big_sl* sl, const plf::colony<Big>& vec) {
     if (sl->count != vec.size()) {
         return false;
     }
     CompareContext ctx{vec};
-    big_sl_loop(sl, compare_int, (void*) &ctx);
+    big_sl_foreach(sl, compare_int, (void*) &ctx);
     return ctx.match;
 }
 
