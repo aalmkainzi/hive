@@ -27,18 +27,6 @@ void accumSum(Big *elm, void *arg)
     *(int*)arg += elm->i;
 }
 
-#define ARR_LEN(arr) \
-sizeof(arr) / sizeof(arr[0])
-
-#define SL_FOREACH(sl) \
-for( \
-    typeof(&sl->buckets->elms[0]) current_entry = &sl->buckets->elms[sl->buckets->first_elm_idx], last_entry = &sl->tail->elms[ARR_LEN(sl->buckets->elms)-1] ; \
-    current_entry != last_entry ; \
-    ++current_entry, current_entry = (typeof(&sl->buckets->elms[0]))((unsigned char*)current_entry + current_entry->next_elm_offset))
-    
-#define SL_IT \
-((typeof(current_entry->value)*const) &current_entry->value)
-
 static void BM_List_Iteration(benchmark::State& state)
 {
     std::list<Big> ls;
@@ -97,11 +85,10 @@ static void BM_step_list(benchmark::State& state) {
     // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
         // This code gets timed
-        big_sl_loop(&sl, accumSum, (void*) &sum);
-        // SL_FOREACH(ssl)
-        // {
-        //     sum += SL_IT->i;
-        // }
+        // big_sl_loop(&sl, accumSum, (void*) &sum);
+        
+        SL_FOREACH(ssl, sum += SL_IT->i; );
+        
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
     }
@@ -147,9 +134,9 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     }
 }
 
-BENCHMARK(BM_List_Iteration)->Arg(2048 * 64);
-BENCHMARK(BM_step_list)->Arg(2048 * 64);
-BENCHMARK(BM_PLFColony_Iteration)->Arg(2048 * 64);
+BENCHMARK(BM_List_Iteration)->Arg(2048 * 32);
+BENCHMARK(BM_step_list)->Arg(2048 * 32);
+BENCHMARK(BM_PLFColony_Iteration)->Arg(2048 * 32);
 
 BENCHMARK_MAIN();
 
