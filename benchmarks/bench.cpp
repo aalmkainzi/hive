@@ -38,11 +38,11 @@ bool eq_big(Big a, Big b)
 
 extern "C"
 {
-#define SL_IMPL
-#define SL_TYPE Big
-#define SL_NAME big_sl
+#define SP_IMPL
+#define SP_TYPE Big
+#define SP_NAME big_sp
 
-#include "step_list.h"
+#include "stable_pool.h"
 }
 
 static void BM_slot_map_iteration(benchmark::State& state)
@@ -277,11 +277,11 @@ static void BM_PLFList_Iteration(benchmark::State& state)
 static void BM_step_list(benchmark::State& state) {
     // Perform setup here
     srand(69420);
-    big_sl sl; big_sl_init(&sl);
+    big_sp sl; big_sp_init(&sl);
     const int M = state.range(0);
     Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
     for (int i = 0; i < M; i++)
-        ptrs[i] = big_sl_put(&sl, (Big){.i = rand() - i});
+        ptrs[i] = big_sp_put(&sl, (Big){.i = rand() - i});
 
     std::mt19937 rng(42);
     std::vector<Big*> to_pop;
@@ -292,14 +292,14 @@ static void BM_step_list(benchmark::State& state) {
                 rng);
 
     for (Big* p : to_pop) {
-        big_sl_pop(&sl, p);
+        big_sp_pop(&sl, p);
     }
     
     volatile unsigned int sum = 0;
-    big_sl *ssl = &sl;
+    big_sp *ssl = &sl;
     for (auto _ : state) {
         
-        SL_FOREACH(ssl, sum += SL_IT->i; );
+        SP_FOREACH(ssl, sum += SP_IT->i; );
         
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
@@ -308,17 +308,17 @@ static void BM_step_list(benchmark::State& state) {
     }
     
     free(ptrs);
-    big_sl_deinit(&sl);
+    big_sp_deinit(&sl);
 }
 
 static void BM_step_list_iter(benchmark::State& state) {
     // Perform setup here
     srand(69420);
-    big_sl sl; big_sl_init(&sl);
+    big_sp sl; big_sp_init(&sl);
     const int M = state.range(0);
     Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
     for (int i = 0; i < M; i++)
-        ptrs[i] = big_sl_put(&sl, (Big){.i = rand() - i});
+        ptrs[i] = big_sp_put(&sl, (Big){.i = rand() - i});
     
     std::mt19937 rng(42);
     std::vector<Big*> to_pop;
@@ -329,20 +329,20 @@ static void BM_step_list_iter(benchmark::State& state) {
                 rng);
 
     for (Big* p : to_pop) {
-        big_sl_pop(&sl, p);
+        big_sp_pop(&sl, p);
     }
 
 
     volatile unsigned int sum = 0;
-    big_sl *ssl = &sl;
+    big_sp *ssl = &sl;
     for (auto _ : state) {
         
-        for(big_sl_iter_t it  = big_sl_begin(&sl),
-                          end = big_sl_end(&sl)  ;
-            !big_sl_iter_eq(it, end)             ;
-            it = big_sl_iter_next(it) )
+        for(big_sp_iter_t it  = big_sp_begin(&sl),
+                          end = big_sp_end(&sl)  ;
+            !big_sp_iter_eq(it, end)             ;
+            it = big_sp_iter_next(it) )
         {
-            sum += big_sl_iter_elm(it)->i;
+            sum += big_sp_iter_elm(it)->i;
         }
         
         benchmark::ClobberMemory();
@@ -352,7 +352,7 @@ static void BM_step_list_iter(benchmark::State& state) {
     }
     
     free(ptrs);
-    big_sl_deinit(&sl);
+    big_sp_deinit(&sl);
 }
 
 void add_sum(Big *big, void *arg)
@@ -363,11 +363,11 @@ void add_sum(Big *big, void *arg)
 static void BM_step_list_func(benchmark::State& state) {
     // Perform setup here
     srand(69420);
-    big_sl sl; big_sl_init(&sl);
+    big_sp sl; big_sp_init(&sl);
     const int M = state.range(0);
     Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
     for (int i = 0; i < M; i++)
-        ptrs[i] = big_sl_put(&sl, (Big){.i = rand() - i});
+        ptrs[i] = big_sp_put(&sl, (Big){.i = rand() - i});
 
     std::mt19937 rng(42);
     std::vector<Big*> to_pop;
@@ -377,14 +377,14 @@ static void BM_step_list_func(benchmark::State& state) {
                 M / 2,
                 rng);
     for (Big* p : to_pop) {
-        big_sl_pop(&sl, p);
+        big_sp_pop(&sl, p);
     }
     volatile unsigned int sum = 0;
-    big_sl *ssl = &sl;
+    big_sp *ssl = &sl;
     // printf("sl size = %zu\n", sl.count);
     for (auto _ : state) {
         
-        big_sl_foreach(ssl, add_sum, (void*)&sum);
+        big_sp_foreach(ssl, add_sum, (void*)&sum);
         
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
@@ -393,7 +393,7 @@ static void BM_step_list_func(benchmark::State& state) {
     }
     
     free(ptrs);
-    big_sl_deinit(&sl);
+    big_sp_deinit(&sl);
 }
 
 static void BM_PLFColony_Iteration(benchmark::State& state)
@@ -440,7 +440,7 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
 BENCHMARK(BM_step_list_func)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 //BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(2)->Range(2048, 2048 * 128);
-BENCHMARK(BM_slot_map_iteration)     ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+//BENCHMARK(BM_slot_map_iteration)     ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 //BENCHMARK(BM_stable_vector_iteration)->RangeMultiplier(2)->Range(2048, 2048 * 512);
 //BENCHMARK(BM_PLFList_Iteration)      ->RangeMultiplier(2)->Range(2048, 2048 * 512);
 
