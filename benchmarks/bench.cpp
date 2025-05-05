@@ -1,9 +1,13 @@
 #include <list>
 #include <iterator>
 #include <random>
+#include <boost/container/stable_vector.hpp>
 #include "plf_colony.h"
+#include "plf_list.h"
 #include "benchmark/benchmark.h"
-// #include "cc.h"
+
+#define printf(...)
+// printf
 
 typedef struct Big
 {
@@ -15,6 +19,22 @@ typedef struct Big
     }
 } Big;
 
+uint64_t hash_big(Big b)
+{
+    return b.i;
+}
+
+bool eq_big(Big a, Big b)
+{
+    return a.i == b.i;
+}
+
+#define NAME big_set
+#define KEY_TY Big
+#define HASH_FN hash_big
+#define CMPR_FN eq_big
+#include "verstable.h"
+
 extern "C"
 {
 #define SL_IMPL
@@ -24,80 +44,35 @@ extern "C"
 #include "step_list.h"
 }
 
-void accumSum(Big *elm, void *arg)
+static void BM_stable_vector_iteration(benchmark::State& state)
 {
-    *(int*)arg += elm->i;
-}
-
-// static void BM_set_iteration(benchmark::State& state)
-// {
-//     set(Big) s;
-//     const int N = state.range(0);
-//
-//     std::vector<decltype(ls.begin())> elms;
-//     for (int i = 0; i < N; ++i) {
-//         Big b;
-//         b.i = i;
-//         ls.push_back(b);
-//         auto lsit = ls.begin();
-//         std::advance(lsit, i);
-//         elms.push_back(lsit);
-//     }
-//
-//     for(int i = 0 ; i < N ; i += 2)
-//     {
-//         for(auto it = ls.begin(); it != ls.end() ; it++)
-//         {
-//             if(it == elms[i])
-//             {
-//                 ls.erase(elms[i]);
-//                 break;
-//             }
-//         }
-//     }
-//
-//     // printf("std::list size = %zu\n", ls.size());
-//     volatile unsigned int sum = 0;
-//     for (auto _ : state)
-//     {
-//         for (const auto& value : ls)
-//         {
-//             sum += value.i;
-//         }
-//
-//         benchmark::ClobberMemory();
-//         benchmark::DoNotOptimize(sum);
-//     }
-// }
-
-static void BM_List_Iteration(benchmark::State& state)
-{
-    std::list<Big> ls;
+    srand(69420);
+    boost::container::stable_vector<Big> ls;
     const int N = state.range(0);
     
     std::vector<decltype(ls.begin())> elms;
     for (int i = 0; i < N; ++i) {
         Big b;
-        b.i = i;
+        b.i = rand() - i;
         ls.push_back(b);
         auto lsit = ls.begin();
         std::advance(lsit, i);
         elms.push_back(lsit);
     }
     
-    for(int i = 0 ; i < N ; i += 2)
+    std::mt19937 rng(42);
+    std::vector<decltype(ls.begin())> to_erase;
+    to_erase.reserve(N/2);
+    std::sample(elms.begin(), elms.end(),
+                std::back_inserter(to_erase),
+                N/2,
+                rng);
+    
+    for (auto it : to_erase)
     {
-        for(auto it = ls.begin(); it != ls.end() ; it++)
-        {
-            if(it == elms[i])
-            {
-                ls.erase(elms[i]);
-                break;
-            }
-        }
+        ls.erase(it);
     }
     
-    // printf("std::list size = %zu\n", ls.size());
     volatile unsigned int sum = 0;
     for (auto _ : state)
     {
@@ -108,8 +83,153 @@ static void BM_List_Iteration(benchmark::State& state)
         
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
+        
+        printf("list sum = %u\n", sum);
     }
 }
+
+void accumSum(Big *elm, void *arg)
+{
+    *(int*)arg += elm->i;
+}
+
+static void BM_set_iteration(benchmark::State& state)
+{
+    srand(69420);
+    big_set set;
+    big_set_init(&set);
+    const int N = state.range(0);
+    
+    std::vector<Big> elms;
+    for (int i = 0; i < N; ++i)
+    {
+        Big b;
+        b.i = rand() - i;
+        big_set_itr lsit = big_set_insert(&set, b);
+        elms.push_back(b);
+    }
+    
+    std::mt19937 rng(42);
+    std::vector<Big> to_erase;
+    to_erase.reserve(N/2);
+    std::sample(elms.begin(), elms.end(),
+                std::back_inserter(to_erase),
+                N/2,
+                rng);
+    
+    for (auto it : to_erase)
+    {
+        Big bsi = it;
+        big_set_erase(&set, bsi);
+    }
+    
+    volatile unsigned int sum = 0;
+    for (auto _ : state)
+    {
+        for (big_set_itr itr = big_set_first( &set );
+             !big_set_is_end( itr );
+             itr = big_set_next( itr ))
+        {
+            sum += itr.data->key.i;
+        }
+    
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
+        
+        printf("set sum = %u\n", sum);
+    }
+    
+    big_set_cleanup(&set);
+}
+
+static void BM_List_Iteration(benchmark::State& state)
+{
+    srand(69420);
+    std::list<Big> ls;
+    const int N = state.range(0);
+    
+    std::vector<decltype(ls.begin())> elms;
+    for (int i = 0; i < N; ++i) {
+        Big b;
+        b.i = rand() - i;
+        ls.push_back(b);
+        auto lsit = ls.begin();
+        std::advance(lsit, i);
+        elms.push_back(lsit);
+    }
+    
+    std::mt19937 rng(42);
+    std::vector<decltype(ls.begin())> to_erase;
+    to_erase.reserve(N/2);
+    std::sample(elms.begin(), elms.end(),
+                std::back_inserter(to_erase),
+                N/2,
+                rng);
+    
+    for (auto it : to_erase)
+    {
+        ls.erase(it);
+    }
+    
+    volatile unsigned int sum = 0;
+    for (auto _ : state)
+    {
+        for (const auto& value : ls)
+        {
+            sum += value.i;
+        }
+        
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
+        
+        printf("list sum = %u\n", sum);
+    }
+}
+
+static void BM_PLFList_Iteration(benchmark::State& state)
+{
+    srand(69420);
+    plf::list<Big> ls;
+    const int N = state.range(0);
+    
+    std::vector<decltype(ls.begin())> elms;
+    for (int i = 0; i < N; ++i) {
+        Big b;
+        b.i = rand() - i;
+        ls.push_back(b);
+        auto lsit = ls.begin();
+        std::advance(lsit, i);
+        elms.push_back(lsit);
+    }
+    
+    std::mt19937 rng(42);
+    std::vector<decltype(ls.begin())> to_erase;
+    to_erase.reserve(N/2);
+    std::sample(elms.begin(), elms.end(),
+                std::back_inserter(to_erase),
+                N/2,
+                rng);
+    
+    for (auto it : to_erase)
+    {
+        ls.erase(it);
+    }
+    
+    volatile unsigned int sum = 0;
+    for (auto _ : state)
+    {
+        for (const auto& value : ls)
+        {
+            sum += value.i;
+        }
+        
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
+        
+        printf("list sum = %u\n", sum);
+    }
+}
+
 
 static void BM_step_list(benchmark::State& state) {
     // Perform setup here
@@ -120,13 +240,13 @@ static void BM_step_list(benchmark::State& state) {
     for (int i = 0; i < M; i++)
         ptrs[i] = big_sl_put(&sl, (Big){.i = rand() - i});
 
-    std::mt19937 rng(42);  // fixed seed ⇒ reproducible sequence :contentReference[oaicite:2]{index=2}
+    std::mt19937 rng(42);
     std::vector<Big*> to_pop;
-    to_pop.reserve(M / 2); // avoid reallocations :contentReference[oaicite:3]{index=3}
+    to_pop.reserve(M / 2);
     std::sample(ptrs, ptrs + M,
                 std::back_inserter(to_pop),
                 M / 2,
-                rng);            // uniform sample without replacement :contentReference[oaicite:4]{index=4}
+                rng);
 
     for (Big* p : to_pop) {
         big_sl_pop(&sl, p);
@@ -141,7 +261,7 @@ static void BM_step_list(benchmark::State& state) {
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
 
-        //printf("stepsum = %d\n", sum);
+        printf("stepsum = %u\n", sum);
     }
     
     free(ptrs);
@@ -156,18 +276,14 @@ static void BM_step_list_iter(benchmark::State& state) {
     Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
     for (int i = 0; i < M; i++)
         ptrs[i] = big_sl_put(&sl, (Big){.i = rand() - i});
-    // for (int i = 0; i < M; i += 2)
-    //     big_sl_pop(&sl, ptrs[i]);
     
-
-    // 2) Deterministic random removal of M/2 elements
-    std::mt19937 rng(42);  // fixed seed ⇒ reproducible sequence :contentReference[oaicite:2]{index=2}
+    std::mt19937 rng(42);
     std::vector<Big*> to_pop;
-    to_pop.reserve(M / 2); // avoid reallocations :contentReference[oaicite:3]{index=3}
+    to_pop.reserve(M / 2);
     std::sample(ptrs, ptrs + M,
                 std::back_inserter(to_pop),
                 M / 2,
-                rng);            // uniform sample without replacement :contentReference[oaicite:4]{index=4}
+                rng);
 
     for (Big* p : to_pop) {
         big_sl_pop(&sl, p);
@@ -188,6 +304,8 @@ static void BM_step_list_iter(benchmark::State& state) {
         
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
+        
+         printf("step_it_sum = %u\n", sum);
     }
     
     free(ptrs);
@@ -196,24 +314,25 @@ static void BM_step_list_iter(benchmark::State& state) {
 
 void add_sum(Big *big, void *arg)
 {
-    *(int*)arg += big->i;
+    *(unsigned int*)arg += big->i;
 }
 
 static void BM_step_list_func(benchmark::State& state) {
     // Perform setup here
+    srand(69420);
     big_sl sl; big_sl_init(&sl);
     const int M = state.range(0);
     Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
     for (int i = 0; i < M; i++)
-        ptrs[i] = big_sl_put(&sl, (Big){.i = i});
+        ptrs[i] = big_sl_put(&sl, (Big){.i = rand() - i});
 
-    std::mt19937 rng(42);  // fixed seed ⇒ reproducible sequence :contentReference[oaicite:2]{index=2}
+    std::mt19937 rng(42);
     std::vector<Big*> to_pop;
-    to_pop.reserve(M / 2); // avoid reallocations :contentReference[oaicite:3]{index=3}
+    to_pop.reserve(M / 2);
     std::sample(ptrs, ptrs + M,
                 std::back_inserter(to_pop),
                 M / 2,
-                rng);            // uniform sample without replacement :contentReference[oaicite:4]{index=4}
+                rng);
     for (Big* p : to_pop) {
         big_sl_pop(&sl, p);
     }
@@ -226,6 +345,8 @@ static void BM_step_list_func(benchmark::State& state) {
         
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
+        
+         printf("step_func_sum = %u\n", sum);
     }
     
     free(ptrs);
@@ -238,7 +359,6 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     plf::colony<Big> i_colony;
     const int N = state.range(0);
 
-    // 1) Insert N items with arbitrary values
     std::vector<decltype(i_colony.begin())> elms;
     elms.reserve(N);
     for (int i = 0; i < N; ++i)
@@ -246,20 +366,19 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
         elms.push_back(i_colony.insert((Big){.i = rand() - i}));
     }
 
-    std::mt19937 rng(42);                            // fixed seed
+    std::mt19937 rng(42);
     std::vector<decltype(i_colony.begin())> to_erase;
     to_erase.reserve(N/2);
     std::sample(elms.begin(), elms.end(),
                 std::back_inserter(to_erase),
                 N/2,
-                rng);                            // C++17 std::sample :contentReference[oaicite:4]{index=4}
+                rng);
 
     for (auto it : to_erase)
     {
         i_colony.erase(it);
     }
 
-    // 3) Benchmark iteration over remaining elements
     volatile unsigned int sum = 0;
     for (auto _ : state)
     {
@@ -269,16 +388,17 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
         }
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
-        //printf("plfsum = %d\n", sum);
+        printf("plfsum = %u\n", sum);
     }
 }
 
-//BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->Range(16, 2048 * 64);
-BENCHMARK(BM_step_list)->RangeMultiplier(10)->Range(10, 100000);
-BENCHMARK(BM_step_list_func)->RangeMultiplier(10)->Range(10, 100000);
-BENCHMARK(BM_step_list_iter)->RangeMultiplier(10)->Range(10, 100000);
-BENCHMARK(BM_PLFColony_Iteration)->RangeMultiplier(10)->Range(10, 100000);
-
+// BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->     Range(512, 512 * 64);
+BENCHMARK(BM_step_list)              ->RangeMultiplier(10)->Range(1000, 100000);
+BENCHMARK(BM_step_list_func)         ->RangeMultiplier(10)->Range(1000, 100000);
+BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(10)->Range(1000, 100000);
+BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(10)->Range(1000, 100000);
+// BENCHMARK(BM_stable_vector_iteration)->RangeMultiplier(10)->Range(1000, 100000);
+BENCHMARK(BM_PLFList_Iteration)      ->RangeMultiplier(10)->Range(1000, 100000);
 //BENCHMARK(BM_step_list_iter)->Arg(2048 * 8);
 //BENCHMARK(BM_PLFColony_Iteration)->Arg(2048 * 8);
 
@@ -305,41 +425,3 @@ bool step_list_equals_vector(const big_sl* sl, const plf::colony<Big>& vec) {
     big_sl_foreach(sl, compare_int, (void*) &ctx);
     return ctx.match;
 }
-
-// int main()
-// {
-//     plf::colony<int> i_colony;
-//     const int N = 2048 * 32;
-//     
-//     std::vector<decltype(i_colony.begin())> elms;
-//     // Pre-populate the vector with N elements.
-//     for (int i = 0; i < N; ++i) {
-//         elms.push_back(i_colony.insert(i));
-//     }
-//     
-//     for(int i = 0 ; i < N ; i += 2)
-//     {
-//         for(auto it = i_colony.begin(); it != i_colony.end() ; it++)
-//         {
-//             if(it == elms[i])
-//             {
-//                 i_colony.erase(elms[i]);
-//                 break;
-//             }
-//         }
-//     }
-//     
-//     int_sl sl; int_sl_init(&sl);
-//     int **ptrs = (int**) malloc(N * sizeof *ptrs);
-//     for (int i = 0; i < N; i++)
-//         ptrs[i] = int_sl_put(&sl, i);
-//     for (int i = 0; i < N; i += 2)
-//         int_sl_pop(&sl, ptrs[i]);
-//     
-//     bool eq = step_list_equals_vector(&sl, i_colony);
-//     if(!eq)
-//         puts("NOT EQUAL");
-//     
-//     free(ptrs);
-//     int_sl_deinit(&sl);
-// }

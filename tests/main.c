@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
 
 #define ASSERT(expr)                                                          \
 do {                                                                      \
@@ -11,7 +13,6 @@ do {                                                                      \
     }                                                                     \
 } while (0)
 
-// Helper function for sorting integers
 static int compare_ints(const void *a, const void *b) {
     int arg1 = *(const int *)a;
     int arg2 = *(const int *)b;
@@ -51,8 +52,7 @@ static void test_single_put_and_loop(void) {
     int_sl sl; int_sl_init(&sl);
     int *p = int_sl_put(&sl, 42);
     ASSERT(p && *p == 42);
-    ASSERT(sl.count == (size_t)1); // Check count after insertion
-    struct Collector c = {NULL, 0, 0};
+    ASSERT(sl.count == (size_t)1);     struct Collector c = {NULL, 0, 0};
     int_sl_foreach(&sl, collect_int, &c);
     ASSERT(c.idx == 1);
     ASSERT(c.data[0] == 42);
@@ -65,16 +65,13 @@ static void test_multiple_puts(void) {
     const int N = 100;
     for (int i = 0; i < N; i++)
         ASSERT(int_sl_put(&sl, i) != NULL);
-    ASSERT(sl.count == (size_t)N); // Check count
-    
+    ASSERT(sl.count == (size_t)N);     
     struct Collector c = {NULL, 0, 0};
     int_sl_foreach(&sl, collect_int, &c);
     ASSERT(c.idx == (size_t)N);
     
-    qsort(c.data, c.idx, sizeof(int), compare_ints); // Sort collected data
-    for (size_t i = 0; i < c.idx; i++)
-        ASSERT(c.data[i] == (int)i); // Check sorted values
-        
+    qsort(c.data, c.idx, sizeof(int), compare_ints);     for (size_t i = 0; i < c.idx; i++)
+        ASSERT(c.data[i] == (int)i);         
     free(c.data);
     int_sl_deinit(&sl);
 }
@@ -86,8 +83,7 @@ static void test_pointer_stability(void) {
     int *p3 = int_sl_put(&sl, 30);
     ASSERT(sl.count == 3);
     int_sl_pop(&sl, p3);
-    ASSERT(sl.count == 2); // Check count after pop
-    ASSERT(*p1 == 10);
+    ASSERT(sl.count == 2);     ASSERT(*p1 == 10);
     ASSERT(*p2 == 20);
     int_sl_deinit(&sl);
 }
@@ -99,14 +95,12 @@ static void test_pop_and_iteration(void) {
     int *c = int_sl_put(&sl, 3);
     ASSERT(sl.count == 3);
     int_sl_pop(&sl, b);
-    ASSERT(sl.count == 2); // Check count after pop
-    
+    ASSERT(sl.count == 2);     
     struct Collector col = {NULL, 0, 0};
     int_sl_foreach(&sl, collect_int, &col);
     ASSERT(col.idx == 2);
     
-    qsort(col.data, col.idx, sizeof(int), compare_ints); // Sort and check values
-    ASSERT(col.data[0] == 1);
+    qsort(col.data, col.idx, sizeof(int), compare_ints);     ASSERT(col.data[0] == 1);
     ASSERT(col.data[1] == 3);
     
     free(col.data);
@@ -119,8 +113,7 @@ static void test_pop_invalid_pointer(void) {
     int dummy = 0;
     ASSERT(sl.count == 0);
     int_sl_pop(&sl, &dummy);
-    ASSERT(sl.count == 0); // Ensure count remains 0
-    int_sl_deinit(&sl);
+    ASSERT(sl.count == 0);     int_sl_deinit(&sl);
 }
 
 static void test_stress_inserts_pops(void) {
@@ -134,14 +127,12 @@ static void test_stress_inserts_pops(void) {
     
     for (int i = 0; i < M; i += 2)
         int_sl_pop(&sl, ptrs[i]);
-    ASSERT(sl.count == (size_t)M/2); // Check count after pops
-    
+    ASSERT(sl.count == (size_t)M/2);     
     struct Collector c = {NULL, 0, 0};
     int_sl_foreach(&sl, collect_int, &c);
     ASSERT(c.idx == (size_t)(M/2));
     
-    qsort(c.data, c.idx, sizeof(int), compare_ints); // Sort and check
-    for (size_t i = 0; i < c.idx; i++)
+    qsort(c.data, c.idx, sizeof(int), compare_ints);     for (size_t i = 0; i < c.idx; i++)
         ASSERT(c.data[i] == 1 + 2*(int)i);
     
     free(c.data);
@@ -169,8 +160,7 @@ static void test_smaller_stress_inserts_pops(void) {
     int_sl_foreach(&sl, collect_int, &c);
     ASSERT(c.idx == (size_t)(M/2));
     
-    qsort(c.data, c.idx, sizeof(int), compare_ints); // Sort and check
-    for (size_t i = 0; i < c.idx; i++)
+    qsort(c.data, c.idx, sizeof(int), compare_ints);     for (size_t i = 0; i < c.idx; i++)
         ASSERT(c.data[i] == 1 + 2*(int)i);
     
     free(c.data);
@@ -178,7 +168,6 @@ static void test_smaller_stress_inserts_pops(void) {
     int_sl_deinit(&sl);
 }
 
-// Big struct tests (similar modifications applied)
 
 typedef struct Big {
     char _m[256 - 4];
@@ -329,13 +318,11 @@ static void test_int_iteration_equivalence_after_random_pops(void) {
     int **ptrs = malloc(N * sizeof *ptrs);
     ASSERT(ptrs != NULL);
     
-    // Seed randomness and insert
-    srand(42);
+        srand(42);
     for (int i = 0; i < N; i++)
         ptrs[i] = int_sl_put(&sl, i);
     
-    // Randomly pop about half of them
-    for (int i = 0; i < N; i++) {
+        for (int i = 0; i < N; i++) {
         if (rand() % 2) {
             int_sl_pop(&sl, ptrs[i]);
             ptrs[i] = NULL;
@@ -346,14 +333,11 @@ static void test_int_iteration_equivalence_after_random_pops(void) {
     struct Collector col2 = {NULL, 0, 0};
     struct Collector col3 = {NULL, 0, 0};
     
-    // Method 1: function pointer
-    int_sl_foreach(&sl, collect_int, &col1);
+        int_sl_foreach(&sl, collect_int, &col1);
     
-    // Method 2: macro
-    SL_FOREACH(&sl, collect_int(SL_IT, &col2););
+        SL_FOREACH(&sl, collect_int(SL_IT, &col2););
     
-    // Method 3: iterator
-    for (int_sl_iter_t it = int_sl_begin(&sl), end = int_sl_end(&sl);
+        for (int_sl_iter_t it = int_sl_begin(&sl), end = int_sl_end(&sl);
          !int_sl_iter_eq(it, end);
     it = int_sl_iter_next(it)) {
         collect_int(int_sl_iter_elm(it), &col3);
@@ -424,6 +408,232 @@ static void test_big_iteration_equivalence_after_random_pops(void) {
     big_sl_deinit(&sl);
 }
 
+static void test_against_dynamic_array(void) {
+    int_sl sl;
+    int_sl_init(&sl);
+    int *expected = NULL;     
+    const int N = 20;
+        for (int i = 0; i < N; i++) {
+        int *ptr = int_sl_put(&sl, i);
+        ASSERT(ptr != NULL);
+        arrput(expected, i);
+    }
+    ASSERT(sl.count == (size_t)N);
+    ASSERT(arrlen(expected) == N);
+    
+        srand(12345);
+    
+        for (int i = 0; i < N/2; i++) {
+        if (arrlen(expected) == 0)
+            break;
+        
+                int idx = rand() % arrlen(expected);
+        int value = expected[idx];
+        
+                int_sl_iter_t it;
+        int *found = NULL;
+        for (it = int_sl_begin(&sl); !int_sl_iter_eq(it, int_sl_end(&sl)); it = int_sl_iter_next(it)) {
+            int *current = int_sl_iter_elm(it);
+            if (*current == value) {
+                found = current;
+                break;
+            }
+        }
+        ASSERT(found != NULL);
+        
+                int_sl_pop(&sl, found);
+        
+                arrdel(expected, idx);
+    }
+    
+        struct Collector collector = {0};
+    int_sl_foreach(&sl, collect_int, &collector);
+    
+        qsort(collector.data, collector.idx, sizeof(int), compare_ints);
+    qsort(expected, arrlen(expected), sizeof(int), compare_ints);
+    
+        ASSERT(collector.idx == (size_t)arrlen(expected));
+    
+        for (size_t i = 0; i < collector.idx; i++) {
+        ASSERT(collector.data[i] == expected[i]);
+    }
+    
+        free(collector.data);
+    arrfree(expected);
+    int_sl_deinit(&sl);
+}
+
+static void test_big_against_dynamic_array(void) {
+    big_sl sl;
+    big_sl_init(&sl);
+    int *expected = NULL;     
+    const int N = 50;     for (int i = 0; i < N; i++) {
+        Big *ptr = big_sl_put(&sl, (Big){.i = i});
+        ASSERT(ptr != NULL);
+        arrput(expected, i);
+    }
+    ASSERT(sl.count == (size_t)N);
+    ASSERT(arrlen(expected) == N);
+    
+    srand(67890);     
+        for (int i = 0; i < N/2; i++) {
+        if (arrlen(expected) == 0)
+            break;
+        
+        int idx = rand() % arrlen(expected);
+        int value = expected[idx];
+        
+                big_sl_iter_t it;
+        Big *found = NULL;
+        for (it = big_sl_begin(&sl); !big_sl_iter_eq(it, big_sl_end(&sl)); it = big_sl_iter_next(it)) {
+            Big *current = big_sl_iter_elm(it);
+            if (current->i == value) {
+                found = current;
+                break;
+            }
+        }
+        ASSERT(found != NULL);
+        
+        big_sl_pop(&sl, found);
+        arrdel(expected, idx);
+    }
+    
+        struct Collector collector = {0};
+    big_sl_foreach(&sl, collect_big, &collector);
+    
+        qsort(collector.data, collector.idx, sizeof(int), compare_ints);
+    qsort(expected, arrlen(expected), sizeof(int), compare_ints);
+    
+    ASSERT(collector.idx == (size_t)arrlen(expected));
+    for (size_t i = 0; i < collector.idx; i++) {
+        ASSERT(collector.data[i] == expected[i]);
+    }
+    
+    free(collector.data);
+    arrfree(expected);
+    big_sl_deinit(&sl);
+}
+
+static void test_insert_after_erase(void) {
+    int_sl sl;
+    int_sl_init(&sl);
+    int *expected = NULL;
+    
+        const int N = 1000;
+    for (int i = 0; i < N; i++) {
+        int *ptr = int_sl_put(&sl, i);
+        ASSERT(ptr != NULL);
+        arrput(expected, i);
+    }
+    ASSERT(sl.count == (size_t)N);
+    ASSERT(arrlen(expected) == N);
+    
+        srand(55555);
+    for (int i = 0; i < N/2; i++) {
+        if (arrlen(expected) == 0) break;
+        
+        int idx = rand() % arrlen(expected);
+        int value = expected[idx];
+        
+                int_sl_iter_t it;
+        int *found = NULL;
+        for (it = int_sl_begin(&sl); !int_sl_iter_eq(it, int_sl_end(&sl)); it = int_sl_iter_next(it)) {
+            int *current = int_sl_iter_elm(it);
+            if (*current == value) {
+                found = current;
+                break;
+            }
+        }
+        ASSERT(found != NULL);
+        
+        int_sl_pop(&sl, found);
+        arrdel(expected, idx);
+    }
+    
+        const int M = 2000;
+    for (int i = N; i < N + M; i++) {
+        int *ptr = int_sl_put(&sl, i);
+        ASSERT(ptr != NULL);
+        arrput(expected, i);
+    }
+    ASSERT(sl.count == (size_t)arrlen(expected));
+    
+        struct Collector collector = {0};
+    int_sl_foreach(&sl, collect_int, &collector);
+    
+    qsort(collector.data, collector.idx, sizeof(int), compare_ints);
+    qsort(expected, arrlen(expected), sizeof(int), compare_ints);
+    
+    ASSERT(collector.idx == (size_t)arrlen(expected));
+    for (size_t i = 0; i < collector.idx; i++) {
+        ASSERT(collector.data[i] == expected[i]);
+    }
+    
+        free(collector.data);
+    arrfree(expected);
+    int_sl_deinit(&sl);
+}
+
+static void test_big_insert_after_erase(void) {
+    big_sl sl;
+    big_sl_init(&sl);
+    int *expected = NULL;
+    
+        const int N = 500;
+    for (int i = 0; i < N; i++) {
+        Big *ptr = big_sl_put(&sl, (Big){.i = i});
+        ASSERT(ptr != NULL);
+        arrput(expected, i);
+    }
+    ASSERT(sl.count == (size_t)N);
+    ASSERT(arrlen(expected) == N);
+    
+        srand(99999);
+    for (int i = 0; i < N/2; i++) {
+        if (arrlen(expected) == 0) break;
+        
+        int idx = rand() % arrlen(expected);
+        int value = expected[idx];
+        
+                big_sl_iter_t it;
+        Big *found = NULL;
+        for (it = big_sl_begin(&sl); !big_sl_iter_eq(it, big_sl_end(&sl)); it = big_sl_iter_next(it)) {
+            Big *current = big_sl_iter_elm(it);
+            if (current->i == value) {
+                found = current;
+                break;
+            }
+        }
+        ASSERT(found != NULL);
+        
+        big_sl_pop(&sl, found);
+        arrdel(expected, idx);
+    }
+    
+        const int M = 1000;
+    for (int i = N; i < N + M; i++) {
+        Big *ptr = big_sl_put(&sl, (Big){.i = i});
+        ASSERT(ptr != NULL);
+        arrput(expected, i);
+    }
+    ASSERT(sl.count == (size_t)arrlen(expected));
+    
+        struct Collector collector = {0};
+    big_sl_foreach(&sl, collect_big, &collector);
+    
+    qsort(collector.data, collector.idx, sizeof(int), compare_ints);
+    qsort(expected, arrlen(expected), sizeof(int), compare_ints);
+    
+    ASSERT(collector.idx == (size_t)arrlen(expected));
+    for (size_t i = 0; i < collector.idx; i++) {
+        ASSERT(collector.data[i] == expected[i]);
+    }
+    
+        free(collector.data);
+    arrfree(expected);
+    big_sl_deinit(&sl);
+}
+
 int main(void) {
     printf("Running tests...\n");
     test_init_deinit();
@@ -435,6 +645,8 @@ int main(void) {
     test_smaller_stress_inserts_pops();
     test_stress_inserts_pops();
     test_int_iteration_equivalence_after_random_pops();
+    test_against_dynamic_array();
+    test_insert_after_erase();
     
     printf("\nRunning Big struct tests...\n");
     test_big_init_deinit();
@@ -445,6 +657,8 @@ int main(void) {
     test_big_pop_invalid_pointer();
     test_big_stress_inserts_pops();
     test_big_iteration_equivalence_after_random_pops();
+    test_big_against_dynamic_array();
+    test_big_insert_after_erase();
     
     printf("ALL PASSED\n");
     return 0;
