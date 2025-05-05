@@ -9,7 +9,7 @@ do {                                                                      \
         fprintf(stderr,                                                   \
         "ASSERT FAILED: %s\n  at %s:%d in %s()\n",            \
         #expr, __FILE__, __LINE__, __func__);                    \
-        exit(EXIT_FAILURE);                                               \
+        exit(1);                                               \
     }                                                                     \
 } while (0)
 
@@ -648,7 +648,6 @@ int main(void) {
     test_against_dynamic_array();
     test_insert_after_erase();
     
-    printf("\nRunning Big struct tests...\n");
     test_big_init_deinit();
     test_big_single_put_and_loop();
     test_big_multiple_puts();
