@@ -274,7 +274,7 @@ static void BM_PLFList_Iteration(benchmark::State& state)
 }
 
 
-static void BM_step_list(benchmark::State& state) {
+static void BM_stable_pool(benchmark::State& state) {
     // Perform setup here
     srand(69420);
     big_sp sl; big_sp_init(&sl);
@@ -311,7 +311,7 @@ static void BM_step_list(benchmark::State& state) {
     big_sp_deinit(&sl);
 }
 
-static void BM_step_list_iter(benchmark::State& state) {
+static void BM_stable_pool_iter(benchmark::State& state) {
     // Perform setup here
     srand(69420);
     big_sp sl; big_sp_init(&sl);
@@ -360,7 +360,7 @@ void add_sum(Big *big, void *arg)
     *(unsigned int*)arg += big->i;
 }
 
-static void BM_step_list_func(benchmark::State& state) {
+static void BM_stable_pool_func(benchmark::State& state) {
     // Perform setup here
     srand(69420);
     big_sp sl; big_sp_init(&sl);
@@ -436,9 +436,9 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
 }
 
 //BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->     Range(512, 512 * 64);
-//BENCHMARK(BM_step_list)              ->RangeMultiplier(2)->Range(2048, 2048 * 128);
-BENCHMARK(BM_step_list_func)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
-//BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+//BENCHMARK(BM_stable_pool)              ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+BENCHMARK(BM_stable_pool_func)       ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+//BENCHMARK(BM_stable_pool_iter)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 //BENCHMARK(BM_slot_map_iteration)     ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 //BENCHMARK(BM_stable_vector_iteration)->RangeMultiplier(2)->Range(2048, 2048 * 512);
