@@ -16,6 +16,20 @@
 
 #endif
 
+#if !defined(SL_ALLOC)
+
+    #define SL_ALLOC sl_alloc
+    #define SL_FREE  sl_free
+
+#else
+
+    #if !defined(SL_FREE)
+        #error "If you define SL_ALLOC you must define SL_FREE"
+    #endif
+
+#endif
+
+
 #define sl_index_t   int64_t
 #define SL_INDEX_MAX INT64_MAX
 

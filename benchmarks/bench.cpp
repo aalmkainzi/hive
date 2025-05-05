@@ -5,6 +5,7 @@
 #include "plf_colony.h"
 #include "plf_list.h"
 #include "benchmark/benchmark.h"
+#include "slot_map.h"
 
 #define printf(...)
 // printf
@@ -42,6 +43,48 @@ extern "C"
 #define SL_NAME big_sl
 
 #include "step_list.h"
+}
+
+static void BM_slot_map_iteration(benchmark::State& state)
+{
+    srand(69420);
+    dod::slot_map<Big> ls;
+    const int N = state.range(0);
+
+    std::vector<dod::slot_map_key64<Big>> elms;
+    for (int i = 0; i < N; ++i) {
+        Big b;
+        b.i = rand() - i;
+        dod::slot_map_key64<Big> lsit = ls.emplace(b);
+        elms.push_back(lsit);
+    }
+
+    std::mt19937 rng(42);
+    std::vector<dod::slot_map_key64<Big>> to_erase;
+    to_erase.reserve(N/2);
+    std::sample(elms.begin(), elms.end(),
+                std::back_inserter(to_erase),
+                N/2,
+                rng);
+
+    for (auto it : to_erase)
+    {
+        ls.pop(it);
+    }
+
+    volatile unsigned int sum = 0;
+    for (auto _ : state)
+    {
+        for (const auto& value : ls)
+        {
+            sum += value.i;
+        }
+
+        benchmark::ClobberMemory();
+        benchmark::DoNotOptimize(sum);
+
+        printf("sm sum = %u\n", sum);
+    }
 }
 
 static void BM_stable_vector_iteration(benchmark::State& state)
@@ -84,7 +127,7 @@ static void BM_stable_vector_iteration(benchmark::State& state)
         benchmark::ClobberMemory();
         benchmark::DoNotOptimize(sum);
         
-        printf("list sum = %u\n", sum);
+        printf("sv sum = %u\n", sum);
     }
 }
 
@@ -393,10 +436,11 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
 }
 
 //BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->     Range(512, 512 * 64);
-BENCHMARK(BM_step_list)              ->RangeMultiplier(2)->Range(2048, 2048 * 512);
-BENCHMARK(BM_step_list_func)         ->RangeMultiplier(2)->Range(2048, 2048 * 512);
-BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(2)->Range(2048, 2048 * 512);
-BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(2)->Range(2048, 2048 * 512);
+//BENCHMARK(BM_step_list)              ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+BENCHMARK(BM_step_list_func)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+//BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(2)->Range(2048, 2048 * 128);
+BENCHMARK(BM_slot_map_iteration)     ->RangeMultiplier(2)->Range(2048, 2048 * 128);
 //BENCHMARK(BM_stable_vector_iteration)->RangeMultiplier(2)->Range(2048, 2048 * 512);
 //BENCHMARK(BM_PLFList_Iteration)      ->RangeMultiplier(2)->Range(2048, 2048 * 512);
 
