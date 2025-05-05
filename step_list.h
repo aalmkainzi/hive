@@ -65,27 +65,27 @@
 #define SL_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
 
-#define SL_FOREACH(sl, body)                                                                                              \
-do                                                                                                                        \
-{                                                                                                                         \
-    typeof(sl) sl_sl = sl;                                                                                                \
-    typeof(sl_sl->buckets) sl_bucket = sl_sl->buckets;                                                                    \
-    if(sl_bucket)                                                                                                         \
-    {                                                                                                                     \
-        typeof(&sl_sl->buckets->elms[0]) sl_entryp = &sl_bucket->elms[sl_bucket->first_elm_idx];                          \
-        typeof(&sl_sl->buckets->next_ptrs[0]) sl_next_ptrp = &sl_bucket->next_ptrs[sl_bucket->first_elm_idx];                   \
+#define SL_FOREACH(sl, body)                                                                                                  \
+do                                                                                                                            \
+{                                                                                                                             \
+    typeof(sl) sl_sl = sl;                                                                                                    \
+    typeof(sl_sl->buckets) sl_bucket = sl_sl->buckets;                                                                        \
+    if(sl_bucket)                                                                                                             \
+    {                                                                                                                         \
+        typeof(&sl_sl->buckets->elms[0]) sl_entryp = &sl_bucket->elms[sl_bucket->first_elm_idx];                              \
+        typeof(&sl_sl->buckets->next_ptrs[0]) sl_next_ptrp = &sl_bucket->next_ptrs[sl_bucket->first_elm_idx];                 \
         typeof(&sl_sl->buckets->next_ptrs[0]) sl_lastentry = &sl_sl->tail->next_ptrs[ SL_ARR_LEN(sl_sl->buckets->elms) - 1 ]; \
-        for(                                                                                                              \
-            ;                                                                                                             \
-            sl_next_ptrp != sl_lastentry ;                                                                                  \
-            ++sl_next_ptrp,                                                                                                 \
-            ++sl_entryp, sl_entryp = sl_next_ptrp->next_entry,                                                              \
+        for(                                                                                                                  \
+            ;                                                                                                                 \
+            sl_next_ptrp != sl_lastentry ;                                                                                    \
+            ++sl_next_ptrp,                                                                                                   \
+            ++sl_entryp, sl_entryp = sl_next_ptrp->next_entry,                                                                \
             sl_next_ptrp = sl_next_ptrp->next                                                                                 \
-        )                                                                                                                 \
-        {                                                                                                                 \
-            body                                                                                                          \
-        }                                                                                                                 \
-    }                                                                                                                     \
+        )                                                                                                                     \
+        {                                                                                                                     \
+            body                                                                                                              \
+        }                                                                                                                     \
+    }                                                                                                                         \
 } while(0)
 
 #define SL_IT \
@@ -558,8 +558,8 @@ sl_iter_t sl_end(SL_NAME *sl)
 sl_iter_t sl_iter_next(sl_iter_t it)
 {
     it.next_ptr_entry += 1;
-    it.elm_entry    += 1;
-    it.elm_entry    = it.next_ptr_entry->next_entry;
+    it.elm_entry      += 1;
+    it.elm_entry      = it.next_ptr_entry->next_entry;
     it.next_ptr_entry = it.next_ptr_entry->next;
     return it;
 }
