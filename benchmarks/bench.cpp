@@ -401,25 +401,3 @@ BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(2)->Range(2048, 2048 * 51
 //BENCHMARK(BM_PLFList_Iteration)      ->RangeMultiplier(2)->Range(2048, 2048 * 512);
 
 BENCHMARK_MAIN();
-
-struct CompareContext {
-    const plf::colony<Big>& vec;
-    bool match = true;
-};
-
-static void compare_int(Big* v, void* arg) {
-    CompareContext* ctx = static_cast<CompareContext*>(arg);
-    if (std::find(ctx->vec.begin(), ctx->vec.end(), *v) == ctx->vec.end())
-    {
-        ctx->match = false;
-    }
-}
-
-bool step_list_equals_vector(const big_sl* sl, const plf::colony<Big>& vec) {
-    if (sl->count != vec.size()) {
-        return false;
-    }
-    CompareContext ctx{vec};
-    big_sl_foreach(sl, compare_int, (void*) &ctx);
-    return ctx.match;
-}
