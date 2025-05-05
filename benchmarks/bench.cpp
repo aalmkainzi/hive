@@ -392,15 +392,13 @@ static void BM_PLFColony_Iteration(benchmark::State& state)
     }
 }
 
-// BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->     Range(512, 512 * 64);
-BENCHMARK(BM_step_list)              ->RangeMultiplier(10)->Range(1000, 100000);
-BENCHMARK(BM_step_list_func)         ->RangeMultiplier(10)->Range(1000, 100000);
-BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(10)->Range(1000, 100000);
-BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(10)->Range(1000, 100000);
-// BENCHMARK(BM_stable_vector_iteration)->RangeMultiplier(10)->Range(1000, 100000);
-BENCHMARK(BM_PLFList_Iteration)      ->RangeMultiplier(10)->Range(1000, 100000);
-//BENCHMARK(BM_step_list_iter)->Arg(2048 * 8);
-//BENCHMARK(BM_PLFColony_Iteration)->Arg(2048 * 8);
+//BENCHMARK(BM_List_Iteration)->RangeMultiplier(2)->     Range(512, 512 * 64);
+BENCHMARK(BM_step_list)              ->RangeMultiplier(2)->Range(2048, 2048 * 512);
+BENCHMARK(BM_step_list_func)         ->RangeMultiplier(2)->Range(2048, 2048 * 512);
+BENCHMARK(BM_step_list_iter)         ->RangeMultiplier(2)->Range(2048, 2048 * 512);
+BENCHMARK(BM_PLFColony_Iteration)    ->RangeMultiplier(2)->Range(2048, 2048 * 512);
+//BENCHMARK(BM_stable_vector_iteration)->RangeMultiplier(2)->Range(2048, 2048 * 512);
+//BENCHMARK(BM_PLFList_Iteration)      ->RangeMultiplier(2)->Range(2048, 2048 * 512);
 
 BENCHMARK_MAIN();
 

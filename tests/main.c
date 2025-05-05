@@ -312,17 +312,18 @@ static void test_big_stress_inserts_pops(void) {
     big_sl_deinit(&sl);
 }
 
-static void test_int_iteration_equivalence_after_random_pops(void) {
+static void test_int_iteration_equivalence_after_random_pops(void)
+{
     int_sl sl; int_sl_init(&sl);
     const int N = 1024;
     int **ptrs = malloc(N * sizeof *ptrs);
     ASSERT(ptrs != NULL);
-    
+
         srand(42);
-    for (int i = 0; i < N; i++)
+    for(int i = 0; i < N; i++)
         ptrs[i] = int_sl_put(&sl, i);
-    
-        for (int i = 0; i < N; i++) {
+
+    for (int i = 0; i < N; i++) {
         if (rand() % 2) {
             int_sl_pop(&sl, ptrs[i]);
             ptrs[i] = NULL;
@@ -427,10 +428,10 @@ static void test_against_dynamic_array(void) {
         if (arrlen(expected) == 0)
             break;
         
-                int idx = rand() % arrlen(expected);
+        int idx = rand() % arrlen(expected);
         int value = expected[idx];
         
-                int_sl_iter_t it;
+        int_sl_iter_t it;
         int *found = NULL;
         for (it = int_sl_begin(&sl); !int_sl_iter_eq(it, int_sl_end(&sl)); it = int_sl_iter_next(it)) {
             int *current = int_sl_iter_elm(it);
@@ -441,9 +442,9 @@ static void test_against_dynamic_array(void) {
         }
         ASSERT(found != NULL);
         
-                int_sl_pop(&sl, found);
-        
-                arrdel(expected, idx);
+        int_sl_pop(&sl, found);
+
+        arrdel(expected, idx);
     }
     
         struct Collector collector = {0};

@@ -25,7 +25,7 @@
 #define sl_iter_t               SL_CAT(SL_NAME, _iter_t)
 #define sl_bucket_t             SL_CAT(SL_NAME, _bucket_t)
 #define sl_entry_t              SL_CAT(SL_NAME, _entry_t)
-#define sl_next_ptr_entry_t       SL_CAT(SL_NAME, _next_ptr_entry_t)
+#define sl_next_ptr_entry_t     SL_CAT(SL_NAME, _next_ptr_entry_t)
 #define sl_init                 SL_CAT(SL_NAME, _init)
 #define sl_put                  SL_CAT(SL_NAME, _put)
 #define sl_pop                  SL_CAT(SL_NAME, _pop)
@@ -46,6 +46,7 @@
 #define sl_iter_elm             SL_CAT(SL_NAME, _iter_elm)
 #define sl_iter_pop             SL_CAT(SL_NAME, _iter_pop)
 #define sl_iter_eq              SL_CAT(SL_NAME, _iter_eq)
+#define sl_iter_is_end          SL_CAT(SL_NAME, _iter_is_end)
 
 #define SL_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
@@ -123,6 +124,7 @@ sl_iter_t sl_iter_next(sl_iter_t it);
 SL_TYPE *sl_iter_elm(sl_iter_t it);
 sl_iter_t sl_iter_pop(sl_iter_t it);
 bool sl_iter_eq(sl_iter_t a, sl_iter_t b);
+bool sl_iter_is_end(SL_NAME *sl, sl_iter_t it);
 
 #define SL_IMPL
 #if defined(SL_IMPL)
@@ -265,12 +267,8 @@ void sl_bucket_init(sl_bucket_t *bucket)
     bucket->first_elm_idx = SL_INDEX_MAX;
     bucket->next = NULL;
     
-    uintptr_t addrs_of_end_of_bucket_elm = (uintptr_t) &bucket->elms[SL_BUCKET_SIZE];
-    uintptr_t addrs_of_end_of_bucket_next_ptr = (uintptr_t) &bucket->next_ptrs[SL_BUCKET_SIZE];
     for(sl_index_t i = 0 ; i < SL_BUCKET_SIZE ; i++)
     {
-        uintptr_t addrs_of_curr_elm = (uintptr_t) &bucket->elms[i];
-        uintptr_t addrs_of_curr_next_ptr = (intptr_t) &bucket->next_ptrs[i];
         bucket->next_ptrs[i].next_entry = &bucket->elms[SL_BUCKET_SIZE];
         bucket->next_ptrs[i].next = &bucket->next_ptrs[SL_BUCKET_SIZE];
     }
@@ -297,13 +295,9 @@ SL_TYPE *sl_bucket_put(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE new_elm)
     if(emptyIndex < bucket->first_elm_idx)
     {
         bucket->first_elm_idx = emptyIndex;
-        uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[bucket->first_elm_idx];
-        uintptr_t addrs_of_first_next_ptr_in_this_bucket = (uintptr_t) &bucket->next_ptrs[bucket->first_elm_idx];
         // TODO make all the prev empty elms in this bucket next_ptr to the new first elm
         for(sl_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
         {
-            uintptr_t addrs_of_curr_elm = (uintptr_t) &bucket->elms[i];
-            uintptr_t addrs_of_curr_next_ptr = (uintptr_t) &bucket->next_ptrs[i];
             bucket->next_ptrs[i].next_entry = &bucket->elms[bucket->first_elm_idx];
             bucket->next_ptrs[i].next = &bucket->next_ptrs[bucket->first_elm_idx];
         }
@@ -314,12 +308,8 @@ SL_TYPE *sl_bucket_put(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE new_elm)
             sl_bucket_t *prev_bucket = sl_bucket_prev(sl, bucket);
             
             sl_index_t last_elm_in_prev_bucket = sl_bucket_last_elm(prev_bucket);
-            uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[bucket->first_elm_idx];
-            uintptr_t addrs_of_first_next_ptr_in_this_bucket = (uintptr_t) &bucket->next_ptrs[bucket->first_elm_idx];
             for(sl_index_t k = last_elm_in_prev_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
             {
-                uintptr_t addrs_of_curr_elm    = (uintptr_t) &prev_bucket->elms[k];
-                uintptr_t addrs_of_curr_next_ptr = (uintptr_t) &prev_bucket->next_ptrs[k];
                 prev_bucket->next_ptrs[k].next_entry = &bucket->elms[bucket->first_elm_idx];
                 prev_bucket->next_ptrs[k].next = &bucket->next_ptrs[bucket->first_elm_idx];
             }
@@ -440,12 +430,8 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
             
             sl_index_t last_elm_in_prev_bucket = sl_bucket_last_elm(prev_bucket);
             
-            uintptr_t addrs_of_first_elm_in_this_bucket = (uintptr_t) &bucket->elms[first_elm_in_this_bucket];
-            uintptr_t addrs_of_first_next_ptr_in_this_bucket = (uintptr_t) &bucket->next_ptrs[first_elm_in_this_bucket];
             for(sl_index_t k = last_elm_in_prev_bucket + 1 ; k < SL_BUCKET_SIZE + 1 ; k++)
             {
-                uintptr_t addrs_of_curr_elm = (uintptr_t) &prev_bucket->elms[k];
-                uintptr_t addrs_of_curr_next_ptr = (uintptr_t) &prev_bucket->next_ptrs[k];
                 prev_bucket->next_ptrs[k].next_entry = &bucket->elms[first_elm_in_this_bucket];
                 prev_bucket->next_ptrs[k].next = &bucket->next_ptrs[first_elm_in_this_bucket];
             }
@@ -460,12 +446,8 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
             {
                 sl_bucket_t *prev_bucket = sl_bucket_prev(sl, bucket);
                 sl_index_t first_elm_in_next_bucket = sl_bucket_first_elm(next_bucket);
-                uintptr_t addrs_of_first_elm_in_next_bucket = (uintptr_t) &next_bucket->elms[first_elm_in_next_bucket];
-                uintptr_t addrs_of_first_next_ptr_in_next_bucket = (uintptr_t) &next_bucket->next_ptrs[first_elm_in_next_bucket];
                 for(sl_index_t i = SL_BUCKET_SIZE - 1 ; prev_bucket->next_ptrs[i].next != &prev_bucket->next_ptrs[i] ; i--)
                 {
-                    uintptr_t addrs_of_curr_elm  = (uintptr_t) &prev_bucket->elms[i];
-                    uintptr_t addrs_of_curr_next_ptr = (uintptr_t) &prev_bucket->next_ptrs[i];
                     prev_bucket->next_ptrs[i].next_entry = &next_bucket->elms[first_elm_in_next_bucket];
                     prev_bucket->next_ptrs[i].next = &next_bucket->next_ptrs[first_elm_in_next_bucket];
                 }
@@ -482,12 +464,8 @@ bool sl_bucket_pop(SL_NAME *sl, sl_bucket_t *bucket, SL_TYPE *elm)
                 // maybe make it loop back to the first elm of the sl?
                 prev_bucket->next_ptrs[SL_BUCKET_SIZE].next_entry = &prev_bucket->elms[SL_BUCKET_SIZE]; //sizeof(sl_entry_t);
                 prev_bucket->next_ptrs[SL_BUCKET_SIZE].next = &prev_bucket->next_ptrs[SL_BUCKET_SIZE];
-                uintptr_t addrs_of_end_of_bucket_elm = (uintptr_t) &prev_bucket->elms[SL_BUCKET_SIZE];
-                uintptr_t addrs_of_end_of_bucket_next_ptr = (uintptr_t) &prev_bucket->next_ptrs[SL_BUCKET_SIZE];
                 for(sl_index_t i = SL_BUCKET_SIZE - 1 ; i != last_elm_in_prev_bucket ; i--)
                 {
-                    uintptr_t addrs_of_curr_elm = (uintptr_t) &prev_bucket->elms[i];
-                    uintptr_t addrs_of_curr_next_ptr = (uintptr_t) &prev_bucket->next_ptrs[i];
                     prev_bucket->next_ptrs[i].next_entry = &prev_bucket->elms[SL_BUCKET_SIZE];
                     prev_bucket->next_ptrs[i].next = &prev_bucket->next_ptrs[SL_BUCKET_SIZE];
                 }
@@ -585,6 +563,11 @@ sl_iter_t sl_iter_pop(sl_iter_t it)
 bool sl_iter_eq(sl_iter_t a, sl_iter_t b)
 {
     return (a.next_ptr_entry == b.next_ptr_entry);
+}
+
+bool sl_iter_is_end(SL_NAME *sl, sl_iter_t it)
+{
+    return sl_iter_eq(it, sl_end(sl));
 }
 
 #endif
