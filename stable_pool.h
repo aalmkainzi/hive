@@ -18,17 +18,24 @@
 
 #if !defined(SP_ALLOC)
 
-    #define SP_ALLOC sp_alloc
-    #define SP_FREE  sp_free
+    #define SP_ALLOC sp_alloc_mem
+    #define SP_FREE  sp_free_mem
 
 #else
 
     #if !defined(SP_FREE)
         #error "If you define SP_ALLOC you must define SP_FREE"
+    #elif defined(SP_ALLOC) || defined(SP_FREE)
+        #warning "Only define SP_ALLOC and SP_FREE when you also define SP_IMPL"
     #endif
 
 #endif
 
+#if !defined(SP_ALLOC_CTX)
+
+    #define SP_ALLOC_CTX NULL
+
+#endif
 
 #define sp_index_t   int64_t
 #define SP_INDEX_MAX INT64_MAX
@@ -61,6 +68,9 @@
 #define sp_iter_pop             SP_CAT(SP_NAME, _iter_pop)
 #define sp_iter_eq              SP_CAT(SP_NAME, _iter_eq)
 #define sp_iter_is_end          SP_CAT(SP_NAME, _iter_is_end)
+
+#define sp_alloc_mem            SP_CAT(SP_NAME, _alloc_mem)
+#define sp_free_mem             SP_CAT(SP_NAME, _free_mem)
 
 #define SP_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
@@ -151,6 +161,9 @@ sp_index_t sp_bucket_first_elm(sp_bucket_t *bucket);
 sp_index_t sp_bucket_last_elm(sp_bucket_t *bucket);
 sp_bucket_t *sp_bucket_prev(SP_NAME *sp, sp_bucket_t *bucket);
 
+void *sp_alloc_mem(void *ctx, size_t size, size_t alignment);
+void sp_free_mem(void *ctx, void *ptr, size_t size);
+
 void sp_init(SP_NAME *sp)
 {
     (*sp) = (SP_NAME){
@@ -183,7 +196,7 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
         }
     }
     
-    sp_bucket_t *new_bucket = (sp_bucket_t*) malloc(sizeof(sp_bucket_t));
+    sp_bucket_t *new_bucket = SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), _Alignof(sp_bucket_t));
     sp_bucket_init(new_bucket);
     
     if(sp->count > 0)
@@ -237,7 +250,7 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
                     ret.next_ptr_entry = &sp->tail->next_ptrs[SP_BUCKET_SIZE];
                     ret.elm_entry = &sp->tail->elms[SP_BUCKET_SIZE];
                 }
-                free(bucket);
+                SP_FREE(SP_ALLOC_CTX, bucket, sizeof(bucket));
                 sp->bucket_count -= 1;
             }
             sp->count -= 1;
@@ -271,7 +284,7 @@ void sp_deinit(SP_NAME *sp)
     for(sp_bucket_t *current = sp->buckets ; current != NULL ; )
     {
         sp_bucket_t *next = current->next;
-        free(current);
+        SP_FREE(SP_ALLOC_CTX, current, sizeof(sp_bucket_t));
         current = next;
     }
 }
@@ -584,15 +597,29 @@ bool sp_iter_is_end(SP_NAME *sp, sp_iter_t it)
     return sp_iter_eq(it, sp_end(sp));
 }
 
+void *sp_alloc_mem(void *ctx, size_t size, size_t alignment)
+{
+    return malloc(size);
+}
+
+void sp_free_mem(void *ctx, void *ptr, size_t size)
+{
+    free(ptr);
+}
+
 #endif
+
+#undef SP_TYPE
+#undef SP_NAME
+#undef SP_IMPL
+#undef SP_ALLOC
+#undef SP_FREE
+#undef SP_ALLOC_CTX
 
 #undef sp_index_t
 #undef SP_INDEX_MAX
 
-#undef SP_BUCKET_SIZE
-#undef SP_TYPE
-#undef SP_NAME
-
+#undef sp_iter_t
 #undef sp_bucket_t
 #undef sp_entry_t
 #undef sp_next_ptr_entry_t
@@ -600,8 +627,9 @@ bool sp_iter_is_end(SP_NAME *sp, sp_iter_t it)
 #undef sp_put
 #undef sp_pop
 #undef sp_foreach
+#undef sp_begin
+#undef sp_end
 #undef sp_deinit
-#undef sp_validate
 
 #undef sp_bucket_init
 #undef sp_bucket_put
@@ -610,6 +638,15 @@ bool sp_iter_is_end(SP_NAME *sp, sp_iter_t it)
 #undef sp_bucket_first_elm
 #undef sp_bucket_last_elm
 #undef sp_bucket_prev
+
+#undef sp_iter_next
+#undef sp_iter_elm
+#undef sp_iter_pop
+#undef sp_iter_eq
+#undef sp_iter_is_end
+
+#undef sp_alloc_mem
+#undef sp_free_mem
 
 #undef SP_CAT_
 #undef SP_CAT
