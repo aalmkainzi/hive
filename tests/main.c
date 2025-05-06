@@ -760,7 +760,7 @@ void test_clear_bucket()
     arrfree(copy);
 }
 
-int main(void)
+int main2(void)
 {
     printf("Running tests...\n");
     test_init_deinit();
