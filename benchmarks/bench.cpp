@@ -1,3 +1,4 @@
+#include <iostream>
 #include <list>
 #include <iterator>
 #include <random>
@@ -453,13 +454,14 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        10,
-        100,
-        1000,
+        // 10,
+        // 100,
+        //1000,
         10000,
         100000,
-        1000000,
     };
+    
+    int iterations = 10854;
     
     for(int& sz : sizes)
     {
@@ -514,7 +516,7 @@ int main()
         
         // STABLE_POOL END
         
-        bench.complexityN(sz).name("plf:" + std::to_string(sz)).minEpochIterations(150).run(
+        bench.complexityN(sz).name("plf:" + std::to_string(sz)).minEpochIterations(iterations).run(
             [&]{
                 volatile unsigned int sum = 0;
                 {
@@ -528,7 +530,7 @@ int main()
             }
         );
         
-        bench.complexityN(sz).name("stable_pool:" + std::to_string(sz)).minEpochIterations(150).run(
+        bench.complexityN(sz).name("stable_pool:" + std::to_string(sz)).minEpochIterations(iterations).run(
             [&]{
                 volatile unsigned int sum = 0;
                 
@@ -537,5 +539,30 @@ int main()
                 ankerl::nanobench::doNotOptimizeAway(sum);
             }
         );
+        
+        bench.complexityN(sz).name("stable_pool_func:" + std::to_string(sz)).minEpochIterations(iterations).run(
+            [&]{
+                volatile unsigned int sum = 0;
+                
+                big_sp_foreach(&sl, add_sum, (void*) &sum);
+                
+                ankerl::nanobench::doNotOptimizeAway(sum);
+            }
+        );
+        
+        bench.complexityN(sz).name("stable_pool_iter:" + std::to_string(sz)).minEpochIterations(iterations).run(
+            [&]{
+                volatile unsigned int sum = 0;
+                
+                for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
+                {
+                    sum += it.elm_entry->value.i;
+                }
+                
+                ankerl::nanobench::doNotOptimizeAway(sum);
+            }
+        );
     }
+    std::ofstream outFile("out.html");
+    bench.render(ankerl::nanobench::templates::htmlBoxplot(), outFile);
 }

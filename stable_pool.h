@@ -149,7 +149,7 @@ sp_iter_t sp_iter_next(sp_iter_t it);
 SP_TYPE *sp_iter_elm(sp_iter_t it);
 sp_iter_t sp_iter_pop(sp_iter_t it);
 bool sp_iter_eq(sp_iter_t a, sp_iter_t b);
-bool sp_iter_is_end(SP_NAME *sp, sp_iter_t it);
+bool sp_iter_is_end(sp_iter_t it);
 
 #if defined(SP_IMPL)
 
@@ -551,9 +551,9 @@ bool sp_iter_eq(sp_iter_t a, sp_iter_t b)
     return (a.next_ptr_entry == b.next_ptr_entry);
 }
 
-bool sp_iter_is_end(SP_NAME *sp, sp_iter_t it)
+bool sp_iter_is_end(sp_iter_t it)
 {
-    return sp_iter_eq(it, sp_end(sp));
+    return sp_iter_eq(it, sp_end(it.sp));
 }
 
 void *sp_alloc_mem(void *ctx, size_t size, size_t alignment)
