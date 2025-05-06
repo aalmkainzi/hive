@@ -727,27 +727,37 @@ void test_clear_bucket()
     
     Big **to_delete = NULL;
     Big *copy = NULL;
-    for(int i = 0 ; i < 512 * 3 ; i++)
+    for(int i = 0 ; i < 511 + 511 + 511 ; i++)
     {
         arrput(to_delete, big_sp_put(&sp, (Big){.i=i} ));
-        arrput(copy, *to_delete[i]);
+        arrput(copy, (Big){.i=i});
     }
     
-    for(int i = 512 ; i < 512 * 2 ; i++)
+    printf("NB BUCKETS = %zu\n", sp.bucket_count);
+    printf("ARRLEN COPY %zu\n", arrlen(copy));
+    for(int i = 511, j = 511 ; i < 511 + 511 ; i++)
     {
-        big_sp_pop(&sp, to_delete[i]);
-        arrdel(copy, i);
+        big_sp_pop(&sp, to_delete[j]);
+        arrdel(copy, j);
+        arrdel(to_delete, j);
     }
     
     printf("NB BUCKETS = %zu\n", sp.bucket_count);
     
     int i = 0;
+
     SP_FOREACH(&sp,
-    {
-        
-    });
+          {
+              Big it = *SP_IT;
+              Big c = copy[i];
+              ASSERT(it.i == c.i);
+              i++;
+          }
+    );
     
     big_sp_deinit(&sp);
+    arrfree(to_delete);
+    arrfree(copy);
 }
 
 int main(void)
@@ -775,6 +785,7 @@ int main(void)
     test_big_iteration_equivalence_after_random_pops();
     test_big_against_dynamic_array();
     test_big_insert_after_erase();
+    test_clear_bucket();
     
     printf("ALL PASSED\n");
     return 0;

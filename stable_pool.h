@@ -434,7 +434,7 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE *elm)
             {
                 sp_bucket_t *prev_bucket = sp_bucket_prev(sp, bucket);
                 sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
-                for(sp_index_t i = SP_BUCKET_SIZE - 1 ; prev_bucket->next_ptrs[i].next != &prev_bucket->next_ptrs[i] ; i--)
+                for(sp_index_t i = SP_BUCKET_SIZE ; prev_bucket->next_ptrs[i].next != &prev_bucket->next_ptrs[i] ; i--)
                 {
                     prev_bucket->next_ptrs[i].next_entry = &next_bucket->elms[first_elm_in_next_bucket];
                     prev_bucket->next_ptrs[i].next = &next_bucket->next_ptrs[first_elm_in_next_bucket];
