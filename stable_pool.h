@@ -25,7 +25,7 @@
 
     #if !defined(SP_FREE)
         #error "If you define SP_ALLOC you must define SP_FREE"
-    #elif defined(SP_ALLOC) || defined(SP_FREE)
+    #elif !defined(SP_IMPL)
         #warning "Only define SP_ALLOC and SP_FREE when you also define SP_IMPL"
     #endif
 
@@ -150,7 +150,6 @@ sp_iter_t sp_iter_pop(sp_iter_t it);
 bool sp_iter_eq(sp_iter_t a, sp_iter_t b);
 bool sp_iter_is_end(SP_NAME *sp, sp_iter_t it);
 
-#define SP_IMPL
 #if defined(SP_IMPL)
 
 void sp_bucket_init(sp_bucket_t *bucket);
@@ -263,6 +262,8 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
 
 void sp_foreach(const SP_NAME *sp, void(*f)(SP_TYPE*,void*), void *arg)
 {
+    if(sp->bucket_count == 0)
+        return;
     sp_bucket_t *bucket = sp->buckets;
     sp_entry_t *entryp = &bucket->elms[bucket->first_elm_idx];
     sp_next_ptr_entry_t *next_ptrp = &bucket->next_ptrs[bucket->first_elm_idx];
@@ -486,9 +487,6 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE *elm)
                 sp_bucket_t *prev_bucket = sp_bucket_prev(sp, bucket);
                 sp_index_t last_elm_in_prev_bucket = sp_bucket_last_elm(prev_bucket);
                 
-                // we set the next_ptr of the last elm to 1 for some reason
-                // can't think of a better idea
-                // maybe make it loop back to the first elm of the sp?
                 prev_bucket->next_ptrs[SP_BUCKET_SIZE].next_entry = &prev_bucket->elms[SP_BUCKET_SIZE]; //sizeof(sp_entry_t);
                 prev_bucket->next_ptrs[SP_BUCKET_SIZE].next = &prev_bucket->next_ptrs[SP_BUCKET_SIZE];
                 for(sp_index_t i = SP_BUCKET_SIZE - 1 ; i != last_elm_in_prev_bucket ; i--)
