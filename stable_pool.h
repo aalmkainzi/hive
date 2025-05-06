@@ -574,8 +574,6 @@ void sp_free_mem(void *ctx, void *ptr, size_t size)
 #undef SP_FREE
 #undef SP_ALLOC_CTX
 
-#undef SP_ARR_LEN
-
 #undef sp_index_t
 #undef SP_INDEX_MAX
 
