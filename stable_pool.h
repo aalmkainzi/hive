@@ -124,7 +124,7 @@ typedef struct SP_NAME
 {
     sp_bucket_t *buckets;
     sp_bucket_t *tail;
-    sp_entry_t *last_elm;
+    //sp_entry_t *last_elm;
     size_t count;
     size_t bucket_count;
 } SP_NAME;
@@ -168,7 +168,6 @@ void sp_init(SP_NAME *sp)
     (*sp) = (SP_NAME){
         .buckets      = NULL,
         .tail         = NULL,
-        .last_elm     = NULL,
         .count        = 0,
         .bucket_count = 0
     };
@@ -186,11 +185,6 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
             sp->count += 1;
             sp_index_t last_elm_in_bucket = sp_bucket_last_elm(bucket);
             
-            if(bucket == sp->tail)
-            {
-                sp->last_elm = &bucket->elms[last_elm_in_bucket];
-            }
-            
             return elm_added;
         }
     }
@@ -207,7 +201,6 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
     sp->tail = new_bucket;
     elm_added = sp_bucket_put(sp, new_bucket, new_elm);
     sp->count += 1;
-    sp->last_elm = (sp_entry_t*) elm_added;
     return elm_added;
 }
 
@@ -235,7 +228,6 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
                 if(bucket == sp->tail)
                 {
                     sp->tail = prev;
-                    sp->last_elm = (sp_entry_t*) sp_bucket_last_elm(sp->tail);
                 }
                 
                 if(bucket->next != NULL)
@@ -244,12 +236,12 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
                     ret.next_ptr_entry = &bucket->next->next_ptrs[first_index_of_next_bucket];
                     ret.elm_entry = &bucket->next->elms[first_index_of_next_bucket];
                 }
-                else
+                else if(sp->tail != NULL)
                 {
                     ret.next_ptr_entry = &sp->tail->next_ptrs[SP_BUCKET_SIZE];
                     ret.elm_entry = &sp->tail->elms[SP_BUCKET_SIZE];
                 }
-                SP_FREE(SP_ALLOC_CTX, bucket, sizeof(bucket));
+                SP_FREE(SP_ALLOC_CTX, bucket, sizeof(*bucket));
                 sp->bucket_count -= 1;
             }
             sp->count -= 1;
@@ -410,39 +402,6 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE *elm)
     }
     
     not_empty:
-    
-    if(sp->last_elm == &bucket->elms[index])
-    {
-        if(is_empty)
-        {
-            if(sp->bucket_count == 1)
-            {
-                sp->last_elm = NULL;
-            }
-            else
-            {
-                // look in the previous bucket
-                sp_bucket_t *current = sp->buckets;
-                while(current->next != bucket)
-                {
-                    current = current->next;
-                }
-                
-                sp_index_t last_elm_idx = sp_bucket_last_elm(current);
-                sp->last_elm = &current->elms[last_elm_idx];
-            }
-        }
-        else
-        {
-            // look in current bucket
-            
-            int64_t last_elm_in_bucket;
-            for(last_elm_in_bucket = index - 1 ; bucket->next_ptrs[last_elm_in_bucket].next != &bucket->next_ptrs[last_elm_in_bucket] ; last_elm_in_bucket--)
-                ;
-            
-            sp->last_elm = &bucket->elms[last_elm_in_bucket];
-        }
-    }
     
     // if we just deleted the first elm
     // and current bucket is empty and is not the head
