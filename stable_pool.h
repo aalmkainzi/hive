@@ -280,6 +280,7 @@ void sp_deinit(SP_NAME *sp)
         SP_FREE(SP_ALLOC_CTX, current, sizeof(sp_bucket_t));
         current = next;
     }
+    *sp = (SP_NAME){0};
 }
 
 void sp_bucket_init(sp_bucket_t *bucket)

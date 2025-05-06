@@ -720,6 +720,36 @@ static void test_big_insert_after_erase(void)
     big_sp_deinit(&sp);
 }
 
+void test_clear_bucket()
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    
+    Big **to_delete = NULL;
+    Big *copy = NULL;
+    for(int i = 0 ; i < 512 * 3 ; i++)
+    {
+        arrput(to_delete, big_sp_put(&sp, (Big){.i=i} ));
+        arrput(copy, *to_delete[i]);
+    }
+    
+    for(int i = 512 ; i < 512 * 2 ; i++)
+    {
+        big_sp_pop(&sp, to_delete[i]);
+        arrdel(copy, i);
+    }
+    
+    printf("NB BUCKETS = %zu\n", sp.bucket_count);
+    
+    int i = 0;
+    SP_FOREACH(&sp,
+    {
+        
+    });
+    
+    big_sp_deinit(&sp);
+}
+
 int main(void)
 {
     printf("Running tests...\n");
@@ -749,38 +779,3 @@ int main(void)
     printf("ALL PASSED\n");
     return 0;
 }
-
-void printInt(int *n, void *arg)
-{
-    printf("%d\n", *n);
-}
-
-// int main()
-// {
-//     int_sp ints;
-//     int_sp_init(&ints);
-//     
-//     int *one   = int_sp_put(&ints, 1);
-//     int *two   = int_sp_put(&ints, 2);
-//     int *three = int_sp_put(&ints, 3);
-//     int *four  = int_sp_put(&ints, 4);
-//     int *five  = int_sp_put(&ints, 5);
-//     
-//     // The library offers an iterator API
-//     int_sp_iter_t end = int_sp_end(&ints);
-//     for(int_sp_iter_t it = int_sp_begin(&ints) ; !int_sp_iter_eq(it, end) ; it = int_sp_iter_next(it))
-//     {
-//         printf("%d\n", *int_sp_iter_elm(it));
-//     }
-//     
-//     // And a foreach function
-//     int_sp_foreach(&ints, printInt, NULL);
-//     
-//     int_sp_pop(&ints, one);
-//     int_sp_pop(&ints, two);
-//     int_sp_pop(&ints, three);
-//     int_sp_pop(&ints, four);
-//     int_sp_pop(&ints, five);
-//     
-//     int_sp_deinit(&ints);
-// }
