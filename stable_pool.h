@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdalign.h>
 
 #if !defined(SP_TYPE) || !defined(SP_NAME)
 
@@ -189,7 +190,7 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
         }
     }
     
-    sp_bucket_t *new_bucket = SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), _Alignof(sp_bucket_t));
+    sp_bucket_t *new_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
     sp_bucket_init(new_bucket);
     
     if(sp->count > 0)
