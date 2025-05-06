@@ -3,6 +3,11 @@ A container that provides pointer stability and faster iteration speed than link
 ## Example
 
 ```C
+#define SP_IMPL
+#define SP_TYPE int
+#define SP_NAME int_sp
+#include "stable_pool.h"
+
 int main()
 {
     int_sp ints;
