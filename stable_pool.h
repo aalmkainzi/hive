@@ -194,7 +194,6 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
         if(elm_added != NULL)
         {
             sp->count += 1;
-            sp_index_t last_elm_in_bucket = sp_bucket_last_elm(bucket);
             
             return elm_added;
         }
@@ -218,7 +217,7 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
 void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
 {
     size_t buckets_to_fill = nelms / SP_BUCKET_SIZE;
-    size_t remaining = nelms - (buckets_to_fill * SP_BUCKET_SIZE);
+    ptrdiff_t remaining = nelms - (buckets_to_fill * SP_BUCKET_SIZE);
     
     sp_bucket_t *first = NULL;
     bool first_set = false;

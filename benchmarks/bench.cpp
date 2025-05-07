@@ -8,7 +8,7 @@
 #include "slot_map.h"
 //#include "benchmark/benchmark.h"
 
-#define printf(...) printf(__VA_ARGS__)
+#define printf(...) //printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -436,7 +436,7 @@ void add_sum(Big *big, void *arg)
 // }
 
 #define ANKERL_NANOBENCH_IMPLEMENT
-//#include "nanobench.h"
+#include "nanobench.h"
 #include <string>
 
 // int main2()
@@ -582,79 +582,166 @@ void iter(big_sp *sp)
     }
 }
 
-void plf_iter()
+int main()
 {
-    srand(69420);
-    plf::list<Big> ls;
-    const int N = 1'000'000;
-
-    std::vector<decltype(ls.begin())> elms;
-    for (int i = 0; i < N; ++i) {
-        Big b;
-        b.i = rand() - i;
-        ls.push_back(b);
-        auto lsit = ls.begin();
-        std::advance(lsit, i);
-        elms.push_back(lsit);
-    }
-
-    std::mt19937 rng(42);
-    std::vector<decltype(ls.begin())> to_erase;
-    to_erase.reserve(N/2);
-    std::sample(elms.begin(), elms.end(),
-                std::back_inserter(to_erase),
-                N/2,
-                rng);
-
-    for (auto it : to_erase)
-    {
-        it = ls.erase(it);
-    }
+    ankerl::nanobench::Bench bench;
     
-    for(int i = 0 ; i < 100 ; i++)
+    int sizes[] = {
+        // 10,
+        // 100,
+        //1000,
+        10000,
+        100000,
+    };
+    
+    int iterations = 1000;
+    
+    for(int& sz : sizes)
     {
-        volatile unsigned int sum = 0;
-        for(auto it : ls)
+        // PLF SETUP
+        srand(69420);
+        plf::colony<Big> i_colony;
+        const int N = sz;
+        
+        std::vector<decltype(i_colony.begin())> elms;
+        elms.reserve(N);
+        for (int i = 0; i < N; ++i)
         {
-            sum += it.i;
+            elms.push_back(i_colony.insert((Big){.i = rand() - i}));
         }
+        
+        std::mt19937 rng(42);
+        std::vector<decltype(i_colony.begin())> to_erase;
+        to_erase.reserve(N/2);
+        std::sample(elms.begin(), elms.end(),
+                    std::back_inserter(to_erase),
+                    N/2,
+                    rng);
+        
+        auto beg = to_erase.begin();
+        auto end = to_erase.end();
+        for ( ; beg != end ; beg++)
+        {
+            i_colony.erase(*beg);
+        }
+        // PLF SETUP END
+        
+        // STABLE_POOL SETUP
+        
+        srand(69420);
+        big_sp sl; big_sp_init(&sl);
+        const int M = sz;
+        Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
+        for (int i = 0; i < M; i++)
+            ptrs[i] = big_sp_put(&sl, (Big){.i = rand() - i});
+        
+        std::mt19937 rng2(42);
+        std::vector<Big*> to_pop;
+        to_pop.reserve(M / 2);
+        std::sample(ptrs, ptrs + M,
+                    std::back_inserter(to_pop),
+                    M / 2,
+                    rng2);
+        
+        for (Big* p : to_pop) {
+            big_sp_pop(&sl, p);
+        }
+        
+        // STABLE_POOL END
+        
+        bench.complexityN(sz).name("plf").minEpochIterations(iterations).run(
+            [&]{
+                volatile unsigned int sum = 0;
+                {
+                    for (const auto& value : i_colony)
+                    {
+                        sum += value.i;
+                    }
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("plfsum = %u\n", sum);
+                }
+            }
+        );
+        
+        bench.complexityN(sz).name("stable_pool").minEpochIterations(iterations).run(
+            [&]{
+                volatile unsigned int sum = 0;
+                
+                SP_FOREACH(&sl, sum += SP_IT->i; );
+                
+                ankerl::nanobench::doNotOptimizeAway(sum);
+                printf("stable_pool = %u\n", sum);
+            }
+        );
+        
+        bench.complexityN(sz).name("stable_pool_func").minEpochIterations(iterations).run(
+            [&]{
+                volatile unsigned int sum = 0;
+                
+                big_sp_foreach(&sl, add_sum, (void*) &sum);
+                
+                ankerl::nanobench::doNotOptimizeAway(sum);
+                printf("stable_pool_func = %u\n", sum);
+            }
+        );
+        
+        bench.complexityN(sz).name("stable_pool_iter").minEpochIterations(iterations).run(
+            [&]{
+                volatile unsigned int sum = 0;
+                
+                for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
+                {
+                    sum += it.elm_entry->value.i;
+                }
+                
+                ankerl::nanobench::doNotOptimizeAway(sum);
+                printf("stable_pool_iter = %u\n", sum);
+            }
+        );
+        
+        big_sp_deinit(&sl);
+        free(ptrs);
     }
+    std::ofstream outFile("out.html");
+    bench.render(ankerl::nanobench::templates::htmlBoxplot(), outFile);
+    return 0;
 }
 
-extern "C" int main()
+int main2()
 {
     srand(69420);
     big_sp sl; big_sp_init(&sl);
     const int M = 1'000'000;
-    Big *ints = (Big*) malloc(M * sizeof(Big));
-    for(int i = 0 ; i < M ; i++)
-    {
-        ints[i].i = i;
+    Big **ptrs = (Big**) malloc(M * sizeof(ptrs[0]));
+    for (int i = 0; i < M; i++)
+        ptrs[i] = big_sp_put(&sl, (Big){.i = rand() - i});
+    
+    std::mt19937 rng2(42);
+    std::vector<Big*> to_pop;
+    to_pop.reserve(M / 2);
+    std::sample(ptrs, ptrs + M,
+                std::back_inserter(to_pop),
+                M / 2,
+                rng2);
+    
+    for (Big* p : to_pop) {
+        big_sp_pop(&sl, p);
     }
     
-    big_sp_put_all(&sl, ints, M);
-    big_sp_validate(&sl);
+    volatile unsigned int sum = 0;
     
-    // int i = 0;
-    // for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) && i < M/2 ; )
-    // {
-    //     if(rand() % 2 == 0)
-    //     {
-    //         big_sp_iter_pop(it);
-    //         it = big_sp_begin(&sl);
-    //         i++;
-    //     }
-    //     else
-    //     {
-    //         it = big_sp_iter_next(it);
-    //     }
-    // }
+    for(int i = 0 ; i < 50 ; i++)
+    {
+        sum = 0;
+        
+        SP_FOREACH(&sl, sum += SP_IT->i; );
+        
+        for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it, end) ; it = big_sp_iter_next(it))
+        {
+            sum += big_sp_iter_elm(it)->i;
+        }
+        ankerl::nanobench::doNotOptimizeAway(sum);
+    }
     
-   // big_sp_validate(&sl);
-    
-    //for(int i = 0 ; i < 100 ; i++)
-    //iter(&sl);
-    plf_iter();
-    big_sp_deinit(&sl);
-    free(ints);
+    return 0;
 }
