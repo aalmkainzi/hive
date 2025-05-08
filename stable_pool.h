@@ -635,23 +635,45 @@ sp_bucket_t *sp_get_containing_bucket(SP_NAME *sp, const SP_TYPE *elm)
     return NULL;
 }
 
+// TODO cache the begin and end so it doesn't have to be checked here
 sp_iter_t sp_begin(SP_NAME *sp)
 {
-    sp_iter_t ret;
-    ret.sp = sp;
-    ret.next_ptr_entry = &sp->buckets->next_ptrs[sp->buckets->first_elm_idx];
-    ret.elm_entry = &sp->buckets->elms[sp->buckets->first_elm_idx];
-    return ret;
+    if(sp->count == 0)
+    {
+        return (sp_iter_t){
+            .sp = sp,
+            .elm_entry = NULL,
+            .next_ptr_entry = NULL,
+        };
+    }
+    else
+    {
+        return (sp_iter_t){
+            .sp = sp,
+            .elm_entry = &sp->buckets->elms[sp->buckets->first_elm_idx],
+            .next_ptr_entry = &sp->buckets->next_ptrs[sp->buckets->first_elm_idx],
+        };
+    }
 }
 
 sp_iter_t sp_end(SP_NAME *sp)
 {
-    sp_iter_t ret;
-    ret.sp = sp;
-    ret.next_ptr_entry = &sp->tail->next_ptrs[SP_BUCKET_SIZE],
-    ret.elm_entry = &sp->tail->elms[SP_BUCKET_SIZE];
-    
-    return ret;
+    if(sp->count == 0)
+    {
+        return (sp_iter_t){
+            .sp = sp,
+            .elm_entry = NULL,
+            .next_ptr_entry = NULL,
+        };
+    }
+    else
+    {
+        return (sp_iter_t){
+            .sp = sp,
+            .elm_entry = &sp->tail->elms[SP_BUCKET_SIZE],
+            .next_ptr_entry = &sp->tail->next_ptrs[SP_BUCKET_SIZE],
+        };
+    }
 }
 
 sp_iter_t sp_iter_next(sp_iter_t it)

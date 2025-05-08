@@ -733,8 +733,8 @@ void test_clear_bucket()
         arrput(copy, (Big){.i=i});
     }
     
-    printf("NB BUCKETS = %zu\n", sp.bucket_count);
-    printf("ARRLEN COPY %zu\n", arrlen(copy));
+    printf("\nNB BUCKETS = %zu\n", sp.bucket_count);
+    
     for(int i = 511, j = 511 ; i < 511 + 511 ; i++)
     {
         big_sp_pop(&sp, to_delete[j]);
@@ -742,7 +742,7 @@ void test_clear_bucket()
         arrdel(to_delete, j);
     }
     
-    printf("NB BUCKETS = %zu\n", sp.bucket_count);
+    printf("NB BUCKETS = %zu\n\n", sp.bucket_count);
     
     int i = 0;
 
@@ -760,6 +760,64 @@ void test_clear_bucket()
     arrfree(copy);
 }
 
+static void test_empty_iteration(void)
+{
+    int_sp sp;
+    int_sp_init(&sp);
+    ASSERT(sp.count == 0);
+    
+    // Test foreach callback method
+    struct Collector c_foreach = {NULL, 0, 0};
+    int_sp_foreach(&sp, collect_int, &c_foreach);
+    ASSERT(c_foreach.idx == 0);
+    
+    // Test SP_FOREACH macro iteration
+    struct Collector c_macro = {NULL, 0, 0};
+    SP_FOREACH(&sp, collect_int(SP_IT, &c_macro););
+    ASSERT(c_macro.idx == 0);
+    
+    // Test explicit iterator loop
+    struct Collector c_iter = {NULL, 0, 0};
+    for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); 
+         !int_sp_iter_eq(it, end); 
+    it = int_sp_iter_next(it))
+         {
+             collect_int(int_sp_iter_elm(it), &c_iter);
+         }
+         ASSERT(c_iter.idx == 0);
+         
+         int_sp_deinit(&sp);
+}
+
+static void test_big_empty_iteration(void)
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    ASSERT(sp.count == 0);
+    
+    // Test foreach callback method
+    struct Collector c_foreach = {NULL, 0, 0};
+    big_sp_foreach(&sp, collect_big, &c_foreach);
+    ASSERT(c_foreach.idx == 0);
+    
+    // Test SP_FOREACH macro iteration
+    struct Collector c_macro = {NULL, 0, 0};
+    SP_FOREACH(&sp, collect_big(SP_IT, &c_macro););
+    ASSERT(c_macro.idx == 0);
+    
+    // Test explicit iterator loop
+    struct Collector c_iter = {NULL, 0, 0};
+    for (big_sp_iter_t it = big_sp_begin(&sp), end = big_sp_end(&sp); 
+         !big_sp_iter_eq(it, end); 
+    it = big_sp_iter_next(it))
+         {
+             collect_big(big_sp_iter_elm(it), &c_iter);
+         }
+         ASSERT(c_iter.idx == 0);
+         
+         big_sp_deinit(&sp);
+}
+
 int main(void)
 {
     printf("Running tests...\n");
@@ -774,6 +832,7 @@ int main(void)
     test_int_iteration_equivalence_after_random_pops();
     test_against_dynamic_array();
     test_insert_after_erase();
+    test_empty_iteration();
     
     test_big_init_deinit();
     test_big_single_put_and_loop();
@@ -786,6 +845,7 @@ int main(void)
     test_big_against_dynamic_array();
     test_big_insert_after_erase();
     test_clear_bucket();
+    test_big_empty_iteration();
     
     printf("ALL PASSED\n");
     return 0;
