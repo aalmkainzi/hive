@@ -767,18 +767,15 @@ static void test_empty_iteration(void)
     int_sp_init(&sp);
     ASSERT(sp.count == 0);
     
-    // Test foreach callback method
-    struct Collector c_foreach = {NULL, 0, 0};
+        struct Collector c_foreach = {NULL, 0, 0};
     int_sp_foreach(&sp, collect_int, &c_foreach);
     ASSERT(c_foreach.idx == 0);
     
-    // Test SP_FOREACH macro iteration
-    struct Collector c_macro = {NULL, 0, 0};
+        struct Collector c_macro = {NULL, 0, 0};
     SP_FOREACH(&sp, collect_int(SP_IT, &c_macro););
     ASSERT(c_macro.idx == 0);
     
-    // Test explicit iterator loop
-    struct Collector c_iter = {NULL, 0, 0};
+        struct Collector c_iter = {NULL, 0, 0};
     for (int_sp_iter_t it = int_sp_begin(&sp),
         end = int_sp_end(&sp); 
          !int_sp_iter_eq(it, end); 
@@ -797,18 +794,15 @@ static void test_big_empty_iteration(void)
     big_sp_init(&sp);
     ASSERT(sp.count == 0);
     
-    // Test foreach callback method
-    struct Collector c_foreach = {NULL, 0, 0};
+        struct Collector c_foreach = {NULL, 0, 0};
     big_sp_foreach(&sp, collect_big, &c_foreach);
     ASSERT(c_foreach.idx == 0);
     
-    // Test SP_FOREACH macro iteration
-    struct Collector c_macro = {NULL, 0, 0};
+        struct Collector c_macro = {NULL, 0, 0};
     SP_FOREACH(&sp, collect_big(SP_IT, &c_macro););
     ASSERT(c_macro.idx == 0);
     
-    // Test explicit iterator loop
-    struct Collector c_iter = {NULL, 0, 0};
+        struct Collector c_iter = {NULL, 0, 0};
     for (big_sp_iter_t it = big_sp_begin(&sp), end = big_sp_end(&sp); 
          !big_sp_iter_eq(it, end); 
     it = big_sp_iter_next(it))
@@ -950,7 +944,6 @@ static void test_int_stress_iter_pop(void)
     int_sp_deinit(&sp);
 }
 
-// Tests for big_sp iterator-based erase
 
 static void test_big_erase_single_element(void)
 {
