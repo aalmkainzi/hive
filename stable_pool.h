@@ -578,12 +578,6 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE *elm)
 sp_index_t sp_bucket_first_elm(sp_bucket_t *bucket)
 {
     return bucket->first_elm_idx;
-    // for(sp_index_t i = 0 ; i < SP_BUCKET_SIZE ; i++)
-    // {
-    //     if(bucket->next_ptrs[i].elm_next_ptr == 0)
-    //         return i;
-    // }
-    // return SP_INDEX_MAX;
 }
 
 sp_index_t sp_bucket_last_elm(sp_bucket_t *bucket)
