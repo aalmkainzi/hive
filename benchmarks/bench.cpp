@@ -11,7 +11,7 @@
 
 typedef struct Big
 {
-    char _m[512 - 4];
+    char _m[256 - 4];
     int i;
 
     bool operator==(const Big& other) const {
@@ -63,7 +63,7 @@ int main()
         1 << 15,
         1 << 16,
         1 << 17,
-        // 1 << 18,
+        1 << 18,
         // 1 << 19,
         // 1 << 20,
         // 1 << 21
