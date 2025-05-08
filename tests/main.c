@@ -778,7 +778,8 @@ static void test_empty_iteration(void)
     
     // Test explicit iterator loop
     struct Collector c_iter = {NULL, 0, 0};
-    for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); 
+    for (int_sp_iter_t it = int_sp_begin(&sp),
+        end = int_sp_end(&sp); 
          !int_sp_iter_eq(it, end); 
     it = int_sp_iter_next(it))
          {

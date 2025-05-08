@@ -8,7 +8,7 @@
 #include "slot_map.h"
 //#include "benchmark/benchmark.h"
 
-#define printf(...) printf(__VA_ARGS__)
+#define printf(...) // printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -581,7 +581,10 @@ void iter(big_sp *sp)
         printf("%u ", sum);
     }
 }
-
+struct PtrCount {
+    Big **ptrs;
+    int i;
+};
 int main()
 {
     ankerl::nanobench::Bench bench;
@@ -591,8 +594,8 @@ int main()
         // 100,
         1000,
         10000,
-        //100000,
-        //1000000,
+        100000,
+        1000000,
     };
     
     int iterations = 50;
@@ -643,9 +646,22 @@ int main()
         big_sp_put_all(&sl, bigs, sz);
         
         int i = 0;
-        SP_FOREACH(&sl, {
-            ptrs[i++] = SP_IT;
-        });
+        
+
+        
+        auto lamda = [](Big*b, void *arg){
+            PtrCount* ptrc = (PtrCount*)arg;
+            ptrc->ptrs[ptrc->i++] = b;
+            // printf("i=%d\n", ptrc->i);
+        };
+        
+        PtrCount ptrc = {
+            .ptrs = ptrs,
+            .i = i
+        };
+        
+        void(*f)(Big*,void*) = lamda;
+        big_sp_foreach(&sl, f, (void*)&ptrc);
         
         std::mt19937 rng2(42);
         std::vector<Big*> to_pop;
@@ -716,6 +732,7 @@ int main()
         printf("Done from %d\n", sz);
         big_sp_deinit(&sl);
         free(ptrs);
+        free(bigs);
     }
     std::ofstream outFile("out.html");
     bench.render(ankerl::nanobench::templates::htmlBoxplot(), outFile);
