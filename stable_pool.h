@@ -14,7 +14,7 @@
 
 #if !defined(SP_BUCKET_SIZE)
 
-    #define SP_BUCKET_SIZE (2047)
+    #define SP_BUCKET_SIZE (254)
 
 #endif
 
