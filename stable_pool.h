@@ -300,6 +300,9 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
     }
 }
 
+// TODO we're actually doing this wrong.
+// We should return the prev element when we, erase, not the next.
+// such that next iteraion's sp_iter_next goes to the elm that is after the deleted one
 sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
 {
     sp_bucket_t *prev = NULL;
