@@ -55,281 +55,307 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        //1 << 10,
-        //1 << 11,
+        1 << 10,
+        1 << 11,
         1 << 12,
-        // 1 << 13,
-        // 1 << 14,
-        //1 << 15,
-        // 1 << 16,
+        1 << 13,
+        1 << 14,
+        1 << 15,
+        1 << 16,
         1 << 17,
         1 << 18,
-        1 << 19,
-        //1 << 20,
+        // 1 << 19,
+        // 1 << 20,
+        // 1 << 21
     };
+    
+    // std::string html_file_name = "stable_pool_and_plf_colony.html";
+    // constexpr bool bench_stable_pool = true;
+    // constexpr bool bench_plf_colony  = true;
+    // constexpr bool bench_slot_map    = false;
+    // constexpr bool bench_stable_vec  = false;
+    // constexpr bool bench_linked_list = false;
+    
+    std::string html_file_name = "benchmark.html";
+    constexpr bool bench_stable_pool = true;
+    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_slot_map    = true;
+    constexpr bool bench_stable_vec  = true;
+    constexpr bool bench_linked_list = true;
     
     int iterations = 10;
     
     for(int& sz : sizes)
     {
         printf("Starting %d\n", sz);
-        
-        // PLF SETUP
-        srand(69420);
-        plf::colony<Big> i_colony;
-        const int N = sz;
-        
-        std::vector<decltype(i_colony.begin())> elms;
-        elms.reserve(N);
-        for (int i = 0; i < N; ++i)
-        {
-            elms.push_back(i_colony.insert((Big){.i = rand() - i}));
-        }
-        
         std::mt19937 rng(42);
-        std::vector<decltype(i_colony.begin())> to_erase;
-        to_erase.reserve(N/2);
-        std::sample(elms.begin(), elms.end(),
-                    std::back_inserter(to_erase),
-                    N/2,
-                    rng);
         
-        auto beg = to_erase.begin();
-        auto end = to_erase.end();
-        for ( ; beg != end ; beg++)
+        if(bench_stable_pool)
         {
-            i_colony.erase(*beg);
+            // STABLE_POOL SETUP
+            
+            srand(69420);
+            big_sp sl; big_sp_init(&sl);
+            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
+            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            for (int i = 0; i < sz; i++)
+                bigs[i] = (Big){.i = rand() - i};
+            
+            big_sp_put_all(&sl, bigs, sz);
+            
+            int i = 0;
+            
+            SP_FOREACH(&sl,
+                       {
+                           ptrs[i++] = SP_IT;
+                       });
+            
+            rng.seed(42);
+            std::vector<Big*> to_pop;
+            to_pop.reserve(sz / 2);
+            std::sample(ptrs, ptrs + sz,
+                        std::back_inserter(to_pop),
+                        sz / 2,
+                        rng);
+            
+            for (Big* p : to_pop) {
+                big_sp_pop(&sl, p);
+            }
+            
+            assert(sl.count == sz/2);
+            
+            // STABLE_POOL END
+            
+            bench.complexityN(sz).name("stable_pool").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    SP_FOREACH(&sl, sum += SP_IT->i; );
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool = %u\n", sum);
+                }
+            );
+            std::cout.flush();
+            
+            bench.complexityN(sz).name("stable_pool_func").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    big_sp_foreach(&sl, add_sum, (void*) &sum);
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool_func = %u\n", sum);
+                }
+            );
+            std::cout.flush();
+            
+            bench.complexityN(sz).name("stable_pool_iter").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
+                    {
+                        sum += big_sp_iter_elm(it)->i;
+                    }
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool_iter = %u\n", sum);
+                }
+            );
+            
+            big_sp_deinit(&sl);
+            free(ptrs);
+            free(bigs);
         }
         
-        assert(i_colony.size() == sz/2);
-        // PLF SETUP END
-        
-        // STABLE_POOL SETUP
-        
-        srand(69420);
-        big_sp sl; big_sp_init(&sl);
-        Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
-        Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
-        for (int i = 0; i < sz; i++)
-            bigs[i] = (Big){.i = rand() - i};
-        
-        big_sp_put_all(&sl, bigs, sz);
-        
-        int i = 0;
-        
-        SP_FOREACH(&sl,
+        if(bench_plf_colony)
         {
-            ptrs[i++] = SP_IT;
-        });
-        
-        rng.seed(42);
-        std::vector<Big*> to_pop;
-        to_pop.reserve(sz / 2);
-        std::sample(ptrs, ptrs + sz,
-                    std::back_inserter(to_pop),
-                    sz / 2,
-                    rng);
-        
-        for (Big* p : to_pop) {
-            big_sp_pop(&sl, p);
+            // PLF SETUP
+            srand(69420);
+            plf::colony<Big> i_colony;
+            
+            std::vector<decltype(i_colony.begin())> elms;
+            elms.reserve(sz);
+            for (int i = 0; i < sz; ++i)
+            {
+                elms.push_back(i_colony.insert((Big){.i = rand() - i}));
+            }
+            
+            rng.seed(42);
+            std::vector<decltype(i_colony.begin())> to_erase;
+            to_erase.reserve(sz/2);
+            std::sample(elms.begin(), elms.end(),
+                        std::back_inserter(to_erase),
+                        sz/2,
+                        rng);
+            
+            auto beg = to_erase.begin();
+            auto end = to_erase.end();
+            for ( ; beg != end ; beg++)
+            {
+                i_colony.erase(*beg);
+            }
+            
+            assert(i_colony.size() == sz/2);
+            // PLF SETUP END
+            
+            bench.complexityN(sz).name("plf::colony").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for (const auto& value : i_colony)
+                    {
+                        sum += value.i;
+                    }
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("plfsum = %u\n", sum);
+                    
+                }
+            );
         }
         
-        assert(sl.count == sz/2);
-        
-        // STABLE_POOL END
-        
-        // SLOT MAP SETUP
-        
-        srand(69420);
-        dod::slot_map<Big> slot_map;
-        
-        std::vector<dod::slot_map_key64<Big>> slot_elms;
-        for (int i = 0; i < N; ++i) {
-            Big b;
-            b.i = rand() - i;
-            dod::slot_map_key64<Big> lsit = slot_map.emplace(b);
-            slot_elms.push_back(lsit);
-        }
-        
-        rng.seed(42);
-        std::vector<dod::slot_map_key64<Big>> sm_to_erase;
-        sm_to_erase.reserve(N/2);
-        std::sample(slot_elms.begin(), slot_elms.end(),
-                    std::back_inserter(sm_to_erase),
-                    N/2,
-                    rng);
-        
-        for (auto it : sm_to_erase)
+        if(bench_slot_map)
         {
-            slot_map.pop(it);
+            // SLOT MAP SETUP
+            
+            srand(69420);
+            dod::slot_map<Big> slot_map;
+            
+            std::vector<dod::slot_map_key64<Big>> slot_elms;
+            for (int i = 0; i < sz; ++i) {
+                Big b;
+                b.i = rand() - i;
+                dod::slot_map_key64<Big> lsit = slot_map.emplace(b);
+                slot_elms.push_back(lsit);
+            }
+            
+            rng.seed(42);
+            std::vector<dod::slot_map_key64<Big>> sm_to_erase;
+            sm_to_erase.reserve(sz/2);
+            std::sample(slot_elms.begin(), slot_elms.end(),
+                        std::back_inserter(sm_to_erase),
+                        sz/2,
+                        rng);
+            
+            for (auto it : sm_to_erase)
+            {
+                slot_map.pop(it);
+            }
+            
+            assert(slot_map.size() == sz/2);
+            // SLOT MAP END
+            
+            bench.complexityN(sz).name("dod::slot_map").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for (const auto& value : slot_map)
+                    {
+                        sum += value.i;
+                    }
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("slotsum = %u\n", sum);
+                    
+                }
+            );
         }
         
-        assert(slot_map.size() == sz/2);
-        // SLOT MAP END
-        
-        // STABLE_VECTOR SETUP
-        
-        srand(69420);
-        boost::container::stable_vector<Big> stable_vec;
-    
-        std::vector<decltype(stable_vec.begin())> sv_elms;
-        for (int i = 0; i < N; ++i) {
-            Big b;
-            b.i = rand() - i;
-            auto it = stable_vec.insert(stable_vec.end(), b);
-            sv_elms.push_back(it);
-        }
-    
-        rng.seed(42);
-        std::vector<decltype(stable_vec.begin())> sv_to_erase;
-        sv_to_erase.reserve(N/2);
-        std::sample(sv_elms.begin(), sv_elms.end(),
-                    std::back_inserter(sv_to_erase),
-                    N/2,
-                    rng);
-    
-        for (auto it : sv_to_erase)
+        if(bench_stable_vec)
         {
-            stable_vec.erase(it);
+            // STABLE_VECTOR SETUP
+            
+            srand(69420);
+            boost::container::stable_vector<Big> stable_vec;
+            
+            std::vector<decltype(stable_vec.begin())> sv_elms;
+            for (int i = 0; i < sz; ++i) {
+                Big b;
+                b.i = rand() - i;
+                auto it = stable_vec.insert(stable_vec.end(), b);
+                sv_elms.push_back(it);
+            }
+            
+            rng.seed(42);
+            std::vector<decltype(stable_vec.begin())> sv_to_erase;
+            sv_to_erase.reserve(sz/2);
+            std::sample(sv_elms.begin(), sv_elms.end(),
+                        std::back_inserter(sv_to_erase),
+                        sz/2,
+                        rng);
+            
+            for (auto it : sv_to_erase)
+            {
+                stable_vec.erase(it);
+            }
+            
+            assert(stable_vec.size() == sz/2);
+            
+            // STABLE_VECTOR END
+            
+            bench.complexityN(sz).name("boost::stable_vector").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for (const auto& value : stable_vec)
+                    {
+                        sum += value.i;
+                    }
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_vec_sum = %u\n", sum);
+                }
+            );
         }
         
-        assert(stable_vec.size() == sz/2);
-        
-        // STABLE_VECTOR END
-        
-        // LINKED LIST SETUP
-        
-        srand(69420);
-        std::list<Big> linked_list;
-        
-        std::vector<decltype(linked_list.begin())> ls_elms;
-        for (int i = 0; i < N; ++i) {
-            Big b;
-            b.i = rand() - i;
-            auto it = linked_list.insert(linked_list.end(), b);
-            ls_elms.push_back(it);
-        }
-        
-        rng.seed(42);
-        std::vector<decltype(linked_list.begin())> ls_to_erase;
-        ls_to_erase.reserve(N/2);
-        std::sample(ls_elms.begin(), ls_elms.end(),
-                    std::back_inserter(ls_to_erase),
-                    N/2,
-                    rng);
-        
-        for (auto it : ls_to_erase)
+        if(bench_linked_list)
         {
-            linked_list.erase(it);
+            // LINKED LIST SETUP
+            
+            srand(69420);
+            std::list<Big> linked_list;
+            
+            std::vector<decltype(linked_list.begin())> ls_elms;
+            for (int i = 0; i < sz; ++i) {
+                Big b;
+                b.i = rand() - i;
+                auto it = linked_list.insert(linked_list.end(), b);
+                ls_elms.push_back(it);
+            }
+            
+            rng.seed(42);
+            std::vector<decltype(linked_list.begin())> ls_to_erase;
+            ls_to_erase.reserve(sz/2);
+            std::sample(ls_elms.begin(), ls_elms.end(),
+                        std::back_inserter(ls_to_erase),
+                        sz/2,
+                        rng);
+            
+            for (auto it : ls_to_erase)
+            {
+                linked_list.erase(it);
+            }
+            
+            assert(linked_list.size() == sz/2);
+            // LINKED LIST END
+            bench.complexityN(sz).name("std::list").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for (const auto& value : linked_list)
+                    {
+                        sum += value.i;
+                    }
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_vec_sum = %u\n", sum);
+                }
+            );
         }
         
-        assert(linked_list.size() == sz/2);
-        // LINKED LIST END
-        
-        bench.complexityN(sz).name("plf::colony").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                for (const auto& value : i_colony)
-                {
-                    sum += value.i;
-                }
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("plfsum = %u\n", sum);
-                
-            }
-        );
-        
-        std::cout.flush();
-        
-        bench.complexityN(sz).name("stable_pool").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                SP_FOREACH(&sl, sum += SP_IT->i; );
-                
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("stable_pool = %u\n", sum);
-            }
-        );
-        std::cout.flush();
-        
-        bench.complexityN(sz).name("stable_pool_func").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                big_sp_foreach(&sl, add_sum, (void*) &sum);
-                
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("stable_pool_func = %u\n", sum);
-            }
-        );
-        std::cout.flush();
-        
-        bench.complexityN(sz).name("stable_pool_iter").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
-                {
-                    sum += big_sp_iter_elm(it)->i;
-                }
-                
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("stable_pool_iter = %u\n", sum);
-            }
-        );
-        std::cout.flush();
-        
-        bench.complexityN(sz).name("dod::slot_map").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                for (const auto& value : slot_map)
-                {
-                    sum += value.i;
-                }
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("slotsum = %u\n", sum);
-                
-            }
-        );
-        std::cout.flush();
-        
-        bench.complexityN(sz).name("boost::stable_vector").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                for (const auto& value : stable_vec)
-                {
-                    sum += value.i;
-                }
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("stable_vec_sum = %u\n", sum);
-            }
-        );
-        std::cout.flush();
-        
-        bench.complexityN(sz).name("std::list").minEpochIterations(iterations).run(
-            [&]{
-                volatile unsigned int sum = 0;
-                
-                for (const auto& value : stable_vec)
-                {
-                    sum += value.i;
-                }
-                ankerl::nanobench::doNotOptimizeAway(sum);
-                printf("stable_vec_sum = %u\n", sum);
-            }
-        );
-        std::cout.flush();
         
         printf("Done from %d\n", sz);
-        big_sp_deinit(&sl);
-        free(ptrs);
-        free(bigs);
+
     }
-    std::ofstream outFile("out.html");
+    std::ofstream outFile(html_file_name);
     bench.render(ankerl::nanobench::templates::htmlBoxplot(), outFile);
     return 0;
 }
