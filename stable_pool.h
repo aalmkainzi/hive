@@ -335,22 +335,23 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
                     ret.bucket = bucket->next;
                     ret.index = sp_bucket_first_elm(ret.bucket);
                 }
-                else if(sp->tail != NULL)
+                else
                 {
                     ret.bucket = sp->tail;
                     ret.index = SP_BUCKET_SIZE;
                 }
+                
                 SP_FREE(SP_ALLOC_CTX, bucket, sizeof(*bucket));
                 sp->bucket_count -= 1;
             }
             else
             {
                 sp_index_t next_elm = elm - (SP_TYPE*)bucket->elms + 1;
-                for( ; next_elm < SP_BUCKET_SIZE ; next_elm++)
+                for( ; bucket->next_ptrs[next_elm].next_elm_offset != 0 ; next_elm++)
                 {
                     ;
                 }
-                if(next_elm == SP_BUCKET_SIZE && bucket != sp->tail)
+                if(next_elm == SP_BUCKET_SIZE && bucket->next != NULL)
                 {
                     sp_bucket_t *next_bucket = bucket->next;
                     sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
@@ -359,7 +360,8 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
                 }
                 else
                 {
-                    ret.index =next_elm;
+                    ret.bucket = bucket;
+                    ret.index = next_elm;
                 }
             }
             sp->count -= 1;
