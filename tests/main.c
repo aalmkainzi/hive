@@ -511,8 +511,8 @@ static void test_against_dynamic_array(void)
     struct Collector collector = {0};
     int_sp_foreach(&sp, collect_int, &collector);
     
-    qsort(collector.data, collector.idx, sizeof(int), compare_ints);
-    qsort(expected, arrlen(expected), sizeof(int), compare_ints);
+    qsort(collector.data, collector.idx,    sizeof(int), compare_ints);
+    qsort(expected,       arrlen(expected), sizeof(int), compare_ints);
     
     ASSERT(collector.idx == (size_t)arrlen(expected));
     
@@ -727,7 +727,8 @@ void test_clear_bucket()
     
     Big **to_delete = NULL;
     Big *copy = NULL;
-    for(int i = 0 ; i < 511 + 511 + 511 ; i++)
+    int bucket_size = SP_ARR_LEN(sp.buckets->elms) - 1;
+    for(int i = 0 ; i < bucket_size + bucket_size + bucket_size ; i++)
     {
         arrput(to_delete, big_sp_put(&sp, (Big){.i=i} ));
         arrput(copy, (Big){.i=i});
@@ -735,7 +736,7 @@ void test_clear_bucket()
     
     printf("\nNB BUCKETS = %zu\n", sp.bucket_count);
     
-    for(int i = 511, j = 511 ; i < 511 + 511 ; i++)
+    for(int i = bucket_size, j = bucket_size ; i < bucket_size + bucket_size ; i++)
     {
         big_sp_pop(&sp, to_delete[j]);
         arrdel(copy, j);
@@ -778,7 +779,8 @@ static void test_empty_iteration(void)
     
     // Test explicit iterator loop
     struct Collector c_iter = {NULL, 0, 0};
-    for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); 
+    for (int_sp_iter_t it = int_sp_begin(&sp),
+        end = int_sp_end(&sp); 
          !int_sp_iter_eq(it, end); 
     it = int_sp_iter_next(it))
          {
@@ -818,6 +820,268 @@ static void test_big_empty_iteration(void)
          big_sp_deinit(&sp);
 }
 
+static void test_int_erase_single_element(void)
+{
+    int_sp sp;
+    int_sp_init(&sp);
+    int *p = int_sp_put(&sp, 42);
+    ASSERT(p != NULL);
+    
+    int_sp_iter_t it = int_sp_begin(&sp);
+    it = int_sp_iter_pop(it);
+    
+    ASSERT(int_sp_iter_eq(it, int_sp_end(&sp)));
+    ASSERT(sp.count == 0);
+    int_sp_deinit(&sp);
+}
+
+static void test_int_erase_first_element(void)
+{
+    int_sp sp;
+    int_sp_init(&sp);
+    int_sp_put(&sp, 1);
+    int_sp_put(&sp, 2);
+    int_sp_put(&sp, 3);
+    
+    int_sp_iter_t it = int_sp_begin(&sp);
+    it = int_sp_iter_pop(it);
+    
+    ASSERT(sp.count == 2);
+    
+    struct Collector c = {0};
+    int_sp_foreach(&sp, collect_int, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    ASSERT(c.idx == 2);
+    ASSERT(c.data[0] == 2);
+    ASSERT(c.data[1] == 3);
+    
+    free(c.data);
+    int_sp_deinit(&sp);
+}
+
+static void test_int_erase_last_element_during_iteration(void)
+{
+    int_sp sp;
+    int_sp_init(&sp);
+    int_sp_put(&sp, 1);
+    int_sp_put(&sp, 2);
+    int_sp_put(&sp, 3);
+    
+    int_sp_iter_t it = int_sp_begin(&sp);
+    int_sp_iter_t last = int_sp_end(&sp);
+    while (!int_sp_iter_eq(it, int_sp_end(&sp))) {
+        last = it;
+        it = int_sp_iter_next(it);
+    }
+    it = last;
+    it = int_sp_iter_pop(it);
+    
+    ASSERT(sp.count == 2);
+    
+    struct Collector c = {0};
+    int_sp_foreach(&sp, collect_int, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    ASSERT(c.idx == 2);
+    ASSERT(c.data[0] == 1);
+    ASSERT(c.data[1] == 2);
+    
+    free(c.data);
+    int_sp_deinit(&sp);
+}
+
+static void test_int_erase_every_other_element(void)
+{
+    int_sp sp;
+    int_sp_init(&sp);
+    const int N = 10;
+    for (int i = 0; i < N; i++)
+        int_sp_put(&sp, i);
+    
+    bool remove = false;
+    int_sp_iter_t it = int_sp_begin(&sp);
+    while (!int_sp_iter_eq(it, int_sp_end(&sp))) {
+        if (remove) {
+            it = int_sp_iter_pop(it);
+        } else {
+            it = int_sp_iter_next(it);
+        }
+        remove = !remove;
+    }
+    
+    ASSERT(sp.count == N / 2);
+    
+    struct Collector c = {0};
+    int_sp_foreach(&sp, collect_int, &c);
+    ASSERT(c.idx == N / 2);
+    
+    free(c.data);
+    int_sp_deinit(&sp);
+}
+
+static void test_int_stress_iter_pop(void)
+{
+    int_sp sp;
+    int_sp_init(&sp);
+    const int M = 10000;
+    for (int i = 0; i < M; i++)
+        int_sp_put(&sp, i);
+    
+    int_sp_iter_t it = int_sp_begin(&sp);
+    size_t expected = M;
+    while (!int_sp_iter_eq(it, int_sp_end(&sp))) {
+        if (*(int_sp_iter_elm(it)) % 2 == 0) {
+            it = int_sp_iter_pop(it);
+            expected--;
+        } else {
+            it = int_sp_iter_next(it);
+        }
+    }
+    
+    ASSERT(sp.count == expected);
+    ASSERT(expected == M / 2);
+    
+    struct Collector c = {0};
+    int_sp_foreach(&sp, collect_int, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    for (size_t i = 0; i < c.idx; i++)
+        ASSERT(c.data[i] == (int)(2 * i + 1));
+    
+    free(c.data);
+    int_sp_deinit(&sp);
+}
+
+// Tests for big_sp iterator-based erase
+
+static void test_big_erase_single_element(void)
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    Big *p = big_sp_put(&sp, (Big){.i = 42});
+    ASSERT(p != NULL);
+    
+    big_sp_iter_t it = big_sp_begin(&sp);
+    it = big_sp_iter_pop(it);
+    
+    ASSERT(big_sp_iter_eq(it, big_sp_end(&sp)));
+    ASSERT(sp.count == 0);
+    big_sp_deinit(&sp);
+}
+
+static void test_big_erase_first_element(void)
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    big_sp_put(&sp, (Big){.i = 1});
+    big_sp_put(&sp, (Big){.i = 2});
+    big_sp_put(&sp, (Big){.i = 3});
+    
+    big_sp_iter_t it = big_sp_begin(&sp);
+    it = big_sp_iter_pop(it);
+    
+    ASSERT(sp.count == 2);
+    
+    struct Collector c = {0};
+    big_sp_foreach(&sp, collect_big, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    ASSERT(c.idx == 2);
+    ASSERT(c.data[0] == 2);
+    ASSERT(c.data[1] == 3);
+    
+    free(c.data);
+    big_sp_deinit(&sp);
+}
+
+static void test_big_erase_last_element_during_iteration(void)
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    big_sp_put(&sp, (Big){.i = 1});
+    big_sp_put(&sp, (Big){.i = 2});
+    big_sp_put(&sp, (Big){.i = 3});
+    
+    big_sp_iter_t it = big_sp_begin(&sp);
+    big_sp_iter_t last = big_sp_end(&sp);
+    while (!big_sp_iter_eq(it, big_sp_end(&sp))) {
+        last = it;
+        it = big_sp_iter_next(it);
+    }
+    it = last;
+    it = big_sp_iter_pop(it);
+    
+    ASSERT(sp.count == 2);
+    
+    struct Collector c = {0};
+    big_sp_foreach(&sp, collect_big, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    ASSERT(c.idx == 2);
+    ASSERT(c.data[0] == 1);
+    ASSERT(c.data[1] == 2);
+    
+    free(c.data);
+    big_sp_deinit(&sp);
+}
+
+static void test_big_erase_every_other_element(void)
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    const int N = 10;
+    for (int i = 0; i < N; i++)
+        big_sp_put(&sp, (Big){.i = i});
+    
+    bool remove = false;
+    big_sp_iter_t it = big_sp_begin(&sp);
+    while (!big_sp_iter_eq(it, big_sp_end(&sp))) {
+        if (remove) {
+            it = big_sp_iter_pop(it);
+        } else {
+            it = big_sp_iter_next(it);
+        }
+        remove = !remove;
+    }
+    
+    ASSERT(sp.count == N / 2);
+    
+    struct Collector c = {0};
+    big_sp_foreach(&sp, collect_big, &c);
+    ASSERT(c.idx == N / 2);
+    
+    free(c.data);
+    big_sp_deinit(&sp);
+}
+
+static void test_big_stress_iter_pop(void)
+{
+    big_sp sp;
+    big_sp_init(&sp);
+    const int M = 10000;
+    for (int i = 0; i < M; i++)
+        big_sp_put(&sp, (Big){.i = i});
+    
+    big_sp_iter_t it = big_sp_begin(&sp);
+    size_t expected = M;
+    while (!big_sp_iter_eq(it, big_sp_end(&sp))) {
+        if (big_sp_iter_elm(it)->i % 2 == 0) {
+            it = big_sp_iter_pop(it);
+            expected--;
+        } else {
+            it = big_sp_iter_next(it);
+        }
+    }
+    
+    ASSERT(sp.count == expected);
+    ASSERT(expected == M / 2);
+    
+    struct Collector c = {0};
+    big_sp_foreach(&sp, collect_big, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    for (size_t i = 0; i < c.idx; i++)
+        ASSERT(c.data[i] == (int)(2 * i + 1));
+    
+    free(c.data);
+    big_sp_deinit(&sp);
+}
+
 int main(void)
 {
     printf("Running tests...\n");
@@ -833,6 +1097,11 @@ int main(void)
     test_against_dynamic_array();
     test_insert_after_erase();
     test_empty_iteration();
+    test_int_erase_single_element();
+    test_int_erase_first_element();
+    test_int_erase_last_element_during_iteration();
+    test_int_erase_every_other_element();
+    test_int_stress_iter_pop();
     
     test_big_init_deinit();
     test_big_single_put_and_loop();
@@ -846,6 +1115,11 @@ int main(void)
     test_big_insert_after_erase();
     test_clear_bucket();
     test_big_empty_iteration();
+    test_big_erase_single_element();
+    test_big_erase_first_element();
+    test_big_erase_last_element_during_iteration();
+    test_big_erase_every_other_element();
+    test_big_stress_iter_pop();
     
     printf("ALL PASSED\n");
     return 0;
