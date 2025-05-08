@@ -727,7 +727,8 @@ void test_clear_bucket()
     
     Big **to_delete = NULL;
     Big *copy = NULL;
-    for(int i = 0 ; i < 511 + 511 + 511 ; i++)
+    int bucket_size = SP_ARR_LEN(sp.buckets->elms) - 1;
+    for(int i = 0 ; i < bucket_size + bucket_size + bucket_size ; i++)
     {
         arrput(to_delete, big_sp_put(&sp, (Big){.i=i} ));
         arrput(copy, (Big){.i=i});
@@ -735,7 +736,7 @@ void test_clear_bucket()
     
     printf("\nNB BUCKETS = %zu\n", sp.bucket_count);
     
-    for(int i = 511, j = 511 ; i < 511 + 511 ; i++)
+    for(int i = bucket_size, j = bucket_size ; i < bucket_size + bucket_size ; i++)
     {
         big_sp_pop(&sp, to_delete[j]);
         arrdel(copy, j);
