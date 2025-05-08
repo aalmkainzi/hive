@@ -511,8 +511,8 @@ static void test_against_dynamic_array(void)
     struct Collector collector = {0};
     int_sp_foreach(&sp, collect_int, &collector);
     
-    qsort(collector.data, collector.idx, sizeof(int), compare_ints);
-    qsort(expected, arrlen(expected), sizeof(int), compare_ints);
+    qsort(collector.data, collector.idx,    sizeof(int), compare_ints);
+    qsort(expected,       arrlen(expected), sizeof(int), compare_ints);
     
     ASSERT(collector.idx == (size_t)arrlen(expected));
     
