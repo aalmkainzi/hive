@@ -618,7 +618,7 @@ bool sp_iter_eq(sp_iter_t a, sp_iter_t b)
 
 bool sp_iter_is_end(sp_iter_t it)
 {
-    return sp_iter_eq(it, sp_end(it.sp));
+    return (it.bucket == it.sp->end_sentinel);
 }
 
 void *sp_alloc_mem(void *ctx, size_t size, size_t alignment)

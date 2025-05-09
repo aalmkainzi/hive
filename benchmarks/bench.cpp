@@ -55,11 +55,11 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        1 << 10,
-        1 << 11,
-        1 << 12,
-        1 << 13,
-        1 << 14,
+        // 1 << 10,
+        // 1 << 11,
+        // 1 << 12,
+        // 1 << 13,
+        // 1 << 14,
         1 << 15,
         1 << 16,
         1 << 17,
@@ -126,35 +126,35 @@ int main()
             
             // STABLE_POOL END
             
-            bench.complexityN(sz).name("stable_pool").minEpochIterations(iterations).run(
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    SP_FOREACH(&sl, sum += SP_IT->i; );
-                    
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool = %u\n", sum);
-                }
-            );
-            std::cout.flush();
-            
-            bench.complexityN(sz).name("stable_pool_func").minEpochIterations(iterations).run(
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    big_sp_foreach(&sl, add_sum, (void*) &sum);
-                    
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool_func = %u\n", sum);
-                }
-            );
-            std::cout.flush();
-            
+//             bench.complexityN(sz).name("stable_pool").minEpochIterations(iterations).run(
+//                 [&]{
+//                     volatile unsigned int sum = 0;
+//                     
+//                     SP_FOREACH(&sl, sum += SP_IT->i; );
+//                     
+//                     ankerl::nanobench::doNotOptimizeAway(sum);
+//                     printf("stable_pool = %u\n", sum);
+//                 }
+//             );
+//             std::cout.flush();
+//         
+//             bench.complexityN(sz).name("stable_pool_func").minEpochIterations(iterations).run(
+//                 [&]{
+//                     volatile unsigned int sum = 0;
+//                     
+//                     big_sp_foreach(&sl, add_sum, (void*) &sum);
+//                     
+//                     ankerl::nanobench::doNotOptimizeAway(sum);
+//                     printf("stable_pool_func = %u\n", sum);
+//                 }
+//             );
+//             std::cout.flush();
+             
             bench.complexityN(sz).name("stable_pool_iter").minEpochIterations(iterations).run(
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
+                    for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; it = big_sp_iter_next(it))
                     {
                         sum += big_sp_iter_elm(it)->i;
                     }
