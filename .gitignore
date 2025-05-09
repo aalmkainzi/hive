@@ -1,0 +1,9 @@
+*.out
+*.exe
+*.bin
+*.dll
+*.so
+*.dylib
+
+compile_flags.txt
+**/compile_flags.txt

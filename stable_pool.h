@@ -66,72 +66,68 @@
 #define SP_CAT_(a,b) a##b
 #define SP_CAT(a,b) SP_CAT_(a,b)
 
-#define sp_iter_t               SP_CAT(SP_NAME, _iter_t)
-#define sp_bucket_t             SP_CAT(SP_NAME, _bucket_t)
-#define sp_entry_t              SP_CAT(SP_NAME, _entry_t)
-#define sp_offset_entry_t     SP_CAT(SP_NAME, _offset_entry_t)
-#define sp_init                 SP_CAT(SP_NAME, _init)
-#define sp_put                  SP_CAT(SP_NAME, _put)
-#define sp_put_all              SP_CAT(SP_NAME, _put_all)
-#define sp_pop                  SP_CAT(SP_NAME, _pop)
-#define sp_foreach              SP_CAT(SP_NAME, _foreach)
-#define sp_foreach_updater      SP_CAT(SP_NAME, _foreach_updater)
-#define sp_begin                SP_CAT(SP_NAME, _begin)
-#define sp_end                  SP_CAT(SP_NAME, _end)
-#define sp_deinit               SP_CAT(SP_NAME, _deinit)
+#define sp_iter_t                SP_CAT(SP_NAME, _iter_t)
+#define sp_bucket_t              SP_CAT(SP_NAME, _bucket_t)
+#define sp_entry_t               SP_CAT(SP_NAME, _entry_t)
+#define sp_offset_entry_t        SP_CAT(SP_NAME, _offset_entry_t)
+#define sp_init                  SP_CAT(SP_NAME, _init)
+#define sp_put                   SP_CAT(SP_NAME, _put)
+#define sp_put_all               SP_CAT(SP_NAME, _put_all)
+#define sp_pop                   SP_CAT(SP_NAME, _pop)
+#define sp_foreach               SP_CAT(SP_NAME, _foreach)
+#define sp_foreach_updater       SP_CAT(SP_NAME, _foreach_updater)
+#define sp_begin                 SP_CAT(SP_NAME, _begin)
+#define sp_end                   SP_CAT(SP_NAME, _end)
+#define sp_deinit                SP_CAT(SP_NAME, _deinit)
 
-#define sp_bucket_init          SP_CAT(SP_NAME, _bucket_init)
-#define sp_bucket_put           SP_CAT(SP_NAME, _bucket_put)
-#define sp_bucket_pop           SP_CAT(SP_NAME, _bucket_pop)
-#define sp_bucket_is_elm_within SP_CAT(SP_NAME, _bucket_is_elm_within)
+#define sp_bucket_init           SP_CAT(SP_NAME, _bucket_init)
+#define sp_bucket_put            SP_CAT(SP_NAME, _bucket_put)
+#define sp_bucket_pop            SP_CAT(SP_NAME, _bucket_pop)
+#define sp_bucket_is_elm_within  SP_CAT(SP_NAME, _bucket_is_elm_within)
 #define sp_get_containing_bucket SP_CAT(SP_NAME, _get_containing_bucket)
-#define sp_bucket_first_elm     SP_CAT(SP_NAME, _bucket_first_elm)
-#define sp_bucket_last_elm      SP_CAT(SP_NAME, _bucket_last_elm)
-#define sp_bucket_prev          SP_CAT(SP_NAME, _bucket_prev)
+#define sp_bucket_first_elm      SP_CAT(SP_NAME, _bucket_first_elm)
+#define sp_bucket_last_elm       SP_CAT(SP_NAME, _bucket_last_elm)
+#define sp_bucket_prev           SP_CAT(SP_NAME, _bucket_prev)
 
-#define sp_iter_next            SP_CAT(SP_NAME, _iter_next)
-#define sp_iter_elm             SP_CAT(SP_NAME, _iter_elm)
-#define sp_iter_pop             SP_CAT(SP_NAME, _iter_pop)
-#define sp_iter_eq              SP_CAT(SP_NAME, _iter_eq)
-#define sp_iter_is_end          SP_CAT(SP_NAME, _iter_is_end)
+#define sp_iter_next             SP_CAT(SP_NAME, _iter_next)
+#define sp_iter_elm              SP_CAT(SP_NAME, _iter_elm)
+#define sp_iter_pop              SP_CAT(SP_NAME, _iter_pop)
+#define sp_iter_eq               SP_CAT(SP_NAME, _iter_eq)
+#define sp_iter_is_end           SP_CAT(SP_NAME, _iter_is_end)
 
-#define sp_alloc_mem            SP_CAT(SP_NAME, _alloc_mem)
-#define sp_free_mem             SP_CAT(SP_NAME, _free_mem)
+#define sp_alloc_mem             SP_CAT(SP_NAME, _alloc_mem)
+#define sp_free_mem              SP_CAT(SP_NAME, _free_mem)
 
 #define sp_validate SP_CAT(SP_NAME, _validate)
 
 #define SP_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
-                                                                                      \
+
+#define SP_GET_BUCKET_SIZE(sp) \
+(SP_ARR_LEN(sp->buckets->elms) - 1)
+
 #define SP_FOREACH(sp, body)                                                          \
 do                                                                                    \
 {                                                                                     \
-    typeof(sp) sp_sp = sp;                                                            \
-    if(sp_sp->bucket_count == 0)                                                      \
-        break;                                                                        \
-    typeof(sp_sp->buckets) bucket = sp_sp->buckets;                                   \
-    typeof(sp_sp->buckets->offsets[0].next_elm_offset) index = bucket->first_elm_idx; \
-    while(                                                                            \
-    bucket != sp_sp->tail || index != (SP_ARR_LEN(sp_sp->buckets->offsets) - 1)       \
-    )                                                                                 \
+    typeof(sp) sp_sp = sp;  \
+    typeof(sp_sp->buckets) sp_bucket = sp_sp->buckets;                                                \
+    typeof(sp_sp->buckets->offsets[0].next_elm_offset) sp_index = sp_bucket->first_elm_idx;                                         \
+    while( sp_bucket != sp_sp->end_sentinel )          \
     {                                                                                 \
-        body                                                                          \
-                                                                                      \
-        ++(index);                                                                    \
-        (index) += (bucket)->offsets[index].next_elm_offset;                          \
-        if(SP_UNLIKELY(index == (SP_ARR_LEN(sp_sp->buckets->offsets) - 1)))           \
-        {                                                                             \
-            if(SP_LIKELY((bucket)->next != NULL))                                     \
-            {                                                                         \
-                (bucket) = (bucket)->next;                                            \
-                (index) = (bucket)->first_elm_idx;                                    \
-            }                                                                         \
-        }                                                                             \
+        body                                           \
+        \
+        ++(sp_index); \
+        (sp_index) += (sp_bucket)->offsets[sp_index].next_elm_offset; \
+        if(sp_index == SP_GET_BUCKET_SIZE(sp_sp)) \
+        { \
+            (sp_bucket) = (sp_bucket)->next; \
+            (sp_index) = (sp_bucket)->first_elm_idx; \
+        } \
     }                                                                                 \
 } while(0)
 
 #define SP_IT \
-((typeof(bucket->elms[index].value)*const) &bucket->elms[index])
+((typeof(sp_bucket->elms[0].value)*const) &sp_bucket->elms[sp_index])
 
 typedef struct sp_entry_t
 {
@@ -155,6 +151,7 @@ typedef struct SP_NAME
 {
     sp_bucket_t *buckets;
     sp_bucket_t *tail;
+    sp_bucket_t *end_sentinel; // tail->next == end_sentinel
     size_t count;
     size_t bucket_count;
 } SP_NAME;
@@ -201,9 +198,13 @@ void sp_free_mem(void *ctx, void *ptr, size_t size);
 
 void sp_init(SP_NAME *sp)
 {
+    sp_bucket_t *end_sentinel = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
+    sp_bucket_init(end_sentinel);
+    end_sentinel->first_elm_idx = SP_BUCKET_SIZE;
     (*sp) = (SP_NAME){
-        .buckets      = NULL,
-        .tail         = NULL,
+        .buckets      = end_sentinel,
+        .tail         = end_sentinel,
+        .end_sentinel = end_sentinel,
         .count        = 0,
         .bucket_count = 0
     };
@@ -213,7 +214,7 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
 {
     SP_TYPE *elm_added = NULL;
     
-    for(sp_bucket_t *bucket = sp->buckets ; bucket != NULL ; bucket = bucket->next)
+    for(sp_bucket_t *bucket = sp->buckets ; bucket != sp->end_sentinel ; bucket = bucket->next)
     {
         elm_added = sp_bucket_put(sp, bucket, new_elm);
         if(elm_added != NULL)
@@ -228,12 +229,19 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
     sp_bucket_init(new_bucket);
     
     if(sp->count > 0)
+    {
         sp->tail->next = new_bucket;
+        new_bucket->next = sp->end_sentinel;
+        sp->tail = new_bucket;
+    }
     else
-        sp->buckets = new_bucket;
+    {
+         sp->buckets = new_bucket;
+         sp->tail = new_bucket;
+         new_bucket->next = sp->end_sentinel;
+    }
     
     sp->bucket_count += 1;
-    sp->tail = new_bucket;
     elm_added = sp_bucket_put(sp, new_bucket, new_elm);
     sp->count += 1;
     return elm_added;
@@ -300,15 +308,17 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
         sp->bucket_count += 1;
     }
     
-    if(sp->tail != NULL && first != NULL)
+    if(sp->buckets != sp->end_sentinel && first != NULL)
     {
         sp->tail->next = first;
-        sp->tail = sp->tail->next;
+        sp->tail = bucket;
+        sp->tail->next = sp->end_sentinel;
     }
     else
     {
-        sp->tail = bucket;
         sp->buckets = first;
+        sp->tail = bucket;
+        sp->tail->next = sp->end_sentinel;
     }
 }
 
@@ -318,7 +328,7 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
     sp_iter_t ret = {
         .sp = sp
     };
-    for(sp_bucket_t *bucket = sp->buckets ; bucket != NULL ; bucket = bucket->next)
+    for(sp_bucket_t *bucket = sp->buckets ; bucket != sp->end_sentinel ; prev = bucket, bucket = bucket->next)
     {
         if(sp_bucket_is_elm_within(bucket, elm))
         {
@@ -335,19 +345,22 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
                 
                 if(bucket == sp->tail)
                 {
-                    sp->tail = prev;
-                }
-                
-                if(bucket->next != NULL)
-                {
-                    sp_index_t first_index_of_next_bucket = sp_bucket_first_elm(bucket->next);
-                    ret.bucket = bucket->next;
-                    ret.index = sp_bucket_first_elm(ret.bucket);
+                    if(prev != NULL)
+                    {
+                        sp->tail = prev;
+                    }
+                    else
+                    {
+                        sp->tail = sp->end_sentinel;
+                    }
+                    
+                    ret.bucket = sp->end_sentinel;
+                    ret.index = SP_BUCKET_SIZE;
                 }
                 else
                 {
-                    ret.bucket = sp->tail;
-                    ret.index = SP_BUCKET_SIZE;
+                    ret.bucket = bucket->next;
+                    ret.index = sp_bucket_first_elm(ret.bucket);
                 }
                 
                 SP_FREE(SP_ALLOC_CTX, bucket, sizeof(*bucket));
@@ -355,17 +368,26 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
             }
             else
             {
-                sp_index_t next_elm = elm - (SP_TYPE*)bucket->elms + 1;
+                sp_index_t next_elm = elm - (SP_TYPE*) bucket->elms + 1;
                 for( ; bucket->offsets[next_elm].next_elm_offset != 0 ; next_elm++)
                 {
                     ;
                 }
-                if(next_elm == SP_BUCKET_SIZE && bucket->next != NULL)
+                
+                if(next_elm == SP_BUCKET_SIZE)
                 {
-                    sp_bucket_t *next_bucket = bucket->next;
-                    sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
-                    ret.bucket = next_bucket;
-                    ret.index = first_elm_in_next_bucket;
+                    if(bucket != sp->tail)
+                    {
+                        sp_bucket_t *next_bucket = bucket->next;
+                        sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
+                        ret.bucket = next_bucket;
+                        ret.index = first_elm_in_next_bucket;
+                    }
+                    else
+                    {
+                        ret.bucket = sp->end_sentinel;
+                        ret.index = SP_BUCKET_SIZE;
+                    }
                 }
                 else
                 {
@@ -376,7 +398,6 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
             sp->count -= 1;
             return ret;
         }
-        prev = bucket;
     }
     return ret;
 }
@@ -387,25 +408,16 @@ void sp_foreach_updater(sp_index_t *index, sp_bucket_t **bucket)
     (*index) += (*bucket)->offsets[*index].next_elm_offset;
     if(*index == SP_BUCKET_SIZE)
     {
-        if((*bucket)->next != NULL)
-        {
-            (*bucket) = (*bucket)->next;
-            (*index) = (*bucket)->first_elm_idx;
-        }
+        (*bucket) = (*bucket)->next;
+        (*index) = (*bucket)->first_elm_idx;
     }
 }
 
 void sp_foreach(const SP_NAME *sp, void(*f)(SP_TYPE*,void*), void *arg)
 {
-    if(sp->bucket_count == 0)
-        return;
     sp_bucket_t *bucket = sp->buckets;
     sp_index_t index = bucket->first_elm_idx;
-    for(
-        ;
-        !(bucket == sp->tail && index == SP_BUCKET_SIZE) ;
-        sp_foreach_updater(&index, &bucket)
-        )
+    for( ; bucket != sp->end_sentinel ; sp_foreach_updater(&index, &bucket))
     {
         f(&bucket->elms[index].value, arg);
     }
@@ -435,6 +447,7 @@ void sp_bucket_init(sp_bucket_t *bucket)
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 {
+    (void)sp;
     int emptyIndex = 0;
     for( ; emptyIndex < SP_BUCKET_SIZE ; emptyIndex++)
     {
@@ -462,18 +475,20 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 
 bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE *elm)
 {
+    (void)sp;
     sp_entry_t *as_entry = (sp_entry_t*) elm;
     ptrdiff_t index = as_entry - bucket->elms;
     if(bucket->offsets[index].next_elm_offset != 0)
         return false;
     
-    bool is_first_elm = false;
-    sp_index_t index_of_first_elm = sp_bucket_first_elm(bucket);
-    if(index == index_of_first_elm)
-    {
-        is_first_elm = true;
-    }
+    // bool is_first_elm = false;
+    // sp_index_t index_of_first_elm = sp_bucket_first_elm(bucket);
+    // if(index == index_of_first_elm)
+    // {
+    //     is_first_elm = true;
+    // }
     
+    // TODO why not just use (offset of next index) + 1
     ptrdiff_t next_elm;
     for(next_elm = index + 1 ; next_elm < SP_BUCKET_SIZE && bucket->offsets[next_elm].next_elm_offset != 0 ; next_elm++ )
     {
@@ -514,7 +529,7 @@ sp_index_t sp_bucket_first_elm(sp_bucket_t *bucket)
 
 sp_index_t sp_bucket_last_elm(sp_bucket_t *bucket)
 {
-    for(sp_index_t i = SP_BUCKET_SIZE - 1 ; i >= 0 ; i--)
+    for(sp_index_t i = SP_BUCKET_SIZE - 1 ; ; i--)
     {
         if(bucket->offsets[i].next_elm_offset == 0)
             return i;
@@ -524,18 +539,13 @@ sp_index_t sp_bucket_last_elm(sp_bucket_t *bucket)
 
 sp_bucket_t *sp_bucket_prev(SP_NAME *sp, sp_bucket_t *bucket)
 {
-    sp_bucket_t *prev_bucket;
-    
-    
     sp_bucket_t *current = sp->buckets;
     while(current->next != bucket)
     {
         current = current->next;
     }
-    prev_bucket = current;
     
-    
-    return prev_bucket;
+    return current;
 }
 
 bool sp_bucket_is_elm_within(const sp_bucket_t *bucket, const SP_TYPE *elm)
@@ -561,33 +571,20 @@ sp_bucket_t *sp_get_containing_bucket(SP_NAME *sp, const SP_TYPE *elm)
     return NULL;
 }
 
-// TODO cache the begin and end so it doesn't have to be checked here
-// we also need sentinel buckets
 sp_iter_t sp_begin(SP_NAME *sp)
 {
-    if(sp->count != 0)
-    {
-        return (sp_iter_t){
-            .sp = sp,
-            .bucket = sp->buckets,
-            .index = sp->buckets->first_elm_idx
-        };
-    }
-    else
-    {
-        return (sp_iter_t){
-            .sp = sp,
-            .bucket = NULL,
-            .index = SP_BUCKET_SIZE
-        };
-    }
+    return (sp_iter_t){
+        .sp = sp,
+        .bucket = sp->buckets,
+        .index = sp->buckets->first_elm_idx
+    };
 }
 
 sp_iter_t sp_end(SP_NAME *sp)
 {
     return (sp_iter_t){
         .sp = sp,
-        .bucket = sp->tail,
+        .bucket = sp->end_sentinel,
         .index = SP_BUCKET_SIZE,
     };
 }
@@ -598,11 +595,8 @@ sp_iter_t sp_iter_next(sp_iter_t it)
     it.index += it.bucket->offsets[it.index].next_elm_offset;
     if(it.index == SP_BUCKET_SIZE)
     {
-        if(it.bucket->next != NULL)
-        {
-            it.bucket = it.bucket->next;
-            it.index = it.bucket->first_elm_idx;
-        }
+        it.bucket = it.bucket->next;
+        it.index = it.bucket->first_elm_idx;
     }
     return it;
 }
@@ -629,11 +623,13 @@ bool sp_iter_is_end(sp_iter_t it)
 
 void *sp_alloc_mem(void *ctx, size_t size, size_t alignment)
 {
+    (void)ctx, (void)alignment;
     return malloc(size);
 }
 
 void sp_free_mem(void *ctx, void *ptr, size_t size)
 {
+    (void)ctx, (void)size;
     free(ptr);
 }
 

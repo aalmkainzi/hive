@@ -7,7 +7,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) // printf(__VA_ARGS__)
+#define printf(...) //printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -55,14 +55,14 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        // 1 << 10,
-        // 1 << 11,
-        // 1 << 12,
-        // 1 << 13,
-        // 1 << 14,
-        // 1 << 15,
-        // 1 << 16,
-        // 1 << 17,
+        1 << 10,
+        1 << 11,
+        1 << 12,
+        1 << 13,
+        1 << 14,
+        1 << 15,
+        1 << 16,
+        1 << 17,
         1 << 18,
         1 << 19,
         1 << 20,
@@ -83,7 +83,7 @@ int main()
     // constexpr bool bench_stable_vec  = true;
     // constexpr bool bench_linked_list = true;
     
-    int iterations = 10;
+    int iterations = 100;
     
     for(int& sz : sizes)
     {
@@ -359,3 +359,4 @@ int main()
     bench.render(ankerl::nanobench::templates::htmlBoxplot(), outFile);
     return 0;
 }
+// TODO add rust's colony
