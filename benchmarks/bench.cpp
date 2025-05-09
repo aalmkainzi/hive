@@ -41,6 +41,12 @@ bool eq_big(Big a, Big b)
 
 #include "stable_pool.h"
 
+#define SP_IMPL
+#define SP_TYPE Big
+#define SP_NAME sbig_sp
+#define SP_BUCKET_SIZE 254
+#include "stable_pool.h"
+
 void add_sum(Big *big, void *arg)
 {
     *(unsigned int*)arg += big->i;
@@ -70,7 +76,8 @@ int main()
     };
     
     std::string html_file_name = "stable_pool_and_plf_colony.html";
-    constexpr bool bench_stable_pool = true;
+    constexpr bool bench_stable_pool = false;
+    constexpr bool bench_small_stable_pool = false;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
@@ -83,7 +90,7 @@ int main()
     // constexpr bool bench_stable_vec  = true;
     // constexpr bool bench_linked_list = true;
     
-    int iterations = 100;
+    int iterations = 500;
     
     for(int& sz : sizes)
     {
@@ -165,6 +172,61 @@ int main()
             );
             
             big_sp_deinit(&sl);
+            free(ptrs);
+            free(bigs);
+        }
+        
+        if(bench_small_stable_pool)
+        {
+            // STABLE_POOL SETUP
+            
+            srand(69420);
+            sbig_sp sl; sbig_sp_init(&sl);
+            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
+            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            for (int i = 0; i < sz; i++)
+                bigs[i] = (Big){.i = rand() - i};
+            
+            sbig_sp_put_all(&sl, bigs, sz);
+            
+            int i = 0;
+            
+            SP_FOREACH(&sl,
+                       {
+                           ptrs[i++] = SP_IT;
+                       });
+            
+            rng.seed(42);
+            std::vector<Big*> to_pop;
+            to_pop.reserve(sz / 2);
+            std::sample(ptrs, ptrs + sz,
+                        std::back_inserter(to_pop),
+                        sz / 2,
+                        rng);
+            
+            for (Big* p : to_pop) {
+                sbig_sp_pop(&sl, p);
+            }
+            
+            assert(sl.count == sz/2);
+            
+            // STABLE_POOL END
+            
+            bench.complexityN(sz).name("sstable_pool_iter").minEpochIterations(iterations).run(
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for(sbig_sp_iter_t it = sbig_sp_begin(&sl) ; !sbig_sp_iter_is_end(it) ; it = sbig_sp_iter_next(it))
+                    {
+                        sum += sbig_sp_iter_elm(it)->i;
+                    }
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool_iter = %u\n", sum);
+                }
+            );
+            
+            sbig_sp_deinit(&sl);
             free(ptrs);
             free(bigs);
         }

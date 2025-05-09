@@ -14,7 +14,7 @@
 
 #if !defined(SP_BUCKET_SIZE)
 
-    #define SP_BUCKET_SIZE (254)
+    #define SP_BUCKET_SIZE (65534)
 
 #endif
 
@@ -641,6 +641,7 @@ void sp_free_mem(void *ctx, void *ptr, size_t size)
 #undef SP_ALLOC
 #undef SP_FREE
 #undef SP_ALLOC_CTX
+#undef SP_BUCKET_SIZE
 
 #undef sp_index_t
 #undef SP_INDEX_MAX
