@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <forward_list>
 #include <iterator>
 #include <random>
 #include <boost/container/stable_vector.hpp>
@@ -38,14 +39,17 @@ bool eq_big(Big a, Big b)
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME big_sp
-
+#define SP_BUCKET_SIZE 10000000
 #include "stable_pool.h"
 
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME bbig_sp
-#define SP_BUCKET_SIZE 500000
+#if __has_include("../../sp_other/stable_pool.h")
+#include "../../sp_other/stable_pool.h"
+#else
 #include "stable_pool.h"
+#endif
 
 void add_sum(Big *big, void *arg)
 {
@@ -61,36 +65,37 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        // 1 << 10,
-        // 1 << 11,
-        // 1 << 12,
-        // 1 << 13,
-        // 1 << 14,
+        1 << 10,
+        1 << 11,
+        1 << 12,
+        1 << 13,
+        1 << 14,
         1 << 15,
         1 << 16,
         1 << 17,
-        1 << 18,
-        1 << 19,
-        1 << 20,
-        //1 << 21
+        // 1 << 18,
+        // 1 << 19,
+        // 1 << 20,
+        // 1 << 21
     };
     
-    std::string html_file_name = "stable_pool_and_plf_colony.html";
-    constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = true;
-    constexpr bool bench_plf_colony  = true;
-    constexpr bool bench_slot_map    = false;
-    constexpr bool bench_stable_vec  = false;
-    constexpr bool bench_linked_list = false;
-    
-    // std::string html_file_name = "bench_all.html";
+    // std::string html_file_name = "stable_pool_and_plf_colony.html";
     // constexpr bool bench_stable_pool = true;
+    // constexpr bool bench_small_stable_pool = false;
     // constexpr bool bench_plf_colony  = true;
-    // constexpr bool bench_slot_map    = true;
-    // constexpr bool bench_stable_vec  = true;
-    // constexpr bool bench_linked_list = true;
+    // constexpr bool bench_slot_map    = false;
+    // constexpr bool bench_stable_vec  = false;
+    // constexpr bool bench_linked_list = false;
     
-    int iterations = 1;
+    std::string html_file_name = "bench_all.html";
+    constexpr bool bench_stable_pool = true;
+    constexpr bool bench_small_stable_pool = false;
+    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_slot_map    = true;
+    constexpr bool bench_stable_vec  = true;
+    constexpr bool bench_linked_list = true;
+    
+    int iterations = 50;
     
     for(int& sz : sizes)
     {
@@ -216,7 +221,7 @@ int main()
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(it) ; it = bbig_sp_iter_next(it))
+                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(it) ; bbig_sp_iter_go_next(&it))
                     {
                         sum += bbig_sp_iter_elm(it)->i;
                     }
@@ -373,42 +378,51 @@ int main()
         {
             // LINKED LIST SETUP
             
-            srand(69420);
-            std::list<Big> linked_list;
+            std::forward_list<Big> flist;
+            auto last = flist.before_begin();               // points to before the first
+            std::vector<decltype(flist.begin())> elems;     // will store iterators to each element
             
-            std::vector<decltype(linked_list.begin())> ls_elms;
+            std::srand(69420);
             for (int i = 0; i < sz; ++i) {
                 Big b;
-                b.i = rand() - i;
-                auto it = linked_list.insert(linked_list.end(), b);
-                ls_elms.push_back(it);
+                b.i = std::rand() - i;
+                // insert AFTER last, then update last to the newly inserted element
+                last = flist.insert_after(last, b);
+                elems.push_back(last);
             }
             
-            rng.seed(42);
-            std::vector<decltype(linked_list.begin())> ls_to_erase;
-            ls_to_erase.reserve(sz/2);
-            std::sample(ls_elms.begin(), ls_elms.end(),
-                        std::back_inserter(ls_to_erase),
+            // --- 2) pick half of them at random to erase ---
+            std::mt19937_64 rng{42};
+            std::vector<decltype(flist.begin())> to_erase;
+            to_erase.reserve(sz/2);
+            std::sample(elems.begin(), elems.end(),
+                        std::back_inserter(to_erase),
                         sz/2,
                         rng);
             
-            for (auto it : ls_to_erase)
-            {
-                linked_list.erase(it);
+            // --- 3) erase each one by first finding its "previous" node ---
+            for (auto it : to_erase) {
+                auto prev = flist.before_begin();
+                // walk until prev->next == it
+                while (std::next(prev) != it) {
+                    ++prev;
+                }
+                // erase the node after prev
+                flist.erase_after(prev);
             }
             
-            assert(linked_list.size() == sz/2);
+            assert(std::distance(flist.begin(), flist.end()) == sz/2);
             // LINKED LIST END
-            bench.complexityN(sz).name("std::list").minEpochIterations(iterations).run(
+            bench.complexityN(sz).name("std::forward_list").minEpochIterations(iterations).run(
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for (const auto& value : linked_list)
+                    for (const auto& value : flist)
                     {
                         sum += value.i;
                     }
                     ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_vec_sum = %u\n", sum);
+                    printf("forward_list_sum = %u\n", sum);
                 }
             );
         }

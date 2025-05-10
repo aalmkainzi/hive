@@ -595,24 +595,32 @@ sp_iter_t sp_end(SP_NAME *sp)
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    it.index += 1;
-    it.index += it.bucket->offsets[it.index].next_elm_offset;
-    if(it.index == SP_BUCKET_SIZE)
+    sp_index_t next_elm = 1 + it.index;
+    next_elm += it.bucket->offsets[next_elm].next_elm_offset;
+    if(SP_UNLIKELY(next_elm == SP_BUCKET_SIZE))
     {
         it.bucket = it.bucket->next;
         it.index = it.bucket->first_elm_idx;
+    }
+    else
+    {
+        it.index = next_elm;
     }
     return it;
 }
 
 void sp_iter_go_next(sp_iter_t *it)
 {
-    it->index += 1;
-    it->index += it->bucket->offsets[it->index].next_elm_offset;
-    if(it->index == SP_BUCKET_SIZE)
+    sp_index_t next_elm = 1 + it->index;
+    next_elm += it->bucket->offsets[next_elm].next_elm_offset;
+    if(SP_UNLIKELY(next_elm == SP_BUCKET_SIZE))
     {
         it->bucket = it->bucket->next;
         it->index = it->bucket->first_elm_idx;
+    }
+    else
+    {
+        it->index = next_elm;
     }
 }
 
