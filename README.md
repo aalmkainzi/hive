@@ -3,10 +3,10 @@ A container that provides pointer stability and faster iteration speed than link
 ## Example
 
 ```C
-void printInt(int *i, void *arg)
-{
-    printf("%d\n", *i);
-}
+#define SP_IMPL
+#define SP_TYPE int
+#define SP_NAME int_sp
+#include "stable_pool.h"
 
 int main()
 {
@@ -19,15 +19,10 @@ int main()
     int *four  = int_sp_put(&ints, 4);
     int *five  = int_sp_put(&ints, 5);
     
-    // The library offers an iterator API
-    int_sp_iter_t end = int_sp_end(&ints);
-    for(int_sp_iter_t it = int_sp_begin(&ints) ; !int_sp_iter_eq(it, end) ; it = int_sp_iter_next(it))
+    for(int_sp_iter_t it = int_sp_begin(&ints) ; !int_sp_iter_is_end(it) ; int_sp_iter_go_next(&it))
     {
         printf("%d\n", *int_sp_iter_elm(it));
     }
-    
-    // And a foreach function
-    int_sp_foreach(&ints, printInt, NULL);
     
     int_sp_pop(&ints, one);
     int_sp_pop(&ints, two);
