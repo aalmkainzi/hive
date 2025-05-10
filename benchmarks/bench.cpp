@@ -7,7 +7,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) //printf(__VA_ARGS__)
+#define printf(...) printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -72,11 +72,11 @@ int main()
         1 << 18,
         1 << 19,
         1 << 20,
-        1 << 21
+        //1 << 21
     };
     
     std::string html_file_name = "stable_pool_and_plf_colony.html";
-    constexpr bool bench_stable_pool = false;
+    constexpr bool bench_stable_pool = true;
     constexpr bool bench_small_stable_pool = true;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
@@ -90,7 +90,7 @@ int main()
     // constexpr bool bench_stable_vec  = true;
     // constexpr bool bench_linked_list = true;
     
-    int iterations = 500;
+    int iterations = 1;
     
     for(int& sz : sizes)
     {
@@ -161,7 +161,7 @@ int main()
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; it = big_sp_iter_next(it))
+                    for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
                     {
                         sum += big_sp_iter_elm(it)->i;
                     }
