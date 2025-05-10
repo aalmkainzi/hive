@@ -44,7 +44,7 @@ bool eq_big(Big a, Big b)
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME sbig_sp
-#define SP_BUCKET_SIZE 254
+#define SP_BUCKET_SIZE 500000
 #include "stable_pool.h"
 
 void add_sum(Big *big, void *arg)
@@ -77,13 +77,13 @@ int main()
     
     std::string html_file_name = "stable_pool_and_plf_colony.html";
     constexpr bool bench_stable_pool = false;
-    constexpr bool bench_small_stable_pool = false;
+    constexpr bool bench_small_stable_pool = true;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    // std::string html_file_name = "benchmark.html";
+    // std::string html_file_name = "bench_all.html";
     // constexpr bool bench_stable_pool = true;
     // constexpr bool bench_plf_colony  = true;
     // constexpr bool bench_slot_map    = true;

@@ -39,7 +39,12 @@
 
 #endif
 
-#if SP_BUCKET_SIZE > 254
+#if SP_BUCKET_SIZE > (UINT16_MAX - 1)
+
+    #define sp_index_t   uint32_t
+    #define SP_INDEX_MAX UINT32_MAX
+
+#elif SP_BUCKET_SIZE > (UINT8_MAX - 1)
 
     #define sp_index_t   uint16_t
     #define SP_INDEX_MAX UINT16_MAX

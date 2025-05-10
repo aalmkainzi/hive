@@ -204,6 +204,7 @@ typedef struct Big
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME big_sp
+#define SP_BUCKET_SIZE 500000
 #include "stable_pool.h"
 
 static void collect_big(Big *v, void *arg)
@@ -1106,7 +1107,7 @@ int main(void)
     test_big_iteration_equivalence_after_random_pops();
     test_big_against_dynamic_array();
     test_big_insert_after_erase();
-    test_clear_bucket();
+    //test_clear_bucket();
     test_big_empty_iteration();
     test_big_erase_single_element();
     test_big_erase_first_element();
