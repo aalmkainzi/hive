@@ -7,7 +7,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) printf(__VA_ARGS__)
+#define printf(...) // printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -43,7 +43,7 @@ bool eq_big(Big a, Big b)
 
 #define SP_IMPL
 #define SP_TYPE Big
-#define SP_NAME sbig_sp
+#define SP_NAME bbig_sp
 #define SP_BUCKET_SIZE 500000
 #include "stable_pool.h"
 
@@ -181,13 +181,13 @@ int main()
             // STABLE_POOL SETUP
             
             srand(69420);
-            sbig_sp sl; sbig_sp_init(&sl);
+            bbig_sp sl; bbig_sp_init(&sl);
             Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
             Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
             for (int i = 0; i < sz; i++)
                 bigs[i] = (Big){.i = rand() - i};
             
-            sbig_sp_put_all(&sl, bigs, sz);
+            bbig_sp_put_all(&sl, bigs, sz);
             
             int i = 0;
             
@@ -205,20 +205,20 @@ int main()
                         rng);
             
             for (Big* p : to_pop) {
-                sbig_sp_pop(&sl, p);
+                bbig_sp_pop(&sl, p);
             }
             
             assert(sl.count == sz/2);
             
             // STABLE_POOL END
             
-            bench.complexityN(sz).name("sstable_pool_iter").minEpochIterations(iterations).run(
+            bench.complexityN(sz).name("bstable_pool_iter").minEpochIterations(iterations).run(
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(sbig_sp_iter_t it = sbig_sp_begin(&sl) ; !sbig_sp_iter_is_end(it) ; it = sbig_sp_iter_next(it))
+                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(it) ; it = bbig_sp_iter_next(it))
                     {
-                        sum += sbig_sp_iter_elm(it)->i;
+                        sum += bbig_sp_iter_elm(it)->i;
                     }
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
@@ -226,7 +226,7 @@ int main()
                 }
             );
             
-            sbig_sp_deinit(&sl);
+            bbig_sp_deinit(&sl);
             free(ptrs);
             free(bigs);
         }

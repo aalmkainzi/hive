@@ -499,8 +499,6 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     if(bucket->offsets[index].next_elm_offset != 0)
         return false;
     
-    // TODO why not just use (offset of next index) + 1
-    
     bucket->offsets[index].next_elm_offset = bucket->offsets[index + 1].next_elm_offset + 1;
     
     for(ptrdiff_t i = (ptrdiff_t)index - 1 ; i >= 0 && bucket->offsets[i].next_elm_offset != 0 ; i--)
