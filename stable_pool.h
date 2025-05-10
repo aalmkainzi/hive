@@ -149,6 +149,7 @@ typedef struct sp_offset_entry_t
 typedef struct sp_bucket_t
 {
     sp_index_t first_elm_idx;
+    sp_index_t last_elm_idx;
     sp_entry_t elms[SP_BUCKET_SIZE + 1];
     sp_offset_entry_t offsets[SP_BUCKET_SIZE + 1];
     struct sp_bucket_t *next;
@@ -280,6 +281,7 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
             bucket->offsets[j].next_elm_offset = 0;
         }
         bucket->first_elm_idx = 0;
+        bucket->last_elm_idx = SP_BUCKET_SIZE - 1;
         sp->bucket_count += 1;
         sp->count += SP_BUCKET_SIZE;
         
@@ -300,6 +302,7 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
             remaining_bucket->offsets[j].next_elm_offset = 0;
         }
         remaining_bucket->first_elm_idx = 0;
+        remaining_bucket->last_elm_idx = remaining - 1;
         
         if(bucket)
         {
@@ -458,6 +461,7 @@ void sp_deinit(SP_NAME *sp)
 void sp_bucket_init(sp_bucket_t *bucket)
 {
     bucket->first_elm_idx = SP_INDEX_MAX;
+    bucket->last_elm_idx = 0; // this is probably fine because we'll insert into it immediately
     bucket->next = NULL;
     
     for(sp_index_t i = 0 ; i <= SP_BUCKET_SIZE ; i++)
@@ -479,16 +483,21 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
     
     emptyIndexFound:
     bucket->elms[emptyIndex].value = new_elm;
-    
     bucket->offsets[emptyIndex].next_elm_offset = 0;
     
+    if(emptyIndex > bucket->last_elm_idx)
+    {
+        bucket->last_elm_idx = emptyIndex;
+    }
+    
+    // the loop doesnt make sense. either bucket->first_elm_idx is 0, or became 0 during this call
     if(emptyIndex < bucket->first_elm_idx)
     {
         bucket->first_elm_idx = emptyIndex;
-        for(sp_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
-        {
-            bucket->offsets[i].next_elm_offset = &bucket->offsets[bucket->first_elm_idx] - &bucket->offsets[i];
-        }
+        // for(sp_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
+        // {
+        //     bucket->offsets[i].next_elm_offset = &bucket->offsets[bucket->first_elm_idx] - &bucket->offsets[i];
+        // }
     }
     
     return &bucket->elms[emptyIndex].value;
@@ -510,19 +519,29 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     bool is_empty = false;
     if(index == bucket->first_elm_idx)
     {
+        // TODO no need to loop here. we can just offset to the next elm
+        is_empty = true;
         for(sp_index_t j = index + 1 ; j < SP_BUCKET_SIZE ; j++)
         {
             if(bucket->offsets[j].next_elm_offset == 0)
             {
                 bucket->first_elm_idx = j;
-                goto not_empty;
+                is_empty = false;
+                break;
             }
         }
-        is_empty = true;
-        bucket->first_elm_idx = SP_BUCKET_SIZE; // this doesn't really matter, this node will get deleted since it's empty
     }
-    
-    not_empty:
+    else if(index == bucket->last_elm_idx)
+    {
+        for(sp_index_t j = SP_BUCKET_SIZE - 1; ; j--)
+        {
+            if(bucket->offsets[j].next_elm_offset == 0)
+            {
+                bucket->last_elm_idx = j;
+                break;
+            }
+        }
+    }
     
     return is_empty;
 }
@@ -596,32 +615,32 @@ sp_iter_t sp_end(SP_NAME *sp)
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    sp_index_t next_elm = 1 + it.index;
-    next_elm += it.bucket->offsets[next_elm].next_elm_offset;
-    if(SP_UNLIKELY(next_elm == SP_BUCKET_SIZE))
+    sp_index_t next_index = it.index + 1;
+    if(SP_UNLIKELY(it.index + 1 > it.bucket->last_elm_idx))
     {
         it.bucket = it.bucket->next;
         it.index = it.bucket->first_elm_idx;
     }
     else
     {
-        it.index = next_elm;
+        it.index = next_index + it.bucket->offsets[next_index].next_elm_offset;
     }
     return it;
 }
 
-void sp_iter_go_next(sp_iter_t *it)
+void sp_iter_go_next(sp_iter_t *__restrict__ it)
 {
-    sp_index_t next_elm = 1 + it->index;
-    next_elm += it->bucket->offsets[next_elm].next_elm_offset;
-    if(SP_UNLIKELY(next_elm == SP_BUCKET_SIZE))
-    {
-        it->bucket = it->bucket->next;
-        it->index = it->bucket->first_elm_idx;
-    }
-    else
-    {
-        it->index = next_elm;
+    sp_bucket_t *const bucket = it->bucket;        // Cache current bucket
+    const sp_index_t last_elm = bucket->last_elm_idx; // Cache last_elm_idx
+    const sp_index_t next_index = it->index + 1;
+    
+    if (SP_UNLIKELY(next_index > last_elm)) {
+        // Transition to next bucket
+        sp_bucket_t *const next_bucket = bucket->next;
+        it->bucket = next_bucket;
+        it->index = next_bucket->first_elm_idx;
+    } else {
+        it->index = next_index + bucket->offsets[next_index].next_elm_offset;
     }
 }
 
@@ -641,21 +660,15 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
     if(sp_bucket_pop(sp, bucket, index))
     {
         sp_bucket_t *prev_bucket;
-        if(sp->count == 1)
+        if(bucket == sp->buckets)
         {
             prev_bucket = NULL;
-        }
-        else
-        {
-            sp_bucket_t *prev_bucket = sp_bucket_prev(sp, bucket);
-        }
-        if(prev_bucket != NULL)
-        {
-            prev_bucket->next = bucket->next;
-        }
-        else
-        {
             sp->buckets = bucket->next;
+        }
+        else
+        {
+            prev_bucket = sp_bucket_prev(sp, bucket);
+            prev_bucket->next = bucket->next;
         }
         
         if(bucket == sp->tail)

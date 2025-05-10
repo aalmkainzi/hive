@@ -44,7 +44,7 @@ bool eq_big(Big a, Big b)
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME bbig_sp
-#if __has_include("../../sp_other/stable_pool.h")
+#if 1//__has_include("../../sp_other/stable_pool.h")
 #include "../../sp_other/stable_pool.h"
 #else
 #include "stable_pool.h"
@@ -68,10 +68,10 @@ int main()
         // 1 << 11,
         // 1 << 12,
         // 1 << 13,
-        // 1 << 14,
-        // 1 << 15,
-        // 1 << 16,
-        // 1 << 17,
+        1 << 14,
+        1 << 15,
+        1 << 16,
+        1 << 17,
         1 << 18,
         1 << 19,
         1 << 20,
@@ -80,7 +80,7 @@ int main()
     
     std::string html_file_name = "stable_pool_and_plf_colony.html";
     constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = false;
+    constexpr bool bench_small_stable_pool = true;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
@@ -94,7 +94,7 @@ int main()
     // constexpr bool bench_stable_vec  = true;
     // constexpr bool bench_linked_list = true;
     
-    int iterations = 50;
+    int iterations = 100;
     
     for(int& sz : sizes)
     {
@@ -165,7 +165,7 @@ int main()
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+                    for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; it = big_sp_iter_next(it))
                     {
                         sum += big_sp_iter_elm(it)->i;
                     }
@@ -226,7 +226,7 @@ int main()
                     }
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool_iter = %u\n", sum);
+                    printf("sstable_pool_iter = %u\n", sum);
                 }
             );
             

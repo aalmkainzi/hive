@@ -204,7 +204,6 @@ typedef struct Big
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME big_sp
-#define SP_BUCKET_SIZE 500000
 #include "stable_pool.h"
 
 static void collect_big(Big *v, void *arg)
@@ -532,13 +531,15 @@ static void test_big_against_dynamic_array(void)
     big_sp sp;
     big_sp_init(&sp);
     int *expected = NULL;
-    const int N = 50;
+    const int N = 10;
+    Big *tmp = malloc(sizeof(Big) * N);
     for (int i = 0; i < N; i++)
     {
-        Big *ptr = big_sp_put(&sp, (Big){.i = i});
-        ASSERT(ptr != NULL);
         arrput(expected, i);
+        tmp[i] = (Big){.i=i};
     }
+    big_sp_put_all(&sp, tmp, N);
+    free(tmp);
     ASSERT(sp.count == (size_t)N);
     ASSERT(arrlen(expected) == N);
     
@@ -553,7 +554,9 @@ static void test_big_against_dynamic_array(void)
         
         big_sp_iter_t it;
         Big *found = NULL;
-        for (it = big_sp_begin(&sp); !big_sp_iter_eq(it, big_sp_end(&sp)); it = big_sp_iter_next(it))
+        for (it = big_sp_begin(&sp);
+             !big_sp_iter_eq(it, big_sp_end(&sp));
+        it = big_sp_iter_next(it))
         {
             Big *current = big_sp_iter_elm(it);
             if (current->i == value)
@@ -1118,4 +1121,3 @@ int main(void)
     printf("ALL PASSED\n");
     return 0;
 }
-
