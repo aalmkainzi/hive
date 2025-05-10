@@ -485,10 +485,10 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
     if(emptyIndex < bucket->first_elm_idx)
     {
         bucket->first_elm_idx = emptyIndex;
-        for(sp_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
-        {
-            bucket->offsets[i].next_elm_offset = &bucket->offsets[bucket->first_elm_idx] - &bucket->offsets[i];
-        }
+        // for(sp_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
+        // {
+        //     bucket->offsets[i].next_elm_offset = &bucket->offsets[bucket->first_elm_idx] - &bucket->offsets[i];
+        // }
     }
     
     return &bucket->elms[emptyIndex].value;
@@ -510,19 +510,14 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     bool is_empty = false;
     if(index == bucket->first_elm_idx)
     {
-        for(sp_index_t j = index + 1 ; j < SP_BUCKET_SIZE ; j++)
+        sp_index_t next_elm = index + 1 + bucket->offsets[index + 1].next_elm_offset;
+        bucket->first_elm_idx = next_elm;
+        
+        if(next_elm == SP_BUCKET_SIZE)
         {
-            if(bucket->offsets[j].next_elm_offset == 0)
-            {
-                bucket->first_elm_idx = j;
-                goto not_empty;
-            }
+            is_empty = true;
         }
-        is_empty = true;
-        bucket->first_elm_idx = SP_BUCKET_SIZE; // this doesn't really matter, this node will get deleted since it's empty
     }
-    
-    not_empty:
     
     return is_empty;
 }
@@ -641,21 +636,15 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
     if(sp_bucket_pop(sp, bucket, index))
     {
         sp_bucket_t *prev_bucket;
-        if(sp->count == 1)
+        if(bucket == sp->buckets)
         {
             prev_bucket = NULL;
-        }
-        else
-        {
-            sp_bucket_t *prev_bucket = sp_bucket_prev(sp, bucket);
-        }
-        if(prev_bucket != NULL)
-        {
-            prev_bucket->next = bucket->next;
-        }
-        else
-        {
             sp->buckets = bucket->next;
+        }
+        else
+        {
+            prev_bucket = sp_bucket_prev(sp, bucket);
+            prev_bucket->next = bucket->next;
         }
         
         if(bucket == sp->tail)
@@ -667,6 +656,7 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
             else
             {
                 sp->tail = sp->end_sentinel;
+                sp->buckets = sp->end_sentinel;
             }
             
             ret.bucket = sp->end_sentinel;
@@ -684,10 +674,7 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
     else
     {
         sp_index_t next_elm = index + 1;
-        for( ; bucket->offsets[next_elm].next_elm_offset != 0 ; next_elm++)
-        {
-            ;
-        }
+        next_elm += bucket->offsets[next_elm].next_elm_offset;
         
         if(next_elm == SP_BUCKET_SIZE)
         {
