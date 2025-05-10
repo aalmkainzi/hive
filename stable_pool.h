@@ -656,7 +656,7 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
             else
             {
                 sp->tail = sp->end_sentinel;
-                sp->buckets = sp->end_sentinel;
+                sp->buckets = sp->end_sentinel; // this is actually not needed, because we did `sp->buckets = bucket->next;`
             }
             
             ret.bucket = sp->end_sentinel;
