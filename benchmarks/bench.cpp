@@ -39,7 +39,6 @@ bool eq_big(Big a, Big b)
 #define SP_IMPL
 #define SP_TYPE Big
 #define SP_NAME big_sp
-#define SP_BUCKET_SIZE 10000000
 #include "stable_pool.h"
 
 #define SP_IMPL
@@ -73,8 +72,8 @@ int main()
         1 << 15,
         1 << 16,
         1 << 17,
-        // 1 << 18,
-        // 1 << 19,
+        1 << 18,
+        1 << 19,
         // 1 << 20,
         // 1 << 21
     };
