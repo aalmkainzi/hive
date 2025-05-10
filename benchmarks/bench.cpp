@@ -64,35 +64,35 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        1 << 10,
-        1 << 11,
-        1 << 12,
-        1 << 13,
-        1 << 14,
-        1 << 15,
-        1 << 16,
-        1 << 17,
+        // 1 << 10,
+        // 1 << 11,
+        // 1 << 12,
+        // 1 << 13,
+        // 1 << 14,
+        // 1 << 15,
+        // 1 << 16,
+        // 1 << 17,
         1 << 18,
         1 << 19,
-        // 1 << 20,
-        // 1 << 21
+        1 << 20,
+        1 << 21
     };
     
-    // std::string html_file_name = "stable_pool_and_plf_colony.html";
-    // constexpr bool bench_stable_pool = true;
-    // constexpr bool bench_small_stable_pool = false;
-    // constexpr bool bench_plf_colony  = true;
-    // constexpr bool bench_slot_map    = false;
-    // constexpr bool bench_stable_vec  = false;
-    // constexpr bool bench_linked_list = false;
-    
-    std::string html_file_name = "bench_all.html";
+    std::string html_file_name = "stable_pool_and_plf_colony.html";
     constexpr bool bench_stable_pool = true;
     constexpr bool bench_small_stable_pool = false;
     constexpr bool bench_plf_colony  = true;
-    constexpr bool bench_slot_map    = true;
-    constexpr bool bench_stable_vec  = true;
-    constexpr bool bench_linked_list = true;
+    constexpr bool bench_slot_map    = false;
+    constexpr bool bench_stable_vec  = false;
+    constexpr bool bench_linked_list = false;
+    
+    // std::string html_file_name = "bench_all.html";
+    // constexpr bool bench_stable_pool = true;
+    // constexpr bool bench_small_stable_pool = false;
+    // constexpr bool bench_plf_colony  = true;
+    // constexpr bool bench_slot_map    = true;
+    // constexpr bool bench_stable_vec  = true;
+    // constexpr bool bench_linked_list = true;
     
     int iterations = 50;
     

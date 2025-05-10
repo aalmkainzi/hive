@@ -416,7 +416,8 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
         {
             sp_entry_t *as_entry = (sp_entry_t*) elm;
             sp_index_t index = as_entry - bucket->elms;
-            sp_pop_helper(sp, prev, bucket, index);
+            ret = sp_pop_helper(sp, prev, bucket, index);
+            break;
         }
     }
     return ret;
