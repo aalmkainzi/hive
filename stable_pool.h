@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdalign.h>
 #include <string.h>
+#include <time.h>
 
 #if !defined(SP_TYPE) || !defined(SP_NAME)
 
@@ -14,7 +15,7 @@
 
 #if !defined(SP_BUCKET_SIZE)
 
-    #define SP_BUCKET_SIZE (65534)
+    #define SP_BUCKET_SIZE (255)
 
 #endif
 
@@ -39,12 +40,12 @@
 
 #endif
 
-#if SP_BUCKET_SIZE > (UINT16_MAX - 1)
+#if SP_BUCKET_SIZE > (UINT16_MAX)
 
     #define sp_index_t   uint32_t
     #define SP_INDEX_MAX UINT32_MAX
 
-#elif SP_BUCKET_SIZE > (UINT8_MAX - 1)
+#elif SP_BUCKET_SIZE > (UINT8_MAX)
 
     #define sp_index_t   uint16_t
     #define SP_INDEX_MAX UINT16_MAX
@@ -101,6 +102,7 @@
 #define sp_iter_pop              SP_CAT(SP_NAME, _iter_pop)
 #define sp_iter_eq               SP_CAT(SP_NAME, _iter_eq)
 #define sp_iter_is_end           SP_CAT(SP_NAME, _iter_is_end)
+#define sp_iter_to               SP_CAT(SP_NAME, _iter_to)
 
 #define sp_alloc_mem             SP_CAT(SP_NAME, _alloc_mem)
 #define sp_free_mem              SP_CAT(SP_NAME, _free_mem)
@@ -149,6 +151,7 @@ typedef struct sp_offset_entry_t
 typedef struct sp_bucket_t
 {
     sp_index_t first_elm_idx;
+    sp_index_t last_elm_idx;
     sp_entry_t elms[SP_BUCKET_SIZE + 1];
     sp_offset_entry_t offsets[SP_BUCKET_SIZE + 1];
     struct sp_bucket_t *next;
@@ -167,7 +170,8 @@ typedef struct sp_iter_t
 {
     SP_NAME *sp;
     sp_bucket_t *bucket;
-    sp_index_t index;
+    sp_entry_t *entry;
+    sp_offset_entry_t *offset;
 } sp_iter_t;
 
 void sp_init(SP_NAME *sp);
@@ -185,7 +189,7 @@ void sp_iter_go_next(sp_iter_t *it);
 SP_TYPE *sp_iter_elm(sp_iter_t it);
 sp_iter_t sp_iter_pop(sp_iter_t it);
 bool sp_iter_eq(sp_iter_t a, sp_iter_t b);
-bool sp_iter_is_end(sp_iter_t it);
+bool sp_iter_is_end(sp_iter_t *it);
 
 #define SP_IMPL
 #if defined(SP_IMPL)
@@ -199,6 +203,7 @@ sp_bucket_t *sp_get_containing_bucket(SP_NAME *sp, const SP_TYPE *elm);
 sp_index_t sp_bucket_first_elm(sp_bucket_t *bucket);
 sp_index_t sp_bucket_last_elm(sp_bucket_t *bucket);
 sp_bucket_t *sp_bucket_prev(SP_NAME *sp, sp_bucket_t *bucket);
+sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index);
 
 bool sp_validate(SP_NAME *sp);
 
@@ -223,6 +228,7 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
 {
     SP_TYPE *elm_added = NULL;
     
+    // TODO can actually do math to determine whether the sp is full (bucket_count * SP_BUCKET_SIZE)
     for(sp_bucket_t *bucket = sp->buckets ; bucket != sp->end_sentinel ; bucket = bucket->next)
     {
         elm_added = sp_bucket_put(sp, bucket, new_elm);
@@ -280,6 +286,7 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
             bucket->offsets[j].next_elm_offset = 0;
         }
         bucket->first_elm_idx = 0;
+        bucket->last_elm_idx = SP_BUCKET_SIZE - 1;
         sp->bucket_count += 1;
         sp->count += SP_BUCKET_SIZE;
         
@@ -300,6 +307,7 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
             remaining_bucket->offsets[j].next_elm_offset = 0;
         }
         remaining_bucket->first_elm_idx = 0;
+        remaining_bucket->last_elm_idx = remaining - 1;
         
         if(bucket)
         {
@@ -358,13 +366,12 @@ sp_iter_t sp_pop_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *buck
                 sp->tail = sp->end_sentinel;
             }
             
-            ret.bucket = sp->end_sentinel;
-            ret.index = SP_BUCKET_SIZE;
+            ret = sp_iter_to(sp, sp->end_sentinel, SP_BUCKET_SIZE);
         }
         else
         {
-            ret.bucket = bucket->next;
-            ret.index = sp_bucket_first_elm(ret.bucket);
+            sp_index_t first_elm = sp_bucket_first_elm(bucket->next);
+            ret = sp_iter_to(sp, bucket->next, first_elm);
         }
         
         SP_FREE(SP_ALLOC_CTX, bucket, sizeof(*bucket));
@@ -384,19 +391,16 @@ sp_iter_t sp_pop_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *buck
             {
                 sp_bucket_t *next_bucket = bucket->next;
                 sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
-                ret.bucket = next_bucket;
-                ret.index = first_elm_in_next_bucket;
+                ret = sp_iter_to(sp, next_bucket, first_elm_in_next_bucket);
             }
             else
             {
-                ret.bucket = sp->end_sentinel;
-                ret.index = SP_BUCKET_SIZE;
+                ret = sp_iter_to(sp, sp->end_sentinel, SP_BUCKET_SIZE);
             }
         }
         else
         {
-            ret.bucket = bucket;
-            ret.index = next_elm;
+            ret = sp_iter_to(sp, bucket, next_elm);
         }
     }
     sp->count -= 1;
@@ -458,37 +462,51 @@ void sp_deinit(SP_NAME *sp)
 void sp_bucket_init(sp_bucket_t *bucket)
 {
     bucket->first_elm_idx = SP_INDEX_MAX;
+    bucket->last_elm_idx = 0;
     bucket->next = NULL;
     
-    for(sp_index_t i = 0 ; i <= SP_BUCKET_SIZE ; i++)
+    sp_index_t i;
+    for(i = 0 ; i < SP_BUCKET_SIZE ; i++)
     {
         bucket->offsets[i].next_elm_offset = &bucket->elms[SP_BUCKET_SIZE] - &bucket->elms[i];
     }
+    bucket->offsets[i].next_elm_offset = &bucket->elms[SP_BUCKET_SIZE] - &bucket->elms[i];
 }
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 {
     (void)sp;
     int emptyIndex = 0;
-    for( ; emptyIndex < SP_BUCKET_SIZE ; emptyIndex++)
+    if(bucket->first_elm_idx != 0)
     {
-        if(bucket->offsets[emptyIndex].next_elm_offset != 0)
-            goto emptyIndexFound;
+        emptyIndex = 0;
     }
-    return NULL;
+    else if(bucket->last_elm_idx != SP_BUCKET_SIZE - 1)
+    {
+        emptyIndex = bucket->last_elm_idx + 1;
+    }
+    else
+    {
+        for( ; emptyIndex < SP_BUCKET_SIZE ; emptyIndex++)
+        {
+            if(bucket->offsets[emptyIndex].next_elm_offset != 0)
+                goto emptyIndexFound;
+        }
+        return NULL;
+    }
     
     emptyIndexFound:
     bucket->elms[emptyIndex].value = new_elm;
-    
     bucket->offsets[emptyIndex].next_elm_offset = 0;
     
     if(emptyIndex < bucket->first_elm_idx)
     {
         bucket->first_elm_idx = emptyIndex;
-        // for(sp_index_t i = 0 ; i < bucket->first_elm_idx ; i++)
-        // {
-        //     bucket->offsets[i].next_elm_offset = &bucket->offsets[bucket->first_elm_idx] - &bucket->offsets[i];
-        // }
+    }
+    
+    if(emptyIndex > bucket->last_elm_idx)
+    {
+        bucket->last_elm_idx = emptyIndex;
     }
     
     return &bucket->elms[emptyIndex].value;
@@ -516,6 +534,17 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
         if(next_elm == SP_BUCKET_SIZE)
         {
             is_empty = true;
+        }
+    }
+    else if(index == bucket->last_elm_idx)
+    {
+        for(ptrdiff_t j = index - 1 ; j >= 0 ; j--)
+        {
+            if(bucket->offsets[j].next_elm_offset == 0)
+            {
+                bucket->last_elm_idx = j;
+                break;
+            }
         }
     }
     
@@ -573,63 +602,93 @@ sp_bucket_t *sp_get_containing_bucket(SP_NAME *sp, const SP_TYPE *elm)
 
 sp_iter_t sp_begin(SP_NAME *sp)
 {
-    return (sp_iter_t){
-        .sp = sp,
-        .bucket = sp->buckets,
-        .index = sp->buckets->first_elm_idx
-    };
+    return sp_iter_to(sp, sp->buckets, sp->buckets->first_elm_idx);
 }
 
 sp_iter_t sp_end(SP_NAME *sp)
 {
-    return (sp_iter_t){
-        .sp = sp,
-        .bucket = sp->end_sentinel,
-        .index = SP_BUCKET_SIZE,
-    };
+    return sp_iter_to(sp, sp->end_sentinel, SP_BUCKET_SIZE);
+}
+
+sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
+{
+    sp_iter_t ret;
+    ret.sp = sp;
+    ret.bucket = bucket;
+    ret.entry = &ret.bucket->elms[index];
+    ret.offset = &ret.bucket->offsets[index];
+    return ret;
+}
+
+bool sp_iter_eq(sp_iter_t a, sp_iter_t b)
+{
+    return (a.entry == b.entry);
+}
+
+bool sp_iter_is_end(sp_iter_t *it)
+{
+    return (it->bucket == it->sp->end_sentinel);
 }
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    sp_index_t next_elm = 1 + it.index;
-    next_elm += it.bucket->offsets[next_elm].next_elm_offset;
-    if(SP_UNLIKELY(next_elm == SP_BUCKET_SIZE))
+    it.entry++;
+    it.offset++;
+    it.entry  += it.offset->next_elm_offset;
+    it.offset += it.offset->next_elm_offset;
+    if(SP_UNLIKELY(it.entry == &it.bucket->elms[SP_BUCKET_SIZE]))
     {
         it.bucket = it.bucket->next;
-        it.index = it.bucket->first_elm_idx;
-    }
-    else
-    {
-        it.index = next_elm;
+        it.entry = &it.bucket->elms[it.bucket->first_elm_idx];
+        it.offset = &it.bucket->offsets[it.bucket->first_elm_idx];
     }
     return it;
+    // sp_index_t index_p1 = it.index + 1;
+    // sp_index_t skip = it.bucket->offsets[index_p1].next_elm_offset;
+    // if(index_p1 + skip == SP_BUCKET_SIZE)
+    // {
+    //     it.bucket = it.bucket->next;
+    //     index_p1 = 0;
+    //     skip = it.bucket->first_elm_idx;
+    // }
+    // it.index = index_p1 + skip;
+    // return it;
 }
 
 void sp_iter_go_next(sp_iter_t *it)
 {
-    sp_index_t next_elm = 1 + it->index;
-    next_elm += it->bucket->offsets[next_elm].next_elm_offset;
-    if(SP_UNLIKELY(next_elm == SP_BUCKET_SIZE))
+    it->entry++;
+    it->offset++;
+    it->entry  += it->offset->next_elm_offset;
+    it->offset += it->offset->next_elm_offset;
+    if(SP_UNLIKELY(it->entry == &it->bucket->elms[SP_BUCKET_SIZE]))
     {
         it->bucket = it->bucket->next;
-        it->index = it->bucket->first_elm_idx;
+        it->entry = &it->bucket->elms[it->bucket->first_elm_idx];
+        it->offset = &it->bucket->offsets[it->bucket->first_elm_idx];
     }
-    else
-    {
-        it->index = next_elm;
-    }
+    
+    // sp_index_t index_p1 = it->index + 1;
+    // sp_index_t skip = it->bucket->offsets[index_p1].next_elm_offset;
+    // if(index_p1 + skip == SP_BUCKET_SIZE)
+    // {
+    //     it->bucket = it->bucket->next;
+    //     index_p1 = 0;
+    //     skip = it->bucket->first_elm_idx;
+    // }
+    // it->index = index_p1 + skip;
 }
 
 SP_TYPE *sp_iter_elm(sp_iter_t it)
 {
-    return &it.bucket->elms[it.index].value;
+    return (SP_TYPE*) it.entry;
 }
 
 sp_iter_t sp_iter_pop(sp_iter_t it)
 {
     SP_NAME *sp = it.sp;
     sp_bucket_t *bucket = it.bucket;
-    sp_index_t index = it.index;
+    sp_index_t index = it.entry - it.bucket->elms;
     sp_iter_t ret = {
         .sp = sp
     };
@@ -656,16 +715,14 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
             else
             {
                 sp->tail = sp->end_sentinel;
-                sp->buckets = sp->end_sentinel; // this is actually not needed, because we did `sp->buckets = bucket->next;`
+                sp->buckets = sp->end_sentinel; // this is actually not needed, because we already did `sp->buckets = bucket->next;`
             }
             
-            ret.bucket = sp->end_sentinel;
-            ret.index = SP_BUCKET_SIZE;
+            ret = sp_iter_to(sp, sp->end_sentinel, SP_BUCKET_SIZE);
         }
         else
         {
-            ret.bucket = bucket->next;
-            ret.index = sp_bucket_first_elm(ret.bucket);
+            ret = sp_iter_to(sp, bucket->next, sp_bucket_first_elm(bucket->next));
         }
         
         SP_FREE(SP_ALLOC_CTX, bucket, sizeof(*bucket));
@@ -682,33 +739,21 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
             {
                 sp_bucket_t *next_bucket = bucket->next;
                 sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
-                ret.bucket = next_bucket;
-                ret.index = first_elm_in_next_bucket;
+                
+                ret = sp_iter_to(sp, next_bucket, first_elm_in_next_bucket);
             }
             else
             {
-                ret.bucket = sp->end_sentinel;
-                ret.index = SP_BUCKET_SIZE;
+                ret = sp_iter_to(sp, sp->end_sentinel, SP_BUCKET_SIZE);
             }
         }
         else
         {
-            ret.bucket = bucket;
-            ret.index = next_elm;
+            ret = sp_iter_to(sp, bucket, next_elm);
         }
     }
     sp->count -= 1;
     return ret;
-}
-
-bool sp_iter_eq(sp_iter_t a, sp_iter_t b)
-{
-    return (a.bucket == b.bucket) && (a.index == b.index);
-}
-
-bool sp_iter_is_end(sp_iter_t it)
-{
-    return (it.bucket == it.sp->end_sentinel);
 }
 
 void *sp_alloc_mem(void *ctx, size_t size, size_t alignment)
