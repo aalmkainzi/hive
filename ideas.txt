@@ -1,0 +1,4 @@
+1- use index of next elm instead of offset
+2- keep a pool of buckets such that we don't allocate new ones when we need it
+3- along with 2 add a reserve() function
+4- benchmark using index vs pointer inside the iterator.
