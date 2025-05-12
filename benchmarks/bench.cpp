@@ -72,20 +72,10 @@ int main()
     
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
-    int sizes[] = {
-        // 1 << 10,
-        // 1 << 11,
-        // 1 << 12,
-        // 1 << 13,
-        // 1 << 14,
-        1 << 15,
-        1 << 16,
-        1 << 17,
-        1 << 18,
-        1 << 19,
-        1 << 20,
-        1 << 21
-    };
+    
+    int begin = 100'000;
+    int end = 800'000;
+    int interval = 5000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
@@ -99,7 +89,7 @@ int main()
     
     int iterations = 50;
     
-    for(int& sz : sizes)
+    for(int sz = begin ; sz <= end ; sz += interval)
     {
         printf("Starting %d\n", sz);
         std::mt19937 rng(42);

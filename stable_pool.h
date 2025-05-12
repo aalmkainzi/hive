@@ -15,7 +15,7 @@
 
 #if !defined(SP_BUCKET_SIZE)
 
-    #define SP_BUCKET_SIZE (UINT16_MAX - 1)
+    #define SP_BUCKET_SIZE (UINT8_MAX - 1)
 
 #endif
 
