@@ -59,42 +59,45 @@ void add_sum(Big *big, void *arg)
 #include "nanobench.h"
 #include <string>
 
+constexpr std::string_view compiler_name = 
+#if defined(__clang__)
+"clang";
+#else
+"gcc";
+#endif
+
 int main()
 {
     ankerl::nanobench::Bench bench;
     
+    std::ofstream outFile(std::string("stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
+    bench.output(&outFile);
     int sizes[] = {
         // 1 << 10,
         // 1 << 11,
         // 1 << 12,
         // 1 << 13,
         // 1 << 14,
-        // 1 << 15,
-        // 1 << 16,
+        1 << 15,
+        1 << 16,
         1 << 17,
         1 << 18,
         1 << 19,
         1 << 20,
-        //1 << 21
+        1 << 21
     };
     
-    std::string html_file_name = "stable_pool_and_plf_colony.html";
+    std::string html_file_name = std::string("stable_pool_and_plf_colony_").append(compiler_name).append(".html");
+    std::string json_file_name = std::string("stable_pool_and_plf_colony_").append(compiler_name).append(".json");
+    
     constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = true;
+    constexpr bool bench_small_stable_pool = false;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    // std::string html_file_name = "bench_all.html";
-    // constexpr bool bench_stable_pool = true;
-    // constexpr bool bench_small_stable_pool = false;
-    // constexpr bool bench_plf_colony  = true;
-    // constexpr bool bench_slot_map    = true;
-    // constexpr bool bench_stable_vec  = true;
-    // constexpr bool bench_linked_list = true;
-    
-    int iterations = 150;
+    int iterations = 50;
     
     for(int& sz : sizes)
     {
@@ -137,19 +140,19 @@ int main()
             
             // STABLE_POOL END
             
-//             bench.complexityN(sz).name("stable_pool").minEpochIterations(iterations).run(
-//                 [&]{
-//                     volatile unsigned int sum = 0;
-//                     
-//                     SP_FOREACH(&sl, sum += SP_IT->i; );
-//                     
-//                     ankerl::nanobench::doNotOptimizeAway(sum);
-//                     printf("stable_pool = %u\n", sum);
-//                 }
-//             );
-//             std::cout.flush();
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_macro", 
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    SP_FOREACH(&sl, sum += SP_IT->i; );
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool = %u\n", sum);
+                }
+            );
+            std::cout.flush();
 //         
-//             bench.complexityN(sz).name("stable_pool_func").minEpochIterations(iterations).run(
+//             bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_func", 
 //                 [&]{
 //                     volatile unsigned int sum = 0;
 //                     
@@ -161,11 +164,12 @@ int main()
 //             );
 //             std::cout.flush();
              
-            bench.complexityN(sz).name("stable_pool_iter").minEpochIterations(iterations).run(
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_iter",
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(&it) ; big_sp_iter_go_next(&it))
+                    const big_sp_bucket_t *const end = sl.end_sentinel;
+                    for(big_sp_iter_t it = big_sp_begin(&sl) ; it.bucket != end ; big_sp_iter_go_next(&it))
                     {
                         sum += big_sp_iter_elm(it)->i;
                     }
@@ -216,11 +220,12 @@ int main()
             
             // STABLE_POOL END
             
-            bench.complexityN(sz).name("bstable_pool_iter").minEpochIterations(iterations).run(
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_iter",
                 [&]{
                     volatile unsigned int sum = 0;
                     
-                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(&it) ; bbig_sp_iter_go_next(&it))
+                    const bbig_sp_bucket_t *const end = sl.end_sentinel;
+                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; it.bucket != end ; bbig_sp_iter_go_next(&it))
                     {
                         sum += bbig_sp_iter_elm(it)->i;
                     }
@@ -266,7 +271,7 @@ int main()
             assert(i_colony.size() == sz/2);
             // PLF SETUP END
             
-            bench.complexityN(sz).name("plf::colony").minEpochIterations(iterations).run(
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony", 
                 [&]{
                     volatile unsigned int sum = 0;
                     
@@ -312,7 +317,7 @@ int main()
             assert(slot_map.size() == sz/2);
             // SLOT MAP END
             
-            bench.complexityN(sz).name("dod::slot_map").minEpochIterations(iterations).run(
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("dod::slot_map", 
                 [&]{
                     volatile unsigned int sum = 0;
                     
@@ -359,7 +364,7 @@ int main()
             
             // STABLE_VECTOR END
             
-            bench.complexityN(sz).name("boost::stable_vector").minEpochIterations(iterations).run(
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("boost::stable_vector", 
                 [&]{
                     volatile unsigned int sum = 0;
                     
@@ -412,7 +417,7 @@ int main()
             
             assert(std::distance(flist.begin(), flist.end()) == sz/2);
             // LINKED LIST END
-            bench.complexityN(sz).name("std::forward_list").minEpochIterations(iterations).run(
+            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("std::forward_list", 
                 [&]{
                     volatile unsigned int sum = 0;
                     
@@ -428,10 +433,13 @@ int main()
         
         
         printf("Done from %d\n", sz);
-
     }
-    std::ofstream outFile(html_file_name);
-    bench.render(ankerl::nanobench::templates::htmlBoxplot(), outFile);
+    std::ofstream htmlFile(html_file_name);
+    std::ofstream jsonFile(json_file_name);
+    
+    bench.render(ankerl::nanobench::templates::htmlBoxplot(), htmlFile);
+    bench.render(ankerl::nanobench::templates::json(), jsonFile);
+    
     return 0;
 }
 // TODO add rust's colony

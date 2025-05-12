@@ -15,7 +15,7 @@
 
 #if !defined(SP_BUCKET_SIZE)
 
-    #define SP_BUCKET_SIZE (UINT8_MAX - 1)
+    #define SP_BUCKET_SIZE (UINT16_MAX - 1)
 
 #endif
 
@@ -115,28 +115,32 @@ sizeof(arr) / sizeof(arr[0])
 #define SP_GET_BUCKET_SIZE(sp) \
 (SP_ARR_LEN(sp->buckets->elms) - 1)
 
-#define SP_FOREACH(sp, body)                                                          \
-do                                                                                    \
-{                                                                                     \
-    typeof(sp) sp_sp = sp;  \
-    typeof(sp_sp->buckets) sp_bucket = sp_sp->buckets;                                                \
-    typeof(sp_sp->buckets->offsets[0].next_elm_index) sp_index = sp_bucket->first_elm_idx;                                         \
-    while( sp_bucket != sp_sp->end_sentinel )          \
-    {                                                                                 \
-        body                                           \
-        \
-        sp_index++; \
-        (sp_index) = (sp_bucket)->offsets[sp_index].next_elm_index; \
-        if(sp_index == SP_GET_BUCKET_SIZE(sp_sp)) \
-        { \
-            (sp_bucket) = (sp_bucket)->next; \
-            (sp_index) = (sp_bucket)->first_elm_idx; \
-        } \
-    }                                                                                 \
+#define SP_FOREACH(sp, body)                                                                   \
+do                                                                                             \
+{                                                                                              \
+    typeof(*sp) * const sp_sp = sp;                                                            \
+    const typeof(*sp_sp->buckets) *const sp_end_bucket = sp_sp->end_sentinel;                  \
+    typeof(sp_sp->buckets) sp_bucket = sp_sp->buckets;                                         \
+    typeof(sp_bucket->offsets[0].next_elm_index) sp_index = sp_bucket->first_elm_idx;          \
+    const typeof(sp_bucket->offsets[0]) *sp_offsets_base = &sp_bucket->offsets[0];             \
+    typeof(*sp_bucket->elms) *sp_elms_base = &sp_bucket->elms[0];                              \
+    while( sp_bucket != sp_end_bucket )                                                        \
+    {                                                                                          \
+        { body }                                                                               \
+                                                                                               \
+        (sp_index) = sp_offsets_base[sp_index + 1].next_elm_index;                             \
+        if(SP_UNLIKELY(sp_index == SP_GET_BUCKET_SIZE(sp_sp)))                                 \
+        {                                                                                      \
+            (sp_bucket) = (sp_bucket)->next;                                                   \
+            (sp_index) = (sp_bucket)->first_elm_idx;                                           \
+            sp_offsets_base = &sp_bucket->offsets[0];                                          \
+            sp_elms_base = &sp_bucket->elms[0];                                                \
+        }                                                                                      \
+    }                                                                                          \
 } while(0)
 
 #define SP_IT \
-((typeof(sp_bucket->elms[0].value)*const) &sp_bucket->elms[sp_index])
+((typeof(sp_bucket->elms[0].value)*const) &sp_elms_base[sp_index])
 
 typedef struct sp_entry_t
 {
