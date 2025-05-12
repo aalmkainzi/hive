@@ -170,8 +170,7 @@ typedef struct sp_iter_t
 {
     SP_NAME *sp;
     sp_bucket_t *bucket;
-    // sp_entry_t *entry;
-    // sp_offset_entry_t *offset;
+    sp_offset_entry_t *offset;
     sp_index_t index;
     sp_entry_t *elm;
 } sp_iter_t;
@@ -615,7 +614,7 @@ sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     ret.index = index;
     ret.elm = &bucket->elms[ret.index];
     // ret.entry = &ret.bucket->elms[index];
-    // ret.offset = &ret.bucket->offsets[index];
+    ret.offset = &ret.bucket->offsets[index] + 1;
     return ret;
 }
 
@@ -631,7 +630,7 @@ bool sp_iter_is_end(sp_iter_t *it)
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    sp_index_t idx = it.bucket->offsets[it.index + 1].next_elm_index;
+    sp_index_t idx = it.offset->next_elm_index;
     
     if (SP_UNLIKELY(idx == SP_BUCKET_SIZE))
     {
@@ -640,12 +639,13 @@ sp_iter_t sp_iter_next(sp_iter_t it)
     }
     it.index = idx;
     it.elm = &it.bucket->elms[it.index];
+    it.offset = &it.bucket->offsets[it.index] + 1;
     return it;
 }
 
 void sp_iter_go_next(sp_iter_t *it)
 {
-    sp_index_t idx = it->bucket->offsets[it->index + 1].next_elm_index;
+    sp_index_t idx = it->offset->next_elm_index;
     
     if (SP_UNLIKELY(idx == SP_BUCKET_SIZE))
     {
@@ -654,6 +654,7 @@ void sp_iter_go_next(sp_iter_t *it)
     }
     it->index = idx;
     it->elm = &it->bucket->elms[it->index];
+    it->offset = &it->bucket->offsets[it->index] + 1;
 }
 
 SP_TYPE *sp_iter_elm(sp_iter_t it)

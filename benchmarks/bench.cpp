@@ -64,18 +64,18 @@ int main()
     ankerl::nanobench::Bench bench;
     
     int sizes[] = {
-        1 << 10,
-        1 << 11,
-        1 << 12,
-        1 << 13,
-        1 << 14,
-        1 << 15,
-        1 << 16,
+        // 1 << 10,
+        // 1 << 11,
+        // 1 << 12,
+        // 1 << 13,
+        // 1 << 14,
+        // 1 << 15,
+        // 1 << 16,
         1 << 17,
         1 << 18,
         1 << 19,
         1 << 20,
-        1 << 21
+        //1 << 21
     };
     
     std::string html_file_name = "stable_pool_and_plf_colony.html";
@@ -94,7 +94,7 @@ int main()
     // constexpr bool bench_stable_vec  = true;
     // constexpr bool bench_linked_list = true;
     
-    int iterations = 200;
+    int iterations = 150;
     
     for(int& sz : sizes)
     {
@@ -197,7 +197,7 @@ int main()
             
             SPo_FOREACH(&sl,
                        {
-                           ptrs[i++] = SP_IT;
+                           ptrs[i++] = SPo_IT;
                        });
             
             rng.seed(42);
