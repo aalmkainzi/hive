@@ -23,8 +23,14 @@ def main():
         sys.exit(1)
 
     # Derive output PNG name
-    base_name   = os.path.splitext(os.path.basename(input_path))[0]
-    output_png  = base_name + '.png'
+    cwd = os.getcwd()
+
+    # Define the path to the 'img' directory relative to the CWD
+    img_dir = os.path.join(cwd, '..', 'img')
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+
+    # Construct the full path for the output PNG file
+    output_png = os.path.join(img_dir, base_name + '.png')
 
     # ---- 2) Load JSON data ----
     try:

@@ -70,7 +70,7 @@ int main()
 {
     ankerl::nanobench::Bench bench;
     
-    std::ofstream outFile(std::string("stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
+    std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     int sizes[] = {
         // 1 << 10,
@@ -87,8 +87,8 @@ int main()
         1 << 21
     };
     
-    std::string html_file_name = std::string("stable_pool_and_plf_colony_").append(compiler_name).append(".html");
-    std::string json_file_name = std::string("stable_pool_and_plf_colony_").append(compiler_name).append(".json");
+    std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
+    std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_stable_pool = true;
     constexpr bool bench_small_stable_pool = false;
