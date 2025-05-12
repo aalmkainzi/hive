@@ -630,16 +630,16 @@ bool sp_iter_is_end(sp_iter_t *it)
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    sp_index_t idx = it.offset->next_elm_index;
+    it.index = it.offset->next_elm_index;
     
-    if (SP_UNLIKELY(idx == SP_BUCKET_SIZE))
+    if (SP_UNLIKELY(it.index == SP_BUCKET_SIZE))
     {
         it.bucket = it.bucket->next;
-        idx = it.bucket->first_elm_idx;
+        it.index = it.bucket->first_elm_idx;
     }
-    it.index = idx;
     it.elm = &it.bucket->elms[it.index];
     it.offset = &it.bucket->offsets[it.index] + 1;
+    
     return it;
 }
 
