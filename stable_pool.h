@@ -88,6 +88,7 @@
 #define sp_deinit                SP_CAT(SP_NAME, _deinit)
 
 #define sp_bucket_init           SP_CAT(SP_NAME, _bucket_init)
+#define sp_clone                 SP_CAT(SP_NAME, _clone)
 #define sp_bucket_put            SP_CAT(SP_NAME, _bucket_put)
 #define sp_bucket_pop            SP_CAT(SP_NAME, _bucket_pop)
 #define sp_bucket_is_elm_within  SP_CAT(SP_NAME, _bucket_is_elm_within)
@@ -180,6 +181,7 @@ typedef struct sp_iter_t
 } sp_iter_t;
 
 void sp_init(SP_NAME *sp);
+SP_NAME sp_clone(const SP_NAME *const sp);
 SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm);
 void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms);
 sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm);
@@ -194,7 +196,7 @@ void sp_iter_go_next(sp_iter_t *it);
 SP_TYPE *sp_iter_elm(sp_iter_t it);
 sp_iter_t sp_iter_pop(sp_iter_t it);
 bool sp_iter_eq(sp_iter_t a, sp_iter_t b);
-bool sp_iter_is_end(sp_iter_t *it);
+bool sp_iter_is_end(sp_iter_t it);
 
 #define SP_IMPL
 #if defined(SP_IMPL)
@@ -227,6 +229,49 @@ void sp_init(SP_NAME *sp)
         .count        = 0,
         .bucket_count = 0
     };
+}
+
+SP_NAME sp_clone(const SP_NAME *const sp)
+{
+    SP_NAME ret = {
+        .end_sentinel = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t)),
+        .count = sp->count,
+        .bucket_count = sp->bucket_count,
+    };
+    
+    if(sp->bucket_count > 0)
+    {
+        sp_bucket_t *src_bucket = sp->buckets;
+        
+        sp_bucket_t **dst_bucket = &ret.buckets;
+        sp_bucket_t *dst_prev = NULL;
+        
+        *dst_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
+        memcpy(*dst_bucket, src_bucket, sizeof(sp_bucket_t));
+        (*dst_bucket)->next = NULL;
+        dst_prev = (*dst_bucket);
+        dst_bucket = &(*dst_bucket)->next;
+        src_bucket = src_bucket->next;
+        
+        while(src_bucket != sp->end_sentinel)
+        {
+            *dst_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
+            memcpy(*dst_bucket, src_bucket, sizeof(sp_bucket_t));
+            (*dst_bucket)->next = NULL;
+            dst_prev->next = *dst_bucket;
+            dst_prev = (*dst_bucket);
+            dst_bucket = &(*dst_bucket)->next;
+            src_bucket = src_bucket->next;
+        }
+        ret.tail = dst_prev;
+        ret.tail->next = ret.end_sentinel;
+    }
+    else
+    {
+        ret.buckets = ret.tail = ret.end_sentinel;
+    }
+    
+    return ret;
 }
 
 SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
@@ -286,7 +331,7 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
         }
         sp_bucket_init(bucket);
         memcpy(bucket->elms, elms + (i * SP_BUCKET_SIZE), SP_BUCKET_SIZE * sizeof(SP_TYPE));
-        for(sp_index_t j = 0 ; j < SP_BUCKET_SIZE ; j++)
+        for(sp_index_t j = 0 ; j <= SP_BUCKET_SIZE ; j++)
         {
             bucket->offsets[j].next_elm_index = j;
         }
@@ -475,7 +520,7 @@ void sp_bucket_init(sp_bucket_t *bucket)
     {
         bucket->offsets[i].next_elm_index = SP_BUCKET_SIZE;
     }
-    bucket->offsets[i].next_elm_index = SP_BUCKET_SIZE;
+    bucket->offsets[SP_BUCKET_SIZE].next_elm_index = SP_BUCKET_SIZE;
 }
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
@@ -627,9 +672,9 @@ bool sp_iter_eq(sp_iter_t a, sp_iter_t b)
     return (a.elm == b.elm);
 }
 
-bool sp_iter_is_end(sp_iter_t *it)
+bool sp_iter_is_end(sp_iter_t it)
 {
-    return (it->bucket == it->sp->end_sentinel);
+    return (it.bucket == it.sp->end_sentinel);
 }
 
 sp_iter_t sp_iter_next(sp_iter_t it)
@@ -717,17 +762,10 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
         
         if(next_elm == SP_BUCKET_SIZE)
         {
-            if(bucket != sp->tail)
-            {
-                sp_bucket_t *next_bucket = bucket->next;
-                sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
-                
-                ret = sp_iter_to(sp, next_bucket, first_elm_in_next_bucket);
-            }
-            else
-            {
-                ret = sp_iter_to(sp, sp->end_sentinel, SP_BUCKET_SIZE);
-            }
+            sp_bucket_t *next_bucket = bucket->next;
+            sp_index_t first_elm_in_next_bucket = sp_bucket_first_elm(next_bucket);
+            
+            ret = sp_iter_to(sp, next_bucket, first_elm_in_next_bucket);
         }
         else
         {

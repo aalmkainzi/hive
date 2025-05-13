@@ -4,12 +4,12 @@ import json
 import matplotlib.pyplot as plt
 
 def format_batch_size(batch):
-    if batch < 1024:
+    if batch < 1_000:
         return f"{batch}"
-    elif batch < 1024 * 1024:
-        return f"{batch // 1024}K"
+    elif batch < 1_000_000:
+        return f"{batch/1_000:.0f}K"
     else:
-        return f"{batch // (1024 * 1024)}M"
+        return f"{batch/1_000_000:.0f}M"
 
 def main():
     # ---- 1) Read & validate CLI argument ----

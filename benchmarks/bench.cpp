@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <iostream>
 #include <list>
 #include <forward_list>
@@ -73,26 +74,32 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 100'000;
-    int end = 800'000;
-    int interval = 5000;
+    int begin = 250;
+    int end = 2'500;
+    int interval = 250;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_stable_pool = true;
     constexpr bool bench_small_stable_pool = false;
-    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_plf_colony  = false;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    int iterations = 50;
+    constexpr bool bench_iter = false;
+    constexpr bool bench_put = true;
+    constexpr bool bench_pop = true;
+    
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
         printf("Starting %d\n", sz);
         std::mt19937 rng(42);
+        std::mt19937 rng2(41);
+        std::uniform_int_distribution<> dist(0, 1);
         
         if(bench_stable_pool)
         {
@@ -130,44 +137,51 @@ int main()
             
             // STABLE_POOL END
             
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_macro", 
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    SP_FOREACH(&sl, sum += SP_IT->i; );
-                    
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool = %u\n", sum);
-                }
-            );
-            std::cout.flush();
-//         
-//             bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_func", 
-//                 [&]{
-//                     volatile unsigned int sum = 0;
-//                     
-//                     big_sp_foreach(&sl, add_sum, (void*) &sum);
-//                     
-//                     ankerl::nanobench::doNotOptimizeAway(sum);
-//                     printf("stable_pool_func = %u\n", sum);
-//                 }
-//             );
-//             std::cout.flush();
-             
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_iter",
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    const big_sp_bucket_t *const end = sl.end_sentinel;
-                    for(big_sp_iter_t it = big_sp_begin(&sl) ; it.bucket != end ; big_sp_iter_go_next(&it))
-                    {
-                        sum += big_sp_iter_elm(it)->i;
+            if(bench_iter)
+            {
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_macro", 
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        SP_FOREACH(&sl, sum += SP_IT->i; );
+                        
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("stable_pool = %u\n", sum);
                     }
-                    
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool_iter = %u\n", sum);
-                }
-            );
+                );
+                
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_iter",
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+                        {
+                            sum += big_sp_iter_elm(it)->i;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("stable_pool_iter = %u\n", sum);
+                    }
+                );
+            }
+            
+            if(bench_pop)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_pop",
+                    [&]{
+                        big_sp slc = big_sp_clone(&sl);
+                        
+                        for(big_sp_iter_t it = big_sp_begin(&slc) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+                        {
+                            it = big_sp_iter_pop(it);
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        big_sp_deinit(&slc);
+                    }
+                );
+            }
             
             big_sp_deinit(&sl);
             free(ptrs);
@@ -210,21 +224,37 @@ int main()
             
             // STABLE_POOL END
             
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_iter",
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    const bbig_sp_bucket_t *const end = sl.end_sentinel;
-                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; it.bucket != end ; bbig_sp_iter_go_next(&it))
-                    {
-                        sum += bbig_sp_iter_elm(it)->i;
+            if(bench_iter)
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_iter",
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        const bbig_sp_bucket_t *const end = sl.end_sentinel;
+                        for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; it.bucket != end ; bbig_sp_iter_go_next(&it))
+                        {
+                            sum += bbig_sp_iter_elm(it)->i;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("stable_pool_iter = %u\n", sum);
                     }
-                    
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool_iter = %u\n", sum);
-                }
-            );
+                );
             
+            
+            if(bench_pop)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_pop",
+                    [&]{
+                        for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(&it) ; bbig_sp_iter_go_next(&it))
+                        {
+                            it = bbig_sp_iter_pop(it);
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(sl);
+                    }
+                );
+            }
             bbig_sp_deinit(&sl);
             free(ptrs);
             free(bigs);
@@ -261,19 +291,38 @@ int main()
             assert(i_colony.size() == sz/2);
             // PLF SETUP END
             
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony", 
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    for (const auto& value : i_colony)
-                    {
-                        sum += value.i;
+            if(bench_iter)
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony", 
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        for (const auto& value : i_colony)
+                        {
+                            sum += value.i;
+                        }
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("plfsum = %u\n", sum);
+                        
                     }
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("plfsum = %u\n", sum);
+                );
+            
+            if(bench_pop)
+            {
+                // std::cout << "SZ: " << sz << std::endl;
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony::erase", 
+                [&]{
+                    plf::colony<Big> icol = i_colony;
+                    for (plf::colony<Big>::iterator it = icol.begin() ; it != icol.end() ; it++)
+                    {
+                        int dif = std::distance(it, icol.end());
+                        it = icol.erase(it);
+                    }
                     
+                    ankerl::nanobench::doNotOptimizeAway(icol);
                 }
-            );
+                );
+            }
         }
         
         if(bench_slot_map)
@@ -432,4 +481,19 @@ int main()
     
     return 0;
 }
-// TODO add rust's colony
+
+int mai2n()
+{
+    plf::colony<int> ic;
+    for(int i = 0 ; i < 500 ; i++)
+    {
+        ic.insert(i);
+    }
+    
+    for(auto it = ic.begin() ; it != ic.end() ; it++)
+    {
+        it = ic.erase(it);
+    }
+    
+    ankerl::nanobench::doNotOptimizeAway(ic);
+}
