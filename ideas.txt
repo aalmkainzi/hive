@@ -1,4 +1,16 @@
-1- use index of next elm instead of offset
-2- keep a pool of buckets such that we don't allocate new ones when we need it
-3- along with 2 add a reserve() function
-4- benchmark using index vs pointer inside the iterator.
+1- keep a pool of buckets such that we don't allocate new ones when we need it
+2- along with 1 add a reserve() function
+3-
+keep dynamic array of non-full buckets in the sp structure. Each bucket has a unique ID.
+The ID maps directly to the index of it in the dynamic array. If a bucket becomes full,
+its ID is set to UINT16_MAX and is popped from the back of the dynamic array
+
+array({sp_bucket_t *bucket;}) non_full_buckets;
+
+when a bucket that was full has an element removed from it, its pushed to the back of the array
+
+when a bucket that was in the array, but had its last remanining element removed,
+it gets remove swapped from the array (the last elm goes to the removed one's index),
+the ID of the element that moved to its index gets updated to match its new index.
+4-
+keep stack of empty indexes inside each bucket. it doesn't have to be dynamic

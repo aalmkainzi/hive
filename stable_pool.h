@@ -114,7 +114,7 @@
 sizeof(arr) / sizeof(arr[0])
 
 #define SP_GET_BUCKET_SIZE(sp) \
-(SP_ARR_LEN(sp->buckets->elms) - 1)
+(SP_ARR_LEN(sp->buckets->elms) - 2)
 
 #define SP_FOREACH(sp, body)                                                                   \
 do                                                                                             \
@@ -130,7 +130,7 @@ do                                                                              
         { body }                                                                               \
                                                                                                \
         (sp_index) = sp_offsets_base[sp_index + 1].next_elm_index;                             \
-        if(SP_UNLIKELY(sp_index == SP_GET_BUCKET_SIZE(sp_sp)))                                 \
+        if(SP_UNLIKELY(sp_index >= SP_GET_BUCKET_SIZE(sp_sp)))                                 \
         {                                                                                      \
             (sp_bucket) = (sp_bucket)->next;                                                   \
             (sp_index) = (sp_bucket)->first_elm_idx;                                           \
@@ -157,8 +157,9 @@ typedef struct sp_bucket_t
 {
     sp_index_t first_elm_idx;
     sp_index_t last_elm_idx;
-    sp_entry_t elms[SP_BUCKET_SIZE + 1];
-    sp_offset_entry_t offsets[SP_BUCKET_SIZE + 1];
+    sp_index_t count;
+    sp_entry_t elms[SP_BUCKET_SIZE + 2];
+    sp_offset_entry_t offsets[SP_BUCKET_SIZE + 2];
     struct sp_bucket_t *next;
 } sp_bucket_t;
 
@@ -233,11 +234,10 @@ void sp_init(SP_NAME *sp)
 
 SP_NAME sp_clone(const SP_NAME *const sp)
 {
-    SP_NAME ret = {
-        .end_sentinel = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t)),
-        .count = sp->count,
-        .bucket_count = sp->bucket_count,
-    };
+    SP_NAME ret;
+    sp_init(&ret);
+    ret.count = sp->count;
+    ret.bucket_count = sp->bucket_count;
     
     if(sp->bucket_count > 0)
     {
@@ -278,15 +278,17 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
 {
     SP_TYPE *elm_added = NULL;
     
-    // TODO can actually do math to determine whether the sp is full (bucket_count * SP_BUCKET_SIZE)
-    for(sp_bucket_t *bucket = sp->buckets ; bucket != sp->end_sentinel ; bucket = bucket->next)
+    if(sp->bucket_count * SP_BUCKET_SIZE > sp->count)
     {
-        elm_added = sp_bucket_put(sp, bucket, new_elm);
-        if(elm_added != NULL)
+        for(sp_bucket_t *bucket = sp->buckets ; bucket != sp->end_sentinel ; bucket = bucket->next)
         {
-            sp->count += 1;
-            
-            return elm_added;
+            elm_added = sp_bucket_put(sp, bucket, new_elm);
+            if(elm_added != NULL)
+            {
+                sp->count += 1;
+                
+                return elm_added;
+            }
         }
     }
     
@@ -511,7 +513,7 @@ void sp_deinit(SP_NAME *sp)
 
 void sp_bucket_init(sp_bucket_t *bucket)
 {
-    bucket->first_elm_idx = SP_INDEX_MAX;
+    bucket->first_elm_idx = SP_BUCKET_SIZE;
     bucket->last_elm_idx = 0;
     bucket->next = NULL;
     
@@ -521,11 +523,16 @@ void sp_bucket_init(sp_bucket_t *bucket)
         bucket->offsets[i].next_elm_index = SP_BUCKET_SIZE;
     }
     bucket->offsets[SP_BUCKET_SIZE].next_elm_index = SP_BUCKET_SIZE;
+    bucket->offsets[SP_BUCKET_SIZE + 1].next_elm_index = SP_BUCKET_SIZE;
 }
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 {
     (void)sp;
+    
+    if(bucket->count >= SP_BUCKET_SIZE)
+        return NULL;
+    
     int emptyIndex = 0;
     if(bucket->first_elm_idx != 0)
     {
@@ -537,7 +544,7 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
     }
     else
     {
-        for( ; emptyIndex < SP_BUCKET_SIZE ; emptyIndex++)
+        for(emptyIndex = 1 ; emptyIndex < SP_BUCKET_SIZE - 1; emptyIndex++)
         {
             if(bucket->offsets[emptyIndex].next_elm_index != emptyIndex)
                 goto emptyIndexFound;
@@ -559,6 +566,7 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
         bucket->last_elm_idx = emptyIndex;
     }
     
+    bucket->count += 1;
     return &bucket->elms[emptyIndex].value;
 }
 
@@ -597,6 +605,8 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
             }
         }
     }
+    
+    bucket->count -= 1;
     
     return is_empty;
 }

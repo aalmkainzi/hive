@@ -1075,6 +1075,343 @@ static void test_big_stress_iter_pop(void)
     big_sp_deinit(&sp);
 }
 
+static int compare_pointers(const void *a, const void *b) {
+    return (*(const int **)a > *(const int **)b) - (*(const int **)a < *(const int **)b);
+}
+
+static void test_int_clone_empty(void) {
+    int_sp original;
+    int_sp_init(&original);
+    int_sp clone = int_sp_clone(&original);
+    ASSERT(clone.count == 0);
+    int_sp_deinit(&original);
+    int_sp_deinit(&clone);
+}
+
+static void test_int_clone_single_element(void) {
+    int_sp original;
+    int_sp_init(&original);
+    int *orig_p = int_sp_put(&original, 42);
+    
+    int_sp clone = int_sp_clone(&original);
+    ASSERT(clone.count == 1);
+    
+    // Verify pointer differs but value matches
+    int *clone_p = &int_sp_begin(&clone).elm->value;
+    ASSERT(clone_p != orig_p);
+    ASSERT(*clone_p == 42);
+    
+    int_sp_deinit(&original);
+    int_sp_deinit(&clone);
+}
+
+static void test_int_clone_multiple_elements(void) {
+    int_sp original;
+    int_sp_init(&original);
+    constexpr int N = 10;
+    int *original_ptrs[N];
+    
+    // Insert and track pointers
+    for (int i = 0; i < N; ++i) {
+        original_ptrs[i] = int_sp_put(&original, i);
+    }
+    
+    int_sp clone = int_sp_clone(&original);
+    ASSERT(clone.count == N);
+    
+    // Collect clone pointers and verify uniqueness
+    int *clone_ptrs[N];
+    size_t idx = 0;
+    for (int_sp_iter_t it = int_sp_begin(&clone); 
+         !int_sp_iter_eq(it, int_sp_end(&clone)); 
+    it = int_sp_iter_next(it)) 
+         {
+             clone_ptrs[idx++] = int_sp_iter_elm(it);
+         }
+         
+         // Sort for binary search
+         qsort(original_ptrs, N, sizeof(int *), compare_pointers);
+         
+         // Verify all clone pointers are new
+         for (int i = 0; i < N; ++i) {
+             ASSERT(bsearch(&clone_ptrs[i], original_ptrs, N, sizeof(int *), compare_pointers) == NULL);
+             ASSERT(*clone_ptrs[i] == i); // Values match
+         }
+         
+         int_sp_deinit(&original);
+         int_sp_deinit(&clone);
+}
+
+static void test_int_clone_with_holes(void) {
+    int_sp original;
+    int_sp_init(&original);
+    int *p1 = int_sp_put(&original, 1);
+    int *p2 = int_sp_put(&original, 2);
+    int *p3 = int_sp_put(&original, 3);
+    int_sp_pop(&original, p2);
+    
+    int_sp clone = int_sp_clone(&original);
+    ASSERT(clone.count == 2);
+    
+    // Collect clone pointers
+    int *clone_ptrs[2];
+    size_t idx = 0;
+    for (int_sp_iter_t it = int_sp_begin(&clone); 
+         !int_sp_iter_eq(it, int_sp_end(&clone)); 
+    it = int_sp_iter_next(it)) 
+         {
+             clone_ptrs[idx++] = int_sp_iter_elm(it);
+         }
+         
+         // Verify no pointer matches original's remaining elements
+         ASSERT(clone_ptrs[0] != p1 && clone_ptrs[0] != p3);
+         ASSERT(clone_ptrs[1] != p1 && clone_ptrs[1] != p3);
+         
+         // Values should match
+         qsort(clone_ptrs, 2, sizeof(int *), compare_ints);
+         ASSERT(*clone_ptrs[0] == 1);
+         ASSERT(*clone_ptrs[1] == 3);
+         
+         int_sp_deinit(&original);
+         int_sp_deinit(&clone);
+}
+
+static void test_int_clone_stress(void) {
+    int_sp original;
+    int_sp_init(&original);
+    const int M = 10000;
+    int **original_ptrs = malloc(M * sizeof(int *));
+    ASSERT(original_ptrs != NULL);
+    
+    // Insert and track all original pointers
+    for (int i = 0; i < M; ++i) {
+        original_ptrs[i] = int_sp_put(&original, i);
+    }
+    
+    int_sp clone = int_sp_clone(&original);
+    ASSERT(clone.count == M);
+    
+    // Prepare for pointer comparison
+    qsort(original_ptrs, M, sizeof(int *), compare_pointers);
+    
+    // Verify clone pointers are unique
+    size_t clone_idx = 0;
+    for (int_sp_iter_t it = int_sp_begin(&clone); 
+         !int_sp_iter_eq(it, int_sp_end(&clone)); 
+    it = int_sp_iter_next(it)) 
+         {
+             int *clone_ptr = int_sp_iter_elm(it);
+             ASSERT(bsearch(&clone_ptr, original_ptrs, M, sizeof(int *), compare_pointers) == NULL);
+             ASSERT(*clone_ptr == (int)clone_idx); // Since we inserted 0..M-1
+             clone_idx++;
+         }
+         
+         free(original_ptrs);
+         int_sp_deinit(&original);
+         int_sp_deinit(&clone);
+}
+
+static void test_big_clone_empty(void) {
+    big_sp original;
+    big_sp_init(&original);
+    big_sp clone = big_sp_clone(&original);
+    ASSERT(clone.count == 0);
+    big_sp_deinit(&original);
+    big_sp_deinit(&clone);
+}
+
+static void test_big_clone_single_element(void) {
+    big_sp original;
+    big_sp_init(&original);
+    Big *orig_p = big_sp_put(&original, (Big){.i = 42});
+    
+    big_sp clone = big_sp_clone(&original);
+    ASSERT(clone.count == 1);
+    
+    // Verify pointer differs but value matches
+    Big *clone_p = &big_sp_begin(&clone).elm->value;
+    ASSERT(clone_p != orig_p);
+    ASSERT(clone_p->i == 42);
+    
+    // Modify original and ensure clone remains unchanged
+    orig_p->i = 100;
+    ASSERT(clone_p->i == 42);
+    
+    big_sp_deinit(&original);
+    big_sp_deinit(&clone);
+}
+
+static void test_big_clone_multiple_elements(void) {
+    big_sp original;
+    big_sp_init(&original);
+    const int N = 100;
+    Big *original_ptrs[N];
+    
+    // Insert and track pointers
+    for (int i = 0; i < N; ++i) {
+        original_ptrs[i] = big_sp_put(&original, (Big){.i = i});
+    }
+    
+    big_sp clone = big_sp_clone(&original);
+    ASSERT(clone.count == N);
+    
+    // Collect clone pointers and verify uniqueness
+    Big *clone_ptrs[N];
+    size_t idx = 0;
+    for (big_sp_iter_t it = big_sp_begin(&clone); 
+         !big_sp_iter_eq(it, big_sp_end(&clone)); 
+    it = big_sp_iter_next(it)) 
+         {
+             clone_ptrs[idx++] = big_sp_iter_elm(it);
+         }
+         
+         // Sort for binary search
+         qsort(original_ptrs, N, sizeof(Big *), compare_pointers);
+         
+         // Verify all clone pointers are new
+         for (int i = 0; i < N; ++i) {
+             ASSERT(bsearch(&clone_ptrs[i], original_ptrs, N, sizeof(Big *), compare_pointers) == NULL);
+             ASSERT(clone_ptrs[i]->i == i); // Values match
+         }
+         
+         big_sp_deinit(&original);
+         big_sp_deinit(&clone);
+}
+
+static void test_big_clone_independence_after_modification(void) {
+    big_sp original;
+    big_sp_init(&original);
+    big_sp_put(&original, (Big){.i = 1});
+    big_sp_put(&original, (Big){.i = 2});
+    
+    big_sp clone = big_sp_clone(&original);
+    
+    // Modify original after cloning
+    big_sp_put(&original, (Big){.i = 3});
+    
+    ASSERT(original.count == 3);
+    ASSERT(clone.count == 2);
+    
+    // Verify clone integrity
+    struct Collector c = {0};
+    big_sp_foreach(&clone, collect_big, &c);
+    qsort(c.data, c.idx, sizeof(int), compare_ints);
+    ASSERT(c.idx == 2);
+    ASSERT(c.data[0] == 1);
+    ASSERT(c.data[1] == 2);
+    free(c.data);
+    
+    big_sp_deinit(&original);
+    big_sp_deinit(&clone);
+}
+
+static void test_big_clone_with_holes(void) {
+    big_sp original;
+    big_sp_init(&original);
+    Big *p1 = big_sp_put(&original, (Big){.i = 1});
+    Big *p2 = big_sp_put(&original, (Big){.i = 2});
+    Big *p3 = big_sp_put(&original, (Big){.i = 3});
+    big_sp_pop(&original, p2);
+    
+    big_sp clone = big_sp_clone(&original);
+    ASSERT(clone.count == 2);
+    
+    // Collect clone pointers
+    Big *clone_ptrs[2];
+    size_t idx = 0;
+    for (big_sp_iter_t it = big_sp_begin(&clone); 
+         !big_sp_iter_eq(it, big_sp_end(&clone)); 
+    it = big_sp_iter_next(it)) 
+         {
+             clone_ptrs[idx++] = big_sp_iter_elm(it);
+         }
+         
+         // Verify no pointer matches original's remaining elements
+         ASSERT(clone_ptrs[0] != p1 && clone_ptrs[0] != p3);
+         ASSERT(clone_ptrs[1] != p1 && clone_ptrs[1] != p3);
+         
+         // Values should match
+         qsort(clone_ptrs, 2, sizeof(Big *), compare_ints);
+         ASSERT(clone_ptrs[0]->i == 1);
+         ASSERT(clone_ptrs[1]->i == 3);
+         
+         big_sp_deinit(&original);
+         big_sp_deinit(&clone);
+}
+
+static void test_big_clone_deep_copy(void) {
+    big_sp original;
+    big_sp_init(&original);
+    Big *orig_p = big_sp_put(&original, (Big){.i = 42});
+    
+    big_sp clone = big_sp_clone(&original);
+    
+    // Modify original element
+    orig_p->i = 100;
+    
+    // Verify clone remains unchanged
+    Big *clone_p = &big_sp_begin(&clone).elm->value;
+    ASSERT(clone_p->i == 42);
+    
+    big_sp_deinit(&original);
+    big_sp_deinit(&clone);
+}
+
+static void test_big_clone_stress(void) {
+    big_sp original;
+    big_sp_init(&original);
+    const int M = 5000;
+    Big **original_ptrs = malloc(M * sizeof(Big *));
+    ASSERT(original_ptrs != NULL);
+    
+    // Insert and track all original pointers
+    for (int i = 0; i < M; ++i) {
+        original_ptrs[i] = big_sp_put(&original, (Big){.i = i});
+    }
+    
+    big_sp clone = big_sp_clone(&original);
+    ASSERT(clone.count == M);
+    
+    // Prepare for pointer comparison
+    qsort(original_ptrs, M, sizeof(Big *), compare_pointers);
+    
+    // Verify clone pointers are unique and values match
+    size_t clone_idx = 0;
+    for (big_sp_iter_t it = big_sp_begin(&clone); 
+         !big_sp_iter_eq(it, big_sp_end(&clone)); 
+    it = big_sp_iter_next(it)) 
+         {
+             Big *clone_ptr = big_sp_iter_elm(it);
+             
+             // Pointer uniqueness check
+             ASSERT(bsearch(&clone_ptr, original_ptrs, M, sizeof(Big *), compare_pointers) == NULL);
+             
+             // Value integrity check
+             ASSERT(clone_ptr->i == (int)clone_idx);
+             clone_idx++;
+         }
+         
+         free(original_ptrs);
+         big_sp_deinit(&original);
+         big_sp_deinit(&clone);
+}
+
+static void test_big_clone_after_original_deinit(void) {
+    big_sp original;
+    big_sp_init(&original);
+    big_sp_put(&original, (Big){.i = 42});
+    
+    big_sp clone = big_sp_clone(&original);
+    big_sp_deinit(&original);  // Destroy original
+    
+    // Verify clone remains valid
+    ASSERT(clone.count == 1);
+    Big *clone_p = &big_sp_begin(&clone).elm->value;
+    ASSERT(clone_p->i == 42);
+    
+    big_sp_deinit(&clone);
+}
+
 int main(void)
 {
     printf("Running tests...\n");
@@ -1095,6 +1432,14 @@ int main(void)
     test_int_erase_last_element_during_iteration();
     test_int_erase_every_other_element();
     test_int_stress_iter_pop();
+    test_int_clone_empty();
+    test_int_clone_single_element();
+    test_int_clone_multiple_elements();
+    test_int_clone_with_holes();
+    test_int_clone_stress();
+    
+    test_big_clone_stress();
+    
     
     test_big_init_deinit();
     test_big_single_put_and_loop();
@@ -1106,13 +1451,21 @@ int main(void)
     test_big_iteration_equivalence_after_random_pops();
     test_big_against_dynamic_array();
     test_big_insert_after_erase();
-    // test_clear_bucket();
+    test_clear_bucket();
     test_big_empty_iteration();
     test_big_erase_single_element();
     test_big_erase_first_element();
     test_big_erase_last_element_during_iteration();
     test_big_erase_every_other_element();
     test_big_stress_iter_pop();
+    test_big_clone_empty();
+    test_big_clone_single_element();
+    test_big_clone_multiple_elements();
+    test_big_clone_independence_after_modification();
+    test_big_clone_with_holes();
+    test_big_clone_deep_copy();
+    test_big_clone_stress();
+    test_big_clone_after_original_deinit();
     
     printf("ALL PASSED\n");
     return 0;
