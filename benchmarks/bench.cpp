@@ -9,7 +9,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) // printf(__VA_ARGS__)
+#define printf(...) printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -74,9 +74,9 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 5'000;
-    int end   = 100'000;
-    int interval = 5'000;
+    int begin = 50'000;
+    int end   = 1'000'000;
+    int interval = 50'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
@@ -115,17 +115,19 @@ int main()
             big_sp_put_all(&sl, bigs, sz);
             
             int i = 0;
-            SP_FOREACH(&sl,
-                    ptrs[i++] = SP_IT;
+            
+            SP_FOREACH(
+                &sl,
+                ptrs[i++] = SP_IT;
             );
             
-    rng.seed(42);
-    std::vector<Big *> to_pop;
-    to_pop.reserve(sz / 2);
-    std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
-
-    for (Big *p : to_pop) {
-      big_sp_pop(&sl, p);
+            rng.seed(42);
+            std::vector<Big *> to_pop;
+            to_pop.reserve(sz / 2);
+            std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
+            
+            for (Big *p : to_pop) {
+            big_sp_pop(&sl, p);
             }
             
             // assert(sl.count == sz/2);
@@ -195,6 +197,13 @@ int main()
                             big_sp_put(&slc, (Big){.i=i});
                         }
                         
+//                         unsigned int sum = 0;
+//                         for(auto it = big_sp_begin(&slc) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+//                         {
+//                             sum += big_sp_iter_elm(it)->i;
+//                         }
+//                         
+//                         printf("SP SUM AFTER PUT: %u\n", sum);
                         ankerl::nanobench::doNotOptimizeAway(slc);
                         big_sp_deinit(&slc);
                     }
@@ -360,6 +369,13 @@ int main()
                         icol.insert((Big){.i=i});
                     }
                     
+//                     unsigned int sum = 0;
+//                     for(auto it : icol)
+//                     {
+//                         sum += it.i;
+//                     }
+//                     
+//                     printf("PLF SUM AFTER INS %u\n", sum);
                     ankerl::nanobench::doNotOptimizeAway(icol);
                 }
                 );

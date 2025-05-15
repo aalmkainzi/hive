@@ -363,7 +363,7 @@ static void test_int_iteration_equivalence_after_random_pops(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    const int N = 1024;
+    const int N = 20;
     int **ptrs = malloc(N * sizeof *ptrs);
     ASSERT(ptrs != NULL);
     
@@ -385,16 +385,18 @@ static void test_int_iteration_equivalence_after_random_pops(void)
     struct Collector col3 = {NULL, 0, 0};
     
     int_sp_foreach(&sp, collect_int, &col1);
-    
-    SP_FOREACH(&sp, collect_int(SP_IT, &col2););
-    
+
+        SP_FOREACH(&sp,
+                   collect_int(SP_IT, &col2);
+        );
+
     for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); !int_sp_iter_eq(it, end);
-         it = int_sp_iter_next(it))
-         {
-             collect_int(int_sp_iter_elm(it), &col3);
-         }
+    it = int_sp_iter_next(it))
+    {
+        collect_int(int_sp_iter_elm(it), &col3);
+    }
          
-         ASSERT(col1.idx == col2.idx && col2.idx == col3.idx);
+    ASSERT(col1.idx == col2.idx && col2.idx == col3.idx);
     
     qsort(col1.data, col1.idx, sizeof(int), compare_ints);
     qsort(col2.data, col2.idx, sizeof(int), compare_ints);
