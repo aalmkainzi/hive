@@ -21,15 +21,16 @@
 
 #if !defined(SP_ALLOC)
 
-    #define SP_ALLOC sp_alloc_mem
-    #define SP_FREE  sp_free_mem
+    #define SP_ALLOC   sp_alloc_mem
+    #define SP_FREE    sp_free_mem
+    #define SP_REALLOC sp_realloc_mem
 
 #else
 
-    #if !defined(SP_FREE)
-        #error "If you define SP_ALLOC you must define SP_FREE"
+    #if !defined(SP_FREE) || !defined(SP_REALLOC)
+        #error "If you define SP_ALLOC you must also define SP_FREE and SP_REALLOC"
     #elif !defined(SP_IMPL)
-        #warning "Only define SP_ALLOC and SP_FREE when you also define SP_IMPL"
+        #warning "Only define allocator macros when you also define SP_IMPL"
     #endif
 
 #endif
@@ -77,6 +78,8 @@
 #define sp_entry_t               SP_CAT(SP_NAME, _entry_t)
 #define sp_offset_entry_t        SP_CAT(SP_NAME, _offset_entry_t)
 #define sp_init                  SP_CAT(SP_NAME, _init)
+#define sp_clone                 SP_CAT(SP_NAME, _clone)
+#define sp_push_not_full_bucket  SP_CAT(SP_NAME, _push_not_full_bucket)
 #define sp_put                   SP_CAT(SP_NAME, _put)
 #define sp_put_all               SP_CAT(SP_NAME, _put_all)
 #define sp_pop_helper            SP_CAT(SP_NAME, _pop_helper)
@@ -88,7 +91,6 @@
 #define sp_deinit                SP_CAT(SP_NAME, _deinit)
 
 #define sp_bucket_init           SP_CAT(SP_NAME, _bucket_init)
-#define sp_clone                 SP_CAT(SP_NAME, _clone)
 #define sp_bucket_put            SP_CAT(SP_NAME, _bucket_put)
 #define sp_bucket_pop            SP_CAT(SP_NAME, _bucket_pop)
 #define sp_bucket_is_elm_within  SP_CAT(SP_NAME, _bucket_is_elm_within)
@@ -106,6 +108,7 @@
 #define sp_iter_to               SP_CAT(SP_NAME, _iter_to)
 
 #define sp_alloc_mem             SP_CAT(SP_NAME, _alloc_mem)
+#define sp_realloc_mem           SP_CAT(SP_NAME, _realloc_mem)
 #define sp_free_mem              SP_CAT(SP_NAME, _free_mem)
 
 #define sp_validate SP_CAT(SP_NAME, _validate)
@@ -114,7 +117,7 @@
 sizeof(arr) / sizeof(arr[0])
 
 #define SP_GET_BUCKET_SIZE(sp) \
-(SP_ARR_LEN(sp->buckets->elms) - 2)
+(SP_ARR_LEN((sp)->buckets->elms) - 2)
 
 #define SP_FOREACH(sp, body)                                                                   \
 do                                                                                             \
@@ -155,11 +158,13 @@ typedef struct sp_offset_entry_t
 
 typedef struct sp_bucket_t
 {
+    sp_index_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
     sp_index_t first_elm_idx;
     sp_index_t last_elm_idx;
     sp_index_t count;
     sp_entry_t elms[SP_BUCKET_SIZE + 2];
     sp_offset_entry_t offsets[SP_BUCKET_SIZE + 2];
+    sp_index_t empty_indexes[SP_BUCKET_SIZE];
     struct sp_bucket_t *next;
 } sp_bucket_t;
 
@@ -168,6 +173,12 @@ typedef struct SP_NAME
     sp_bucket_t *buckets;
     sp_bucket_t *tail;
     sp_bucket_t *end_sentinel; // tail->next == end_sentinel
+    struct
+    {
+        sp_bucket_t **array;
+        uint16_t count;
+        uint16_t cap;
+    } not_full_buckets;
     size_t count;
     size_t bucket_count;
 } SP_NAME;
@@ -203,6 +214,7 @@ bool sp_iter_is_end(sp_iter_t it);
 #if defined(SP_IMPL)
 
 void sp_bucket_init(sp_bucket_t *bucket);
+void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket);
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm);
 bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index);
 sp_iter_t sp_pop_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *bucket, sp_index_t index);
@@ -216,7 +228,17 @@ sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index);
 bool sp_validate(SP_NAME *sp);
 
 void *sp_alloc_mem(void *ctx, size_t size, size_t alignment);
+void *sp_realloc_mem(void *ctx, void *ptr, size_t old_size, size_t new_size, size_t alignment);
 void sp_free_mem(void *ctx, void *ptr, size_t size);
+
+#define SP_ALLOC_N(type, count) \
+(typeof(type)*) SP_ALLOC(SP_ALLOC_CTX, sizeof(type) * count, alignof(type))
+
+#define SP_REALLOC_N(ptr, old_count, new_count) \
+(typeof(ptr)) SP_REALLOC(SP_ALLOC_CTX, (void*)(ptr), sizeof((ptr)[0]) * (old_count), sizeof((ptr)[0]) * (new_count), alignof(typeof((ptr)[0])))
+
+#define SP_FREE_N(ptr, count) \
+SP_FREE(SP_ALLOC_CTX, (void*)ptr, sizeof(ptr[0]) * count)
 
 void sp_init(SP_NAME *sp)
 {
@@ -228,8 +250,11 @@ void sp_init(SP_NAME *sp)
         .tail         = end_sentinel,
         .end_sentinel = end_sentinel,
         .count        = 0,
-        .bucket_count = 0
+        .bucket_count = 0,
     };
+    sp->not_full_buckets.count = 0;
+    sp->not_full_buckets.cap = 16;
+    sp->not_full_buckets.array = SP_ALLOC_N(sp_bucket_t*, sp->not_full_buckets.cap);
 }
 
 SP_NAME sp_clone(const SP_NAME *const sp)
@@ -238,6 +263,14 @@ SP_NAME sp_clone(const SP_NAME *const sp)
     sp_init(&ret);
     ret.count = sp->count;
     ret.bucket_count = sp->bucket_count;
+    
+    if(sp->not_full_buckets.count > ret.not_full_buckets.cap)
+    {
+        ret.not_full_buckets.array = SP_REALLOC_N(ret.not_full_buckets.array, ret.not_full_buckets.cap, sp->not_full_buckets.count + 1);
+        ret.not_full_buckets.cap = sp->not_full_buckets.count + 1;
+    }
+    
+    ret.not_full_buckets.count = sp->not_full_buckets.count;
     
     if(sp->bucket_count > 0)
     {
@@ -258,6 +291,12 @@ SP_NAME sp_clone(const SP_NAME *const sp)
             *dst_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
             memcpy(*dst_bucket, src_bucket, sizeof(sp_bucket_t));
             (*dst_bucket)->next = NULL;
+            
+            if((*dst_bucket)->not_full_idx != SP_INDEX_MAX)
+            {
+                ret.not_full_buckets.array[(*dst_bucket)->not_full_idx] = *dst_bucket;
+            }
+            
             dst_prev->next = *dst_bucket;
             dst_prev = (*dst_bucket);
             dst_bucket = &(*dst_bucket)->next;
@@ -278,22 +317,16 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
 {
     SP_TYPE *elm_added = NULL;
     
-    if(sp->bucket_count * SP_BUCKET_SIZE > sp->count)
+    if(sp->not_full_buckets.count > 0)
     {
-        for(sp_bucket_t *bucket = sp->buckets ; bucket != sp->end_sentinel ; bucket = bucket->next)
-        {
-            elm_added = sp_bucket_put(sp, bucket, new_elm);
-            if(elm_added != NULL)
-            {
-                sp->count += 1;
-                
-                return elm_added;
-            }
-        }
+        sp_bucket_t *bucket = sp->not_full_buckets.array[sp->not_full_buckets.count - 1];
+        sp->count += 1;
+        return sp_bucket_put(sp, bucket, new_elm);
     }
     
     sp_bucket_t *new_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
     sp_bucket_init(new_bucket);
+    sp_push_not_full_bucket(sp, new_bucket);
     
     if(sp->count > 0)
     {
@@ -339,6 +372,7 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
         }
         bucket->first_elm_idx = 0;
         bucket->last_elm_idx = SP_BUCKET_SIZE - 1;
+        bucket->count = SP_BUCKET_SIZE;
         sp->bucket_count += 1;
         sp->count += SP_BUCKET_SIZE;
         
@@ -360,6 +394,9 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
         }
         remaining_bucket->first_elm_idx = 0;
         remaining_bucket->last_elm_idx = remaining - 1;
+        remaining_bucket->count = remaining;
+        
+        sp_push_not_full_bucket(sp, remaining_bucket);
         
         if(bucket)
         {
@@ -508,6 +545,7 @@ void sp_deinit(SP_NAME *sp)
         SP_FREE(SP_ALLOC_CTX, current, sizeof(sp_bucket_t));
         current = next;
     }
+    SP_FREE_N(sp->not_full_buckets.array, sp->not_full_buckets.count);
     *sp = (SP_NAME){0};
 }
 
@@ -516,6 +554,8 @@ void sp_bucket_init(sp_bucket_t *bucket)
     bucket->first_elm_idx = SP_BUCKET_SIZE;
     bucket->last_elm_idx = 0;
     bucket->next = NULL;
+    bucket->not_full_idx = SP_INDEX_MAX;
+    bucket->count = 0;
     
     sp_index_t i;
     for(i = 0 ; i < SP_BUCKET_SIZE ; i++)
@@ -524,35 +564,36 @@ void sp_bucket_init(sp_bucket_t *bucket)
     }
     bucket->offsets[SP_BUCKET_SIZE].next_elm_index = SP_BUCKET_SIZE;
     bucket->offsets[SP_BUCKET_SIZE + 1].next_elm_index = SP_BUCKET_SIZE;
+    
+    for(sp_index_t j = 0 ; j < SP_BUCKET_SIZE ; j++)
+    {
+        bucket->empty_indexes[j] = j;
+    }
+}
+
+void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket)
+{
+    if(sp->not_full_buckets.cap <= sp->not_full_buckets.count)
+    {
+        uint16_t new_cap = sp->not_full_buckets.cap * 2;
+        sp->not_full_buckets.array = SP_REALLOC_N(sp->not_full_buckets.array, sp->not_full_buckets.cap, new_cap);
+        sp->not_full_buckets.cap = new_cap;
+    }
+    
+    sp->not_full_buckets.array[sp->not_full_buckets.count] = bucket;
+    bucket->not_full_idx = sp->not_full_buckets.count;
+    
+    sp->not_full_buckets.count += 1;
 }
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 {
-    (void)sp;
-    
+    // TODO no need to check anymore, we guaranteed before calling this function that this bucket is not full
     if(bucket->count >= SP_BUCKET_SIZE)
         return NULL;
     
-    int emptyIndex = 0;
-    if(bucket->first_elm_idx != 0)
-    {
-        emptyIndex = 0;
-    }
-    else if(bucket->last_elm_idx != SP_BUCKET_SIZE - 1)
-    {
-        emptyIndex = bucket->last_elm_idx + 1;
-    }
-    else
-    {
-        for(emptyIndex = 1 ; emptyIndex < SP_BUCKET_SIZE - 1; emptyIndex++)
-        {
-            if(bucket->offsets[emptyIndex].next_elm_index != emptyIndex)
-                goto emptyIndexFound;
-        }
-        return NULL;
-    }
+    int emptyIndex = bucket->empty_indexes[SP_BUCKET_SIZE - bucket->count - 1];
     
-    emptyIndexFound:
     bucket->elms[emptyIndex].value = new_elm;
     bucket->offsets[emptyIndex].next_elm_index = emptyIndex;
     
@@ -566,7 +607,16 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
         bucket->last_elm_idx = emptyIndex;
     }
     
+    for(ptrdiff_t i = emptyIndex - 1 ; i >= 0 && bucket->offsets[i].next_elm_index != i ; i--)
+    {
+        bucket->offsets[i].next_elm_index = emptyIndex;
+    }
+    
     bucket->count += 1;
+    if(bucket->count == SP_BUCKET_SIZE)
+    {
+        sp->not_full_buckets.count -= 1;
+    }
     return &bucket->elms[emptyIndex].value;
 }
 
@@ -592,6 +642,12 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
         if(next_elm == SP_BUCKET_SIZE)
         {
             is_empty = true;
+            sp->not_full_buckets.array[bucket->not_full_idx] = sp->not_full_buckets.array[sp->not_full_buckets.count-1];
+            sp->not_full_buckets.array[sp->not_full_buckets.count-1]->not_full_idx = bucket->not_full_idx;
+            sp->not_full_buckets.count -= 1;
+            
+            bucket->count -= 1;
+            return is_empty;
         }
     }
     else if(index == bucket->last_elm_idx)
@@ -606,6 +662,9 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
         }
     }
     
+    if(bucket->count == SP_BUCKET_SIZE)
+        sp_push_not_full_bucket(sp, bucket);
+    bucket->empty_indexes[SP_BUCKET_SIZE - bucket->count] = index;
     bucket->count -= 1;
     
     return is_empty;
@@ -790,6 +849,12 @@ void *sp_alloc_mem(void *ctx, size_t size, size_t alignment)
 {
     (void)ctx, (void)alignment;
     return malloc(size);
+}
+
+void *sp_realloc_mem(void *ctx, void *ptr, size_t old_size, size_t new_size, size_t alignment)
+{
+    (void) ctx, (void) old_size, (void) alignment;
+    return realloc(ptr, new_size);
 }
 
 void sp_free_mem(void *ctx, void *ptr, size_t size)
