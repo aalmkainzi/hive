@@ -158,7 +158,7 @@ typedef struct sp_offset_entry_t
 
 typedef struct sp_bucket_t
 {
-    sp_index_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
+    uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
     sp_index_t first_elm_idx;
     sp_index_t last_elm_idx;
     sp_index_t count;
@@ -281,6 +281,12 @@ SP_NAME sp_clone(const SP_NAME *const sp)
         
         *dst_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
         memcpy(*dst_bucket, src_bucket, sizeof(sp_bucket_t));
+        
+        if((*dst_bucket)->not_full_idx != UINT16_MAX)
+        {
+            ret.not_full_buckets.array[(*dst_bucket)->not_full_idx] = *dst_bucket;
+        }
+        
         (*dst_bucket)->next = NULL;
         dst_prev = (*dst_bucket);
         dst_bucket = &(*dst_bucket)->next;
@@ -292,7 +298,7 @@ SP_NAME sp_clone(const SP_NAME *const sp)
             memcpy(*dst_bucket, src_bucket, sizeof(sp_bucket_t));
             (*dst_bucket)->next = NULL;
             
-            if((*dst_bucket)->not_full_idx != SP_INDEX_MAX)
+            if((*dst_bucket)->not_full_idx != UINT16_MAX)
             {
                 ret.not_full_buckets.array[(*dst_bucket)->not_full_idx] = *dst_bucket;
             }
@@ -554,7 +560,7 @@ void sp_bucket_init(sp_bucket_t *bucket)
     bucket->first_elm_idx = SP_BUCKET_SIZE;
     bucket->last_elm_idx = 0;
     bucket->next = NULL;
-    bucket->not_full_idx = SP_INDEX_MAX;
+    bucket->not_full_idx = UINT16_MAX;
     bucket->count = 0;
     
     sp_index_t i;
@@ -643,7 +649,7 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
         {
             is_empty = true;
             sp->not_full_buckets.array[bucket->not_full_idx] = sp->not_full_buckets.array[sp->not_full_buckets.count-1];
-            sp->not_full_buckets.array[sp->not_full_buckets.count-1]->not_full_idx = bucket->not_full_idx;
+            sp->not_full_buckets.array[bucket->not_full_idx]->not_full_idx = bucket->not_full_idx;
             sp->not_full_buckets.count -= 1;
             
             bucket->count -= 1;

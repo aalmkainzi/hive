@@ -74,9 +74,9 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 50'000;
-    int end = 1'000'000;
-    int interval = 50'000;
+    int begin = 5'000;
+    int end   = 100'000;
+    int interval = 5'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
@@ -88,8 +88,8 @@ int main()
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    constexpr bool bench_iter = true;
-    constexpr bool bench_put = false;
+    constexpr bool bench_iter = false;
+    constexpr bool bench_put = true;
     constexpr bool bench_pop = false;
     
     int iterations = 25;
@@ -118,8 +118,7 @@ int main()
             SP_FOREACH(&sl,
                     ptrs[i++] = SP_IT;
             );
-
-
+            
     rng.seed(42);
     std::vector<Big *> to_pop;
     to_pop.reserve(sz / 2);
