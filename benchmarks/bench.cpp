@@ -75,7 +75,7 @@ int main()
     bench.output(&outFile);
     
     int begin = 50'000;
-    int end   = 1'000'000;
+    int end   = 750'000;
     int interval = 50'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
@@ -83,14 +83,14 @@ int main()
     
     constexpr bool bench_stable_pool = true;
     constexpr bool bench_small_stable_pool = false;
-    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_plf_colony  = false;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
     constexpr bool bench_iter = false;
-    constexpr bool bench_put = true;
-    constexpr bool bench_pop = false;
+    constexpr bool bench_put = false;
+    constexpr bool bench_pop = true;
     
     int iterations = 25;
     
