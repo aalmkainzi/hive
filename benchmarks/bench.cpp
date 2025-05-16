@@ -74,9 +74,9 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 50'000;
-    int end   = 1'000'000;
-    int interval = 50'000;
+    int begin = 10'000;
+    int end   = 300'000;
+    int interval = 5'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
@@ -540,7 +540,7 @@ int main()
     std::ofstream htmlFile(html_file_name);
     std::ofstream jsonFile(json_file_name);
     
-    // bench.render(ankerl::nanobench::templates::htmlBoxplot(), htmlFile);
+    bench.render(ankerl::nanobench::templates::htmlBoxplot(), htmlFile);
     bench.render(ankerl::nanobench::templates::json(), jsonFile);
     
     return 0;
