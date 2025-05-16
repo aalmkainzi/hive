@@ -74,8 +74,8 @@ def main():
             label=name
         )
 
-    plt.xscale('log', base=2)
-    plt.yscale('log')
+    plt.xscale('linear')
+    plt.yscale('linear')
     plt.xlabel('Batch Size', fontsize=12)
     plt.ylabel('Median Elapsed Time (µs)', fontsize=12)
     plt.title('Benchmark Results: Execution Time vs Batch Size', fontsize=14)

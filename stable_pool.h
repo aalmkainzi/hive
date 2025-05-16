@@ -620,7 +620,7 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     
     bucket->offsets[index].next_elm_index = bucket->offsets[index + 1].next_elm_index;
     
-#if SP_INDEX_MAX == UINT8_MAX
+#if 0 && SP_INDEX_MAX == UINT8_MAX
     ptrdiff_t prev_elm;
     for(prev_elm = (ptrdiff_t)index - 1 ; prev_elm >= 0 && bucket->offsets[prev_elm].next_elm_index != prev_elm ; prev_elm--);
     prev_elm += 1;
@@ -632,7 +632,6 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
         bucket->offsets[i].next_elm_index = bucket->offsets[index].next_elm_index;
     }
 #endif
-    
     
     bool is_empty = false;
     if(SP_UNLIKELY(index == bucket->first_elm_idx))

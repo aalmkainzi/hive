@@ -9,7 +9,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) printf(__VA_ARGS__)
+#define printf(...) // printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -75,7 +75,7 @@ int main()
     bench.output(&outFile);
     
     int begin = 50'000;
-    int end   = 750'000;
+    int end   = 1'000'000;
     int interval = 50'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
@@ -83,14 +83,14 @@ int main()
     
     constexpr bool bench_stable_pool = true;
     constexpr bool bench_small_stable_pool = false;
-    constexpr bool bench_plf_colony  = false;
+    constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    constexpr bool bench_iter = false;
+    constexpr bool bench_iter = true;
     constexpr bool bench_put = false;
-    constexpr bool bench_pop = true;
+    constexpr bool bench_pop = false;
     
     int iterations = 25;
     
@@ -230,9 +230,9 @@ int main()
             
             int i = 0;
             
-            SPo_FOREACH(&sl,
+            SP_FOREACH(&sl,
                        {
-                           ptrs[i++] = SPo_IT;
+                           ptrs[i++] = SP_IT;
                        });
             
             rng.seed(42);
@@ -273,13 +273,20 @@ int main()
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_pop",
                     [&]{
-                        // TODO clone
-                        for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(&it) ; bbig_sp_iter_go_next(&it))
+                        bbig_sp slc = bbig_sp_clone(&sl);
+                        
+                        bool remove = true;
+                        for(bbig_sp_iter_t it = bbig_sp_begin(&slc) ; !bbig_sp_iter_is_end(it) ; )
                         {
-                            it = bbig_sp_iter_pop(it);
+                            if(remove)
+                                it = bbig_sp_iter_pop(it);
+                            else
+                                bbig_sp_iter_go_next(&it);
+                            remove = !remove;
                         }
                         
-                        ankerl::nanobench::doNotOptimizeAway(sl);
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        bbig_sp_deinit(&slc);
                     }
                 );
             }

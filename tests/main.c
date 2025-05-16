@@ -1475,6 +1475,94 @@ static void test_big_clone_after_original_deinit(void) {
     big_sp_deinit(&clone);
 }
 
+static Big random_big(void) {
+    constexpr int MAX_VALUE = 100000;
+    Big b;
+    // Fill the padding bytes with random data for testing
+    for (size_t i = 0; i < sizeof(b._m); ++i) {
+        ((unsigned char*)b._m)[i] = rand() & 0xFF;
+    }
+    b.i = rand() % MAX_VALUE;
+    return b;
+}
+
+// Compare two Big elements for equality
+static int big_equal(const Big *a, const Big *b) {
+    if (a->i != b->i) return 0;
+    return memcmp(a->_m, b->_m, sizeof(a->_m)) == 0;
+}
+
+static void test_stable_pool(void) {
+    srand(69);
+    constexpr int NUM_OPS = 1000000;
+    big_sp pool;
+    big_sp_init(&pool);
+    
+    Big *vals = NULL;    // array of values for verification
+    Big **ptrs = NULL;   // array of pointers to pool elements
+    
+    for (size_t op = 0; op < NUM_OPS; ++op) {
+        if (arrlen(ptrs) == 0 || (rand() & 1)) {
+            // PUT operation: insert new element
+            Big new_el = random_big();
+            Big *sp_ptr = big_sp_put(&pool, new_el);
+            ASSERT(sp_ptr && "Failed to insert into stable_pool");
+            // Track value and pointer
+            arrpush(vals, *sp_ptr);
+            arrpush(ptrs, sp_ptr);
+        } else {
+            // POP operation: remove random element via its pointer
+            size_t idx = rand() % arrlen(ptrs);
+            Big *target = ptrs[idx];
+            // Copy value before removal
+            Big expected = *target;
+            // Remove from pool, get iterator to next
+            big_sp_iter_t next_it = big_sp_pop(&pool, target);
+            (void)next_it;
+            // Remove from tracking arrays (swap with last)
+            vals[idx] = vals[arrlen(vals) - 1]; arrpop(vals);
+            ptrs[idx] = ptrs[arrlen(ptrs) - 1]; arrpop(ptrs);
+            // Verify popped value matched
+            ASSERT(big_equal(&expected, &expected) && "Popped element mismatch");
+        }
+        
+        // Periodic full validation
+        if (op % 10000 == 0) {
+            size_t count = 0;
+            for (big_sp_iter_t it = big_sp_begin(&pool);
+                 !big_sp_iter_is_end(it);
+            it = big_sp_iter_next(it)) {
+                ++count;
+            }
+            ASSERT(count == arrlen(vals) && "Size mismatch between pool and array");
+            
+            // Ensure every ptr in ptrs points to a valid element matching vals
+            for (size_t i = 0; i < arrlen(ptrs); ++i) {
+                Big *p = ptrs[i];
+                int found = 0;
+                for (big_sp_iter_t it = big_sp_begin(&pool);
+                     !big_sp_iter_is_end(it);
+                it = big_sp_iter_next(it)) {
+                    if (big_equal(p, big_sp_iter_elm(it))) {
+                        found = 1;
+                        break;
+                    }
+                }
+                ASSERT(found && "Tracked pointer not found in pool");
+                ASSERT(big_equal(p, &vals[i]) && "Value mismatch at tracked pointer");
+            }
+            
+            printf("Validation at op %zu: OK (size = %zu)\n", op, arrlen(vals));
+        }
+    }
+    
+    printf("All %d operations completed successfully.\n", NUM_OPS);
+    
+    big_sp_deinit(&pool);
+    arrfree(vals);
+    arrfree(ptrs);
+}
+
 int main(void)
 {
     printf("Running tests...\n");
@@ -1529,6 +1617,7 @@ int main(void)
     test_big_clone_deep_copy();
     test_big_clone_stress();
     test_big_clone_after_original_deinit();
+    test_stable_pool();
     
     printf("ALL PASSED\n");
     return 0;
