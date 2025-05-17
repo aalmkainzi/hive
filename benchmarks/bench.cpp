@@ -74,9 +74,9 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 10'000;
-    int end   = 300'000;
-    int interval = 5'000;
+    int begin = 25'000;
+    int end   = 750'000;
+    int interval = 12'500;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
@@ -88,8 +88,8 @@ int main()
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    constexpr bool bench_iter = true;
-    constexpr bool bench_put = false;
+    constexpr bool bench_iter = false;
+    constexpr bool bench_put = true;
     constexpr bool bench_pop = false;
     
     int iterations = 25;
@@ -252,20 +252,35 @@ int main()
             // STABLE_POOL END
             
             if(bench_iter)
+            {
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_iter",
-                    [&]{
-                        volatile unsigned int sum = 0;
-                        
-                        const bbig_sp_bucket_t *const end = sl.end_sentinel;
-                        for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; it.bucket != end ; bbig_sp_iter_go_next(&it))
-                        {
-                            sum += bbig_sp_iter_elm(it)->i;
-                        }
-                        
-                        ankerl::nanobench::doNotOptimizeAway(sum);
-                        printf("stable_pool_iter = %u\n", sum);
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    const bbig_sp_bucket_t *const end = sl.end_sentinel;
+                    for(bbig_sp_iter_t it = bbig_sp_begin(&sl) ; it.bucket != end ; bbig_sp_iter_go_next(&it))
+                    {
+                        sum += bbig_sp_iter_elm(it)->i;
                     }
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool_iter = %u\n", sum);
+                }
                 );
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_macro",
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    const bbig_sp_bucket_t *const end = sl.end_sentinel;
+                    SP_FOREACH(&sl,
+                               sum += SP_IT->i;);
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("stable_pool_iter = %u\n", sum);
+                }
+                );
+            }
+
             
             
             if(bench_pop)
