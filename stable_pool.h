@@ -377,6 +377,11 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
         {
             bucket->offsets[j].next_elm_index = j;
         }
+        for(sp_index_t j = 0 ; j <= SP_BUCKET_SIZE ; j++)
+        {
+            bucket->offsets_r[j].next_elm_index = j;
+        }
+        
         bucket->first_elm_idx = 0;
         bucket->count = SP_BUCKET_SIZE;
         sp->bucket_count += 1;
@@ -395,10 +400,16 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
         sp_bucket_t *remaining_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));;
         sp_bucket_init(remaining_bucket);
         memcpy(remaining_bucket->elms, elms + (buckets_to_fill * SP_BUCKET_SIZE), remaining * sizeof(SP_TYPE));
+        
         for(sp_index_t j = 0 ; j < remaining ; j++)
         {
             remaining_bucket->offsets[j].next_elm_index = j;
         }
+        for(sp_index_t j = 0 ; j < SP_BUCKET_SIZE ; j++)
+        {
+            remaining_bucket->offsets_r[j].next_elm_index = j;
+        }
+        
         remaining_bucket->first_elm_idx = 0;
         remaining_bucket->count = remaining;
         
@@ -564,6 +575,11 @@ void sp_bucket_init(sp_bucket_t *bucket)
     }
     bucket->offsets[SP_BUCKET_SIZE].next_elm_index = SP_BUCKET_SIZE;
     
+    for(sp_index_t j = 0 ; j <= SP_BUCKET_SIZE ; j++)
+    {
+        bucket->offsets_r[j].next_elm_index = 0;
+    }
+    
     for(sp_index_t j = 0 ; j < SP_BUCKET_SIZE ; j++)
     {
         bucket->empty_indexes[j] = SP_BUCKET_SIZE - j - 1;
@@ -584,6 +600,51 @@ void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket)
     
     sp->not_full_buckets.count += 1;
 }
+#include <immintrin.h>
+
+#if !defined(SP_MEMSET_16)
+
+#define SP_MEMSET_16
+void memset_16(uint16_t *dest, uint16_t value, size_t count) {
+    size_t i = 0;
+    
+    #if defined(__AVX512BW__)
+    
+    __m512i vec512 = _mm512_set1_epi16((int16_t)value);
+    
+    
+    size_t n512 = count / 32;
+    for (i = 0; i < n512; ++i) {
+        _mm512_storeu_si512((__m512i*)(dest + i*32), vec512);
+        
+        
+    }
+    i *= 32;
+    
+    #elif defined(__AVX2__)
+    __m256i vec256 = _mm256_set1_epi16((int16_t)value);
+    size_t n256 = count / 16;
+    for (i = 0; i < n256; ++i) {
+        _mm256_storeu_si256((__m256i*)(dest + i*16), vec256);
+    }
+    i *= 16;
+    
+    #elif defined(__SSE2__)
+    __m128i vec128 = _mm_set1_epi16((int16_t)value);
+    size_t n128 = count / 8;
+    for (i = 0; i < n128; ++i) {
+        _mm_storeu_si128((__m128i*)(dest + i*8), vec128);
+    }
+    i *= 8;
+    #endif
+    
+    
+    for (; i < count; ++i) {
+        dest[i] = value;
+    }
+}
+
+#endif
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 {
@@ -591,35 +652,46 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
     if(bucket->count >= SP_BUCKET_SIZE)
         return NULL;
     
-    int emptyIndex = bucket->empty_indexes[SP_BUCKET_SIZE - bucket->count - 1];
+    sp_index_t empty_index = bucket->empty_indexes[SP_BUCKET_SIZE - bucket->count - 1];
+    sp_index_t prev_index = bucket->offsets_r[empty_index + 1].next_elm_index;
+    sp_index_t next_index = bucket->offsets[empty_index].next_elm_index;
     
-    bucket->elms[emptyIndex].value = new_elm;
-    bucket->offsets[emptyIndex].next_elm_index = emptyIndex;
+    bucket->elms[empty_index].value = new_elm;
+    bucket->offsets[empty_index].next_elm_index = empty_index;
+    bucket->offsets_r[empty_index + 1].next_elm_index = empty_index + 1;
     
-    if(emptyIndex < bucket->first_elm_idx)
+    if(empty_index < bucket->first_elm_idx)
     {
-        bucket->first_elm_idx = emptyIndex;
+        bucket->first_elm_idx = empty_index;
     }
     
-    for(ptrdiff_t i = emptyIndex - 1 ; i >= 0 && bucket->offsets[i].next_elm_index != i ; i--)
+    //if(prev_index != SP_INDEX_MAX)
     {
-        bucket->offsets[i].next_elm_index = emptyIndex;
+        memset_16((sp_index_t*)bucket->offsets + prev_index, empty_index, empty_index - prev_index + 1); // this seems correct
+        memset_16((sp_index_t*)bucket->offsets_r + empty_index + 1, empty_index + 1, next_index - empty_index);
     }
+    
+    // for(ptrdiff_t i = empty_index - 1 ; i >= 0 && bucket->offsets[i].next_elm_index != i ; i--)
+    // {
+    //     bucket->offsets[i].next_elm_index = empty_index;
+    // }
     
     bucket->count += 1;
     if(bucket->count == SP_BUCKET_SIZE)
     {
         sp->not_full_buckets.count -= 1;
     }
-    return &bucket->elms[emptyIndex].value;
+    return &bucket->elms[empty_index].value;
 }
 
 bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
 {
     (void)sp;
     assert(bucket->offsets[index].next_elm_index == index);
+    assert(bucket->offsets_r[index + 1].next_elm_index == index + 1);
     
-    bucket->offsets[index].next_elm_index = bucket->offsets[index + 1].next_elm_index;
+    sp_index_t next_index = bucket->offsets[index].next_elm_index = bucket->offsets[index + 1].next_elm_index;
+    sp_index_t prev_index = bucket->offsets_r[index + 1].next_elm_index = bucket->offsets_r[index].next_elm_index;
     
 #if 0 && SP_INDEX_MAX == UINT8_MAX
     ptrdiff_t prev_elm;
@@ -632,6 +704,10 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     {
         bucket->offsets[i].next_elm_index = bucket->offsets[index].next_elm_index;
     }
+    
+    memset_16((sp_index_t*) bucket->offsets + prev_index, next_index, index - prev_index);
+    memset_16((sp_index_t*) bucket->offsets_r + index + 1, prev_index, next_index - index);
+    
 #endif
     
     bool is_empty = false;

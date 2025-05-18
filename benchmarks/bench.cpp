@@ -9,7 +9,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) // printf(__VA_ARGS__)
+#define printf(...) printf(__VA_ARGS__)
 
 typedef struct Big
 {
@@ -75,22 +75,22 @@ int main()
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 750'000;
-    int interval = 12'500;
+    int end   = 350'000;
+    int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = false;
-    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_small_stable_pool = true;
+    constexpr bool bench_plf_colony  = false;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
     constexpr bool bench_iter = false;
-    constexpr bool bench_put = true;
-    constexpr bool bench_pop = false;
+    constexpr bool bench_put = false;
+    constexpr bool bench_pop = true;
     
     int iterations = 25;
     
@@ -280,8 +280,31 @@ int main()
                 }
                 );
             }
-
             
+            if(bench_put)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_put",
+                    [&]{
+                        bbig_sp slc = bbig_sp_clone(&sl);
+                        
+                        for(int i = 0 ; i < sz/2 ; i++)
+                        {
+                            bbig_sp_put(&slc, (Big){.i=i});
+                        }
+                        
+//                         unsigned int sum = 0;
+//                         for(auto it = bbig_sp_begin(&slc) ; !bbig_sp_iter_is_end(it) ; bbig_sp_iter_go_next(&it))
+//                         {
+//                             sum += bbig_sp_iter_elm(it)->i;
+//                         }
+//                         
+//                         printf("SP SUM AFTER PUT: %u\n", sum);
+//                         ankerl::nanobench::doNotOptimizeAway(slc);
+                        bbig_sp_deinit(&slc);
+                    }
+                );
+            }
             
             if(bench_pop)
             {
@@ -391,13 +414,13 @@ int main()
                         icol.insert((Big){.i=i});
                     }
                     
-//                     unsigned int sum = 0;
-//                     for(auto it : icol)
-//                     {
-//                         sum += it.i;
-//                     }
-//                     
-//                     printf("PLF SUM AFTER INS %u\n", sum);
+                    unsigned int sum = 0;
+                    for(auto it : icol)
+                    {
+                        sum += it.i;
+                    }
+                    
+                    printf("PLF SUM AFTER INS %u\n", sum);
                     ankerl::nanobench::doNotOptimizeAway(icol);
                 }
                 );
