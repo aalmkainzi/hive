@@ -9,7 +9,8 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#define printf(...) printf(__VA_ARGS__)
+#define printf(...) // printf(__VA_ARGS__)
+#define rand()      (rand())
 
 typedef struct Big
 {
@@ -51,6 +52,10 @@ bool eq_big(Big a, Big b)
 #include "stable_pool.h"
 #endif
 
+#define HIVE_TYPE Big
+#define HIVE_NAME hv
+#include "../../hive/hive.h"
+
 void add_sum(Big *big, void *arg)
 {
     *(unsigned int*)arg += big->i;
@@ -74,23 +79,24 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 25'000;
-    int end   = 350'000;
-    int interval = 25'000;
+    int begin = 10000;
+    int end   = 500000;
+    int interval = 10000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = true;
-    constexpr bool bench_plf_colony  = false;
+    constexpr bool bench_small_stable_pool = false;
+    constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
+    constexpr bool bench_hive = true;
     
-    constexpr bool bench_iter = false;
+    constexpr bool bench_iter = true;
     constexpr bool bench_put = false;
-    constexpr bool bench_pop = true;
+    constexpr bool bench_pop = false;
     
     int iterations = 25;
     
@@ -247,7 +253,7 @@ int main()
                 bbig_sp_pop(&sl, p);
             }
             
-            assert(sl.count == sz/2);
+            assert(sl.count == sz - sz/2);
             
             // STABLE_POOL END
             
@@ -329,6 +335,107 @@ int main()
                 );
             }
             bbig_sp_deinit(&sl);
+            free(ptrs);
+            free(bigs);
+        }
+        
+        if(bench_hive)
+        {
+            // STABLE_POOL SETUP
+            
+            srand(69420);
+            hv sl; hv_init(&sl);
+            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
+            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            for (int i = 0; i < sz; i++)
+            {
+                bigs[i] = (Big){.i = rand() - i};
+                ptrs[i] = hv_put(&sl, bigs[i]).elm[0];
+            }
+            
+            rng.seed(42);
+            std::vector<Big*> to_pop;
+            to_pop.reserve(sz / 2);
+            std::sample(ptrs, ptrs + sz,
+                        std::back_inserter(to_pop),
+                        sz / 2,
+                        rng);
+            
+            // NOTE popping invalidates iterators. (but not pointers)
+            for (Big* p : to_pop)
+            {
+                hv_pop(&sl, p);
+            }
+            
+            assert(sl.count == sz - sz/2);
+            
+            // STABLE_POOL END
+            
+            if(bench_iter)
+            {
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hv_iter",
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for(auto it = hv_begin(&sl) ; !hv_is_end(it) ; it = hv_iter_next(it))
+                    {
+                        sum += (*it.elm)->i;
+                    }
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("hv_iter = %u\n", sum);
+                }
+                );
+            }
+            
+            if(bench_put)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_put",
+                    [&]{
+                        hv slc = hv_clone(&sl);
+                        
+                        for(int i = 0 ; i < sz/2 ; i++)
+                        {
+                            hv_put(&slc, (Big){.i=i});
+                        }
+                        
+//                         unsigned int sum = 0;
+//                         for(auto it = bbig_sp_begin(&slc) ; !bbig_sp_iter_is_end(it) ; bbig_sp_iter_go_next(&it))
+//                         {
+//                             sum += bbig_sp_iter_elm(it)->i;
+//                         }
+//                         
+//                         printf("SP SUM AFTER PUT: %u\n", sum);
+//                         ankerl::nanobench::doNotOptimizeAway(slc);
+                        hv_deinit(&slc);
+                    }
+                );
+            }
+            
+            if(bench_pop)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_pop",
+                    [&]{
+                        hv slc = hv_clone(&sl);
+                        
+                        bool remove = true;
+                        for(auto it = hv_begin(&slc) ; !hv_is_end(it) ; )
+                        {
+                            if(remove)
+                                it = hv_iter_pop(it);
+                            else
+                                it = hv_iter_next(it);
+                            remove = !remove;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        hv_deinit(&slc);
+                    }
+                );
+            }
+            hv_deinit(&sl);
             free(ptrs);
             free(bigs);
         }
@@ -527,10 +634,10 @@ int main()
             auto last = flist.before_begin();               // points to before the first
             std::vector<decltype(flist.begin())> elems;     // will store iterators to each element
             
-            std::srand(69420);
+            srand(69420);
             for (int i = 0; i < sz; ++i) {
                 Big b;
-                b.i = std::rand() - i;
+                b.i = rand() - i;
                 // insert AFTER last, then update last to the newly inserted element
                 last = flist.insert_after(last, b);
                 elems.push_back(last);
