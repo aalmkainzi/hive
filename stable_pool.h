@@ -163,7 +163,6 @@ typedef struct sp_bucket_t
     sp_index_t count;
     sp_entry_t elms[SP_BUCKET_SIZE + 1];
     sp_offset_entry_t offsets[SP_BUCKET_SIZE + 1];
-    sp_offset_entry_t offsets_r[SP_BUCKET_SIZE + 1]; // the +1 is because the beginning is the sentinel, not the end (the case for `offsets`). We must map each index to +1 (basically use 1-based index). Also try putting 2 uint16_t in one offset field
     sp_index_t empty_indexes[SP_BUCKET_SIZE];
     struct sp_bucket_t *next;
     struct sp_bucket_t *prev;
