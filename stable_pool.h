@@ -7,7 +7,10 @@
 #include <string.h>
 #include <time.h>
 #include <assert.h>
-
+// OPTIMIZATION IDEA:
+// use a priority queue in the bucket's empty slots instead of a stack.
+// this makes it so that each time we insert a new elm, to the left of it is either another elm or its at 0
+// with this in mind we can make the insertion and erasing logic much faster
 #if !defined(SP_TYPE) || !defined(SP_NAME)
 
     #error "SP_TYPE and SP_NAME must be defined"
@@ -188,7 +191,6 @@ typedef struct sp_iter_t
     SP_NAME *sp;
     sp_bucket_t *bucket;
     sp_offset_entry_t *offset;
-    sp_index_t index;
     sp_entry_t *elm;
 } sp_iter_t;
 
@@ -715,9 +717,7 @@ sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     sp_iter_t ret;
     ret.sp = sp;
     ret.bucket = bucket;
-    ret.index = index;
-    ret.elm = &bucket->elms[ret.index];
-    // ret.entry = &ret.bucket->elms[index];
+    ret.elm = &bucket->elms[index];
     ret.offset = &ret.bucket->offsets[index] + 1;
     return ret;
 }
@@ -734,31 +734,30 @@ bool sp_iter_is_end(sp_iter_t it)
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    it.index = it.offset->next_elm_index;
+    sp_index_t index = it.offset->next_elm_index;
     
-    if (SP_UNLIKELY(it.index == SP_BUCKET_SIZE))
+    if (SP_UNLIKELY(index == SP_BUCKET_SIZE))
     {
         it.bucket = it.bucket->next;
-        it.index = it.bucket->first_elm_idx;
+        index = it.bucket->first_elm_idx;
     }
-    it.elm = &it.bucket->elms[it.index];
-    it.offset = &it.bucket->offsets[it.index] + 1;
+    it.elm = &it.bucket->elms[index];
+    it.offset = &it.bucket->offsets[index] + 1;
     
     return it;
 }
 
 void sp_iter_go_next(sp_iter_t *it)
 {
-    sp_index_t idx = it->offset->next_elm_index;
+    sp_index_t index = it->offset->next_elm_index;
     
-    if (SP_UNLIKELY(idx == SP_BUCKET_SIZE))
+    if (SP_UNLIKELY(index == SP_BUCKET_SIZE))
     {
         it->bucket = it->bucket->next;
-        idx = it->bucket->first_elm_idx;
+        index = it->bucket->first_elm_idx;
     }
-    it->index = idx;
-    it->elm = &it->bucket->elms[it->index];
-    it->offset = &it->bucket->offsets[it->index] + 1;
+    it->elm = &it->bucket->elms[index];
+    it->offset = &it->bucket->offsets[index] + 1;
 }
 
 SP_TYPE *sp_iter_elm(sp_iter_t it)
@@ -770,7 +769,7 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
 {
     SP_NAME *sp = it.sp;
     sp_bucket_t *bucket = it.bucket;
-    sp_index_t index = it.index;
+    sp_index_t index = it.elm - it.bucket->elms;
     sp_iter_t ret = {
         .sp = sp
     };
