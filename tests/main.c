@@ -57,7 +57,7 @@ static void test_single_put_and_loop(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    int *p = int_sp_put(&sp, 42);
+    int *p = &int_sp_put(&sp, 42).elm->value;
     ASSERT(p && *p == 42);
     ASSERT(sp.count == (size_t)1);
     struct Collector c = {NULL, 0, 0};
@@ -74,7 +74,7 @@ static void test_multiple_puts(void)
     int_sp_init(&sp);
     const int N = 100;
     for (int i = 0; i < N; i++)
-        ASSERT(int_sp_put(&sp, i) != NULL);
+        ASSERT(int_sp_put(&sp, i).elm != NULL);
     ASSERT(sp.count == (size_t)N);
     struct Collector c = {NULL, 0, 0};
     int_sp_foreach(&sp, collect_int, &c);
@@ -91,9 +91,9 @@ static void test_pointer_stability(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    int *p1 = int_sp_put(&sp, 10);
-    int *p2 = int_sp_put(&sp, 20);
-    int *p3 = int_sp_put(&sp, 30);
+    int *p1 = &int_sp_put(&sp, 10).elm->value;
+    int *p2 = &int_sp_put(&sp, 20).elm->value;
+    int *p3 = &int_sp_put(&sp, 30).elm->value;
     ASSERT(sp.count == 3);
     int_sp_pop(&sp, p3);
     ASSERT(sp.count == 2);
@@ -106,9 +106,9 @@ static void test_pop_and_iteration(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    int *a = int_sp_put(&sp, 1);
-    int *b = int_sp_put(&sp, 2);
-    int *c = int_sp_put(&sp, 3);
+    int *a = &int_sp_put(&sp, 1).elm->value;
+    int *b = &int_sp_put(&sp, 2).elm->value;
+    int *c = &int_sp_put(&sp, 3).elm->value;
     ASSERT(sp.count == 3);
     int_sp_pop(&sp, b);
     ASSERT(sp.count == 2);
@@ -144,7 +144,7 @@ static void test_stress_inserts_pops(void)
     int **ptrs = malloc(M * sizeof *ptrs);
     ASSERT(ptrs != NULL);
     for (int i = 0; i < M; i++)
-        ptrs[i] = int_sp_put(&sp, i);
+        ptrs[i] = &int_sp_put(&sp, i).elm->value;
     ASSERT(sp.count == (size_t)M);
     
     for (int i = 0; i < M; i += 2)
@@ -173,7 +173,7 @@ static void test_smaller_stress_inserts_pops(void)
     
     for (int i = 0; i < M; i++)
     {
-        ptrs[i] = int_sp_put(&sp, i);
+        ptrs[i] = &int_sp_put(&sp, i).elm->value;
         ASSERT(ptrs[i] != NULL);
     }
     ASSERT(sp.count == (size_t)M);
@@ -232,7 +232,7 @@ static void test_big_single_put_and_loop(void)
 {
     big_sp sp;
     big_sp_init(&sp);
-    Big *p = big_sp_put(&sp, (Big){.i = 42});
+    Big *p = &big_sp_put(&sp, (Big){.i = 42}).elm->value;
     ASSERT(p && p->i == 42);
     ASSERT(sp.count == 1);
     
@@ -251,7 +251,7 @@ static void test_big_multiple_puts(void)
     const int N = 100;
     for (int i = 0; i < N; i++)
     {
-        Big *p = big_sp_put(&sp, (Big){.i = i});
+        Big *p = &big_sp_put(&sp, (Big){.i = i}).elm->value;
         ASSERT(p != NULL);
     }
     ASSERT(sp.count == (size_t)N);
@@ -276,9 +276,9 @@ static void test_big_pointer_stability(void)
 {
     big_sp sp;
     big_sp_init(&sp);
-    Big *p1 = big_sp_put(&sp, (Big){.i = 10});
-    Big *p2 = big_sp_put(&sp, (Big){.i = 20});
-    Big *p3 = big_sp_put(&sp, (Big){.i = 30});
+    Big *p1 = &big_sp_put(&sp, (Big){.i = 10}).elm->value;
+    Big *p2 = &big_sp_put(&sp, (Big){.i = 20}).elm->value;
+    Big *p3 = &big_sp_put(&sp, (Big){.i = 30}).elm->value;
     ASSERT(sp.count == 3);
     big_sp_pop(&sp, p3);
     ASSERT(sp.count == 2);
@@ -291,9 +291,9 @@ static void test_big_pop_and_iteration(void)
 {
     big_sp sp;
     big_sp_init(&sp);
-    Big *a = big_sp_put(&sp, (Big){.i = 1});
-    Big *b = big_sp_put(&sp, (Big){.i = 2});
-    Big *c = big_sp_put(&sp, (Big){.i = 3});
+    Big *a = &big_sp_put(&sp, (Big){.i = 1}).elm->value;
+    Big *b = &big_sp_put(&sp, (Big){.i = 2}).elm->value;
+    Big *c = &big_sp_put(&sp, (Big){.i = 3}).elm->value;
     ASSERT(sp.count == 3);
     big_sp_pop(&sp, b);
     ASSERT(sp.count == 2);
@@ -333,7 +333,7 @@ static void test_big_stress_inserts_pops(void)
     
     for (int i = 0; i < M; i++)
     {
-        ptrs[i] = big_sp_put(&sp, (Big){.i = i});
+        ptrs[i] = &big_sp_put(&sp, (Big){.i = i}).elm->value;
         ASSERT(ptrs[i] != NULL);
     }
     ASSERT(sp.count == (size_t)M);
@@ -369,7 +369,7 @@ static void test_int_iteration_equivalence_after_random_pops(void)
     
     srand(42);
     for (int i = 0; i < N; i++)
-        ptrs[i] = int_sp_put(&sp, i);
+        ptrs[i] = &int_sp_put(&sp, i).elm->value;
     
     for (int i = 0; i < N; i++)
     {
@@ -385,18 +385,18 @@ static void test_int_iteration_equivalence_after_random_pops(void)
     struct Collector col3 = {NULL, 0, 0};
     
     int_sp_foreach(&sp, collect_int, &col1);
-
-        SP_FOREACH(&sp,
-                   collect_int(SP_IT, &col2);
-        );
-
+    
+    SP_FOREACH(&sp,
+               collect_int(SP_IT, &col2);
+    );
+    
     for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); !int_sp_iter_eq(it, end);
-    it = int_sp_iter_next(it))
-    {
-        collect_int(int_sp_iter_elm(it), &col3);
-    }
+         it = int_sp_iter_next(it))
+         {
+             collect_int(int_sp_iter_elm(it), &col3);
+         }
          
-    ASSERT(col1.idx == col2.idx && col2.idx == col3.idx);
+         ASSERT(col1.idx == col2.idx && col2.idx == col3.idx);
     
     qsort(col1.data, col1.idx, sizeof(int), compare_ints);
     qsort(col2.data, col2.idx, sizeof(int), compare_ints);
@@ -425,7 +425,7 @@ static void test_big_iteration_equivalence_after_random_pops(void)
     
     srand(1337);
     for (int i = 0; i < N; i++)
-        ptrs[i] = big_sp_put(&sp, (Big){.i = i});
+        ptrs[i] = &big_sp_put(&sp, (Big){.i = i}).elm->value;
     
     for (int i = 0; i < N; i++)
     {
@@ -475,7 +475,7 @@ static void test_against_dynamic_array(void)
     const int N = 20;
     for (int i = 0; i < N; i++)
     {
-        int *ptr = int_sp_put(&sp, i);
+        int *ptr = &int_sp_put(&sp, i).elm->value;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -536,7 +536,7 @@ static void test_big_against_dynamic_array(void)
     const int N = 50;
     for (int i = 0; i < N; i++)
     {
-        Big *ptr = big_sp_put(&sp, (Big){.i = i});
+        Big *ptr = &big_sp_put(&sp, (Big){.i = i}).elm->value;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -595,7 +595,7 @@ static void test_insert_after_erase(void)
     const int N = 250;
     for (int i = 0; i < N; i++)
     {
-        int *ptr = int_sp_put(&sp, i);
+        int *ptr = &int_sp_put(&sp, i).elm->value;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -631,7 +631,7 @@ static void test_insert_after_erase(void)
     const int M = 500;
     for (int i = N; i < N + M; i++)
     {
-        int *ptr = int_sp_put(&sp, i);
+        int *ptr = &int_sp_put(&sp, i).elm->value;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -663,7 +663,7 @@ static void test_big_insert_after_erase(void)
     const int N = 500;
     for (int i = 0; i < N; i++)
     {
-        Big *ptr = big_sp_put(&sp, (Big){.i = i});
+        Big *ptr = &big_sp_put(&sp, (Big){.i = i}).elm->value;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -699,7 +699,7 @@ static void test_big_insert_after_erase(void)
     const int M = 1000;
     for (int i = N; i < N + M; i++)
     {
-        Big *ptr = big_sp_put(&sp, (Big){.i = i});
+        Big *ptr = &big_sp_put(&sp, (Big){.i = i}).elm->value;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -732,7 +732,7 @@ void test_clear_bucket()
     int bucket_size = SP_GET_BUCKET_SIZE(&sp);
     for(int i = 0 ; i < bucket_size + bucket_size + bucket_size ; i++)
     {
-        arrput(to_delete, big_sp_put(&sp, (Big){.i=i} ));
+        arrput(to_delete, &big_sp_put(&sp, (Big){.i=i}).elm->value);
         arrput(copy, (Big){.i=i});
     }
     
@@ -818,7 +818,7 @@ static void test_int_erase_single_element(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    int *p = int_sp_put(&sp, 42);
+    int *p = &int_sp_put(&sp, 42).elm->value;
     ASSERT(p != NULL);
     
     int_sp_iter_t it = int_sp_begin(&sp);
@@ -833,9 +833,9 @@ static void test_int_erase_first_element(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    int_sp_put(&sp, 1);
-    int_sp_put(&sp, 2);
-    int_sp_put(&sp, 3);
+    &int_sp_put(&sp, 1).elm->value;
+    &int_sp_put(&sp, 2).elm->value;
+    &int_sp_put(&sp, 3).elm->value;
     
     int_sp_iter_t it = int_sp_begin(&sp);
     int elm = *int_sp_iter_elm(it);
@@ -871,9 +871,9 @@ static void test_int_erase_last_element_during_iteration(void)
 {
     int_sp sp;
     int_sp_init(&sp);
-    int_sp_put(&sp, 1);
-    int_sp_put(&sp, 2);
-    int_sp_put(&sp, 3);
+    &int_sp_put(&sp, 1).elm->value;
+    &int_sp_put(&sp, 2).elm->value;
+    &int_sp_put(&sp, 3).elm->value;
     
     int_sp_iter_t it = int_sp_begin(&sp);
     int_sp_iter_t last = int_sp_end(&sp);
@@ -918,7 +918,7 @@ static void test_int_erase_every_other_element(void)
     int_sp_init(&sp);
     const int N = 10;
     for (int i = 0; i < N; i++)
-        int_sp_put(&sp, i);
+        &int_sp_put(&sp, i).elm->value;
     
     bool remove = false;
     int_sp_iter_t it = int_sp_begin(&sp);
@@ -947,7 +947,7 @@ static void test_int_stress_iter_pop(void)
     int_sp_init(&sp);
     const int M = 10000;
     for (int i = 0; i < M; i++)
-        int_sp_put(&sp, i);
+        &int_sp_put(&sp, i).elm->value;
     
     int_sp_iter_t it = int_sp_begin(&sp);
     size_t expected = M;
@@ -978,7 +978,7 @@ static void test_big_erase_single_element(void)
 {
     big_sp sp;
     big_sp_init(&sp);
-    Big *p = big_sp_put(&sp, (Big){.i = 42});
+    Big *p = &big_sp_put(&sp, (Big){.i = 42}).elm->value;
     ASSERT(p != NULL);
     
     big_sp_iter_t it = big_sp_begin(&sp);
@@ -993,9 +993,9 @@ static void test_big_erase_first_element(void)
 {
     big_sp sp;
     big_sp_init(&sp);
-    big_sp_put(&sp, (Big){.i = 1});
-    big_sp_put(&sp, (Big){.i = 2});
-    big_sp_put(&sp, (Big){.i = 3});
+    &big_sp_put(&sp, (Big){.i = 1}).elm->value;
+    &big_sp_put(&sp, (Big){.i = 2}).elm->value;
+    &big_sp_put(&sp, (Big){.i = 3}).elm->value;
     
     big_sp_iter_t it = big_sp_begin(&sp);
     Big popped = *big_sp_iter_elm(it);
@@ -1032,9 +1032,9 @@ static void test_big_erase_last_element_during_iteration(void)
 {
     big_sp sp;
     big_sp_init(&sp);
-    big_sp_put(&sp, (Big){.i = 1});
-    big_sp_put(&sp, (Big){.i = 2});
-    big_sp_put(&sp, (Big){.i = 3});
+    &big_sp_put(&sp, (Big){.i = 1}).elm->value;
+    &big_sp_put(&sp, (Big){.i = 2}).elm->value;
+    &big_sp_put(&sp, (Big){.i = 3}).elm->value;
     
     big_sp_iter_t it = big_sp_begin(&sp);
     big_sp_iter_t last = big_sp_end(&sp);
@@ -1078,7 +1078,7 @@ static void test_big_erase_every_other_element(void)
     big_sp_init(&sp);
     const int N = 10;
     for (int i = 0; i < N; i++)
-        big_sp_put(&sp, (Big){.i = i});
+        &big_sp_put(&sp, (Big){.i = i}).elm->value;
     
     bool remove = false;
     big_sp_iter_t it = big_sp_begin(&sp);
@@ -1107,7 +1107,7 @@ static void test_big_stress_iter_pop(void)
     big_sp_init(&sp);
     const int M = 10000;
     for (int i = 0; i < M; i++)
-        big_sp_put(&sp, (Big){.i = i});
+        &big_sp_put(&sp, (Big){.i = i}).elm->value;
     
     big_sp_iter_t it = big_sp_begin(&sp);
     size_t expected = M;
@@ -1156,7 +1156,7 @@ static void test_int_clone_empty(void) {
 static void test_int_clone_single_element(void) {
     int_sp original;
     int_sp_init(&original);
-    int *orig_p = int_sp_put(&original, 42);
+    int *orig_p = &int_sp_put(&original, 42).elm->value;
     
     int_sp clone = int_sp_clone(&original);
     ASSERT(clone.count == 1);
@@ -1178,7 +1178,7 @@ static void test_int_clone_multiple_elements(void) {
     
     // Insert and track pointers
     for (int i = 0; i < N; ++i) {
-        original_ptrs[i] = int_sp_put(&original, i);
+        original_ptrs[i] = &int_sp_put(&original, i).elm->value;
     }
     
     int_sp clone = int_sp_clone(&original);
@@ -1209,9 +1209,9 @@ static void test_int_clone_multiple_elements(void) {
 static void test_int_clone_with_holes(void) {
     int_sp original;
     int_sp_init(&original);
-    int *p1 = int_sp_put(&original, 1);
-    int *p2 = int_sp_put(&original, 2);
-    int *p3 = int_sp_put(&original, 3);
+    int *p1 = &int_sp_put(&original, 1).elm->value;
+    int *p2 = &int_sp_put(&original, 2).elm->value;
+    int *p3 = &int_sp_put(&original, 3).elm->value;
     int_sp_pop(&original, p2);
     
     int_sp clone = int_sp_clone(&original);
@@ -1249,7 +1249,7 @@ static void test_int_clone_stress(void) {
     
     // Insert and track all original pointers
     for (int i = 0; i < M; ++i) {
-        original_ptrs[i] = int_sp_put(&original, i);
+        original_ptrs[i] = &int_sp_put(&original, i).elm->value;
     }
     
     int_sp clone = int_sp_clone(&original);
@@ -1286,7 +1286,7 @@ static void test_big_clone_empty(void) {
 static void test_big_clone_single_element(void) {
     big_sp original;
     big_sp_init(&original);
-    Big *orig_p = big_sp_put(&original, (Big){.i = 42});
+    Big *orig_p = &big_sp_put(&original, (Big){.i = 42}).elm->value;
     
     big_sp clone = big_sp_clone(&original);
     ASSERT(clone.count == 1);
@@ -1312,7 +1312,7 @@ static void test_big_clone_multiple_elements(void) {
     
     // Insert and track pointers
     for (int i = 0; i < N; ++i) {
-        original_ptrs[i] = big_sp_put(&original, (Big){.i = i});
+        original_ptrs[i] = &big_sp_put(&original, (Big){.i = i}).elm->value;
     }
     
     big_sp clone = big_sp_clone(&original);
@@ -1343,13 +1343,13 @@ static void test_big_clone_multiple_elements(void) {
 static void test_big_clone_independence_after_modification(void) {
     big_sp original;
     big_sp_init(&original);
-    big_sp_put(&original, (Big){.i = 1});
-    big_sp_put(&original, (Big){.i = 2});
+    &big_sp_put(&original, (Big){.i = 1}).elm->value;
+    &big_sp_put(&original, (Big){.i = 2}).elm->value;
     
     big_sp clone = big_sp_clone(&original);
     
     // Modify original after cloning
-    big_sp_put(&original, (Big){.i = 3});
+    &big_sp_put(&original, (Big){.i = 3}).elm->value;
     
     ASSERT(original.count == 3);
     ASSERT(clone.count == 2);
@@ -1370,9 +1370,9 @@ static void test_big_clone_independence_after_modification(void) {
 static void test_big_clone_with_holes(void) {
     big_sp original;
     big_sp_init(&original);
-    Big *p1 = big_sp_put(&original, (Big){.i = 1});
-    Big *p2 = big_sp_put(&original, (Big){.i = 2});
-    Big *p3 = big_sp_put(&original, (Big){.i = 3});
+    Big *p1 = &big_sp_put(&original, (Big){.i = 1}).elm->value;
+    Big *p2 = &big_sp_put(&original, (Big){.i = 2}).elm->value;
+    Big *p3 = &big_sp_put(&original, (Big){.i = 3}).elm->value;
     big_sp_pop(&original, p2);
     int *p1i = &p1->i;
     int *p2i = &p2->i;
@@ -1407,7 +1407,7 @@ static void test_big_clone_with_holes(void) {
 static void test_big_clone_deep_copy(void) {
     big_sp original;
     big_sp_init(&original);
-    Big *orig_p = big_sp_put(&original, (Big){.i = 42});
+    Big *orig_p = &big_sp_put(&original, (Big){.i = 42}).elm->value;
     
     big_sp clone = big_sp_clone(&original);
     
@@ -1431,7 +1431,7 @@ static void test_big_clone_stress(void) {
     
     // Insert and track all original pointers
     for (int i = 0; i < M; ++i) {
-        original_ptrs[i] = big_sp_put(&original, (Big){.i = i});
+        original_ptrs[i] = &big_sp_put(&original, (Big){.i = i}).elm->value;
     }
     
     big_sp clone = big_sp_clone(&original);
@@ -1462,7 +1462,7 @@ static void test_big_clone_stress(void) {
 static void test_big_clone_after_original_deinit(void) {
     big_sp original;
     big_sp_init(&original);
-    big_sp_put(&original, (Big){.i = 42});
+    &big_sp_put(&original, (Big){.i = 42}).elm->value;
     
     big_sp clone = big_sp_clone(&original);
     big_sp_deinit(&original);  // Destroy original
@@ -1505,7 +1505,7 @@ static void test_stable_pool(void) {
         if (arrlen(ptrs) == 0 || (rand() & 1)) {
             // PUT operation: insert new element
             Big new_el = random_big();
-            Big *sp_ptr = big_sp_put(&pool, new_el);
+            Big *sp_ptr = &big_sp_put(&pool, new_el).elm->value;
             ASSERT(sp_ptr && "Failed to insert into stable_pool");
             // Track value and pointer
             arrpush(vals, *sp_ptr);
@@ -1622,4 +1622,3 @@ int main(void)
     printf("ALL PASSED\n");
     return 0;
 }
-

@@ -8,6 +8,9 @@
 #include <time.h>
 #include <assert.h>
 
+// Optimization idea:
+// on top of a first_elm_idx, keep track of first_empty_idx
+// shouldn't be too complex
 #if !defined(SP_TYPE) || !defined(SP_NAME)
 
     #error "SP_TYPE and SP_NAME must be defined"
@@ -188,13 +191,12 @@ typedef struct sp_iter_t
     SP_NAME *sp;
     sp_bucket_t *bucket;
     sp_offset_entry_t *offset;
-    sp_index_t index;
     sp_entry_t *elm;
 } sp_iter_t;
 
 void sp_init(SP_NAME *sp);
 SP_NAME sp_clone(const SP_NAME *const sp);
-SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm);
+sp_iter_t sp_put(SP_NAME *sp, SP_TYPE new_elm);
 void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms);
 sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm);
 void sp_foreach(const SP_NAME *sp, void(*f)(SP_TYPE*,void*), void *arg);
@@ -319,7 +321,7 @@ SP_NAME sp_clone(const SP_NAME *const sp)
     return ret;
 }
 
-SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
+sp_iter_t sp_put(SP_NAME *sp, SP_TYPE new_elm)
 {
     SP_TYPE *elm_added = NULL;
     
@@ -327,7 +329,8 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
     {
         sp_bucket_t *bucket = sp->not_full_buckets.array[sp->not_full_buckets.count - 1];
         sp->count += 1;
-        return sp_bucket_put(sp, bucket, new_elm);
+        SP_TYPE *elm = sp_bucket_put(sp, bucket, new_elm);
+        return sp_iter_to(sp, bucket, elm - &bucket->elms[0].value);
     }
     
     sp_bucket_t *new_bucket = (sp_bucket_t*) SP_ALLOC(SP_ALLOC_CTX, sizeof(sp_bucket_t), alignof(sp_bucket_t));
@@ -350,7 +353,7 @@ SP_TYPE *sp_put(SP_NAME *sp, SP_TYPE new_elm)
     sp->bucket_count += 1;
     elm_added = sp_bucket_put(sp, new_bucket, new_elm);
     sp->count += 1;
-    return elm_added;
+    return sp_iter_to(sp, new_bucket, elm_added - &new_bucket->elms[0].value);
 }
 
 void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
@@ -715,9 +718,7 @@ sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     sp_iter_t ret;
     ret.sp = sp;
     ret.bucket = bucket;
-    ret.index = index;
-    ret.elm = &bucket->elms[ret.index];
-    // ret.entry = &ret.bucket->elms[index];
+    ret.elm = &bucket->elms[index];
     ret.offset = &ret.bucket->offsets[index] + 1;
     return ret;
 }
@@ -734,31 +735,30 @@ bool sp_iter_is_end(sp_iter_t it)
 
 sp_iter_t sp_iter_next(sp_iter_t it)
 {
-    it.index = it.offset->next_elm_index;
+    sp_index_t index = it.offset->next_elm_index;
     
-    if (SP_UNLIKELY(it.index == SP_BUCKET_SIZE))
+    if (SP_UNLIKELY(index == SP_BUCKET_SIZE))
     {
         it.bucket = it.bucket->next;
-        it.index = it.bucket->first_elm_idx;
+        index = it.bucket->first_elm_idx;
     }
-    it.elm = &it.bucket->elms[it.index];
-    it.offset = &it.bucket->offsets[it.index] + 1;
+    it.elm = &it.bucket->elms[index];
+    it.offset = &it.bucket->offsets[index] + 1;
     
     return it;
 }
 
 void sp_iter_go_next(sp_iter_t *it)
 {
-    sp_index_t idx = it->offset->next_elm_index;
+    sp_index_t index = it->offset->next_elm_index;
     
-    if (SP_UNLIKELY(idx == SP_BUCKET_SIZE))
+    if (SP_UNLIKELY(index == SP_BUCKET_SIZE))
     {
         it->bucket = it->bucket->next;
-        idx = it->bucket->first_elm_idx;
+        index = it->bucket->first_elm_idx;
     }
-    it->index = idx;
-    it->elm = &it->bucket->elms[it->index];
-    it->offset = &it->bucket->offsets[it->index] + 1;
+    it->elm = &it->bucket->elms[index];
+    it->offset = &it->bucket->offsets[index] + 1;
 }
 
 SP_TYPE *sp_iter_elm(sp_iter_t it)
@@ -770,7 +770,7 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
 {
     SP_NAME *sp = it.sp;
     sp_bucket_t *bucket = it.bucket;
-    sp_index_t index = it.index;
+    sp_index_t index = it.elm - it.bucket->elms;
     sp_iter_t ret = {
         .sp = sp
     };
