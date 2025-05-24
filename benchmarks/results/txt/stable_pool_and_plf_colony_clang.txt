@@ -6,23 +6,13 @@ Recommendations
 
 | complexityN |             ns/elms |              elms/s |    err% |     total | benchmark
 |------------:|--------------------:|--------------------:|--------:|----------:|:----------
-|      25,000 |               34.41 |       29,059,593.98 |    0.3% |      0.26 | `stable_pool_rnd`
-|      25,000 |               25.00 |       40,002,378.81 |   20.3% |      0.22 | :wavy_dash: `plf_colony_rnd` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
-|      50,000 |               34.22 |       29,222,750.81 |    0.2% |      0.45 | `stable_pool_rnd`
-|      50,000 |               37.82 |       26,441,254.43 |    0.5% |      0.50 | `plf_colony_rnd`
-|      75,000 |               34.18 |       29,254,909.95 |    0.1% |      0.71 | `stable_pool_rnd`
-|      75,000 |               37.81 |       26,451,142.19 |    0.1% |      0.79 | `plf_colony_rnd`
-|     100,000 |               34.18 |       29,253,759.99 |    0.1% |      0.97 | `stable_pool_rnd`
-|     100,000 |               37.83 |       26,432,424.96 |    0.0% |      1.07 | `plf_colony_rnd`
-|     125,000 |               34.22 |       29,225,456.20 |    0.1% |      1.23 | `stable_pool_rnd`
-|     125,000 |               37.84 |       26,427,206.16 |    0.1% |      1.36 | `plf_colony_rnd`
-|     150,000 |               34.21 |       29,228,693.68 |    0.1% |      1.49 | `stable_pool_rnd`
-|     150,000 |               37.84 |       26,428,157.59 |    0.1% |      1.64 | `plf_colony_rnd`
-|     175,000 |               34.08 |       29,338,562.57 |    0.0% |      1.74 | `stable_pool_rnd`
-|     175,000 |               37.72 |       26,508,272.65 |    0.0% |      1.92 | `plf_colony_rnd`
-|     200,000 |               34.07 |       29,347,904.30 |    0.0% |      2.00 | `stable_pool_rnd`
-|     200,000 |               37.73 |       26,500,601.67 |    0.0% |      2.21 | `plf_colony_rnd`
-|     225,000 |               34.05 |       29,365,812.40 |    0.0% |      2.25 | `stable_pool_rnd`
-|     225,000 |               37.67 |       26,546,095.13 |    0.0% |      2.49 | `plf_colony_rnd`
-|     250,000 |               34.26 |       29,184,659.46 |    0.2% |      2.52 | `stable_pool_rnd`
-|     250,000 |               37.71 |       26,520,358.39 |    0.0% |      2.77 | `plf_colony_rnd`
+|      25,000 |              285.14 |        3,507,022.60 |   16.5% |      0.08 | :wavy_dash: `stable_pool_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      25,000 |              170.29 |        5,872,331.29 |   18.1% |      0.05 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      50,000 |              289.12 |        3,458,730.53 |   15.5% |      0.16 | :wavy_dash: `stable_pool_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      50,000 |              171.15 |        5,842,776.04 |   17.6% |      0.09 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      75,000 |              285.40 |        3,503,840.16 |   16.6% |      0.24 | :wavy_dash: `stable_pool_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      75,000 |              171.15 |        5,842,928.98 |   18.6% |      0.14 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|     100,000 |              300.08 |        3,332,440.46 |   17.2% |      0.32 | :wavy_dash: `stable_pool_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|     100,000 |              172.32 |        5,803,061.61 |   17.9% |      0.19 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|     125,000 |              289.88 |        3,449,664.10 |   15.9% |      0.40 | :wavy_dash: `stable_pool_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|     125,000 |              172.18 |        5,807,779.14 |   17.7% |      0.24 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)

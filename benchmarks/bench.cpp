@@ -42,14 +42,14 @@ bool eq_big(Big a, Big b)
 #define CMPR_FN eq_big
 #include "verstable.h"
 
-#define SP_IMPL
-#define SP_TYPE Big
-#define SP_NAME big_sp
+#define HIVE_IMPL
+#define HIVE_TYPE Big
+#define HIVE_NAME big_sp
 #include "stable_pool.h"
 
-#define SP_IMPL
-#define SP_TYPE Big
-#define SP_NAME bbig_sp
+#define HIVE_IMPL
+#define HIVE_TYPE Big
+#define HIVE_NAME bbig_sp
 #if __has_include("../../sp_other/stable_pool.h")
 #include "../../sp_other/stable_pool.h"
 #else
@@ -80,30 +80,29 @@ int main()
 {
     ankerl::nanobench::Bench bench;
     
-    std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
+    std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 250'000;
-    int interval = 25'000;
+    int end   = 125'000;
+    int interval = 13'543;
     
-    std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
-    std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
+    std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
+    std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
     
-    constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = false;
+    constexpr bool bench_hive = true;
+    constexpr bool bench_small_hive = false;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
-    constexpr bool bench_hive = false;
     
     constexpr bool bench_iter = false;
     constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
     constexpr bool bench_random = true;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -112,7 +111,7 @@ int main()
         std::mt19937 rng2(41);
         std::uniform_int_distribution<> dist(0, 1);
         
-        if(bench_stable_pool)
+        if(bench_hive)
         {
             // STABLE_POOL SETUP
             
@@ -127,9 +126,9 @@ int main()
             
             int i = 0;
             
-            SP_FOREACH(
+            HIVE_FOREACH(
                 &sl,
-                ptrs[i++] = SP_ITER_ELM;
+                ptrs[i++] = HIVE_ITER_ELM;
             );
             
             rng.seed(42);
@@ -147,18 +146,18 @@ int main()
             
             if(bench_iter)
             {
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_macro", 
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_macro", 
                     [&]{
                         volatile unsigned int sum = 0;
                         
-                        SP_FOREACH(&sl, sum += SP_ITER_ELM->i; );
+                        HIVE_FOREACH(&sl, sum += HIVE_ITER_ELM->i; );
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
-                        printf("stable_pool = %u\n", sum);
+                        printf("hive = %u\n", sum);
                     }
                 );
                 
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_iter",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_iter",
                     [&]{
                         volatile unsigned int sum = 0;
                         
@@ -168,7 +167,7 @@ int main()
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
-                        printf("stable_pool_iter = %u\n", sum);
+                        printf("hive_iter = %u\n", sum);
                     }
                 );
             }
@@ -176,7 +175,7 @@ int main()
             if(bench_pop)
             {
                 rng2.seed(41);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_pop",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_del",
                     [&]{
                         big_sp slc = big_sp_clone(&sl);
                         
@@ -199,7 +198,7 @@ int main()
             if(bench_put)
             {
                 rng2.seed(41);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_put",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_put",
                     [&]{
                         // big_sp slc = big_sp_clone(&sl);
                         
@@ -215,7 +214,7 @@ int main()
                             sum += big_sp_iter_elm(it)->i;
                         }
                         
-                        printf("SP SUM AFTER PUT: %u\n", sum);
+                        printf("HV SUM AFTER PUT: %u\n", sum);
 #endif
                         ankerl::nanobench::doNotOptimizeAway(sl);
                     }
@@ -226,7 +225,7 @@ int main()
             {
                 rng2.seed(41);
                 srand(69420);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_rnd",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
                     [&]{
                         big_sp_iter_t it = {};
                         bool iter_set = false;
@@ -256,7 +255,7 @@ int main()
                             sum += big_sp_iter_elm(it)->i;
                         }
                         
-                        printf("SP SUM AFTER RND: %u\n", sum);
+                        printf("HV SUM AFTER RND: %u\n", sum);
 #endif
                         ankerl::nanobench::doNotOptimizeAway(sl);
                     }
@@ -268,7 +267,7 @@ int main()
             free(bigs);
         }
         
-        if(bench_small_stable_pool)
+        if(bench_small_hive)
         {
             // STABLE_POOL SETUP
             
@@ -283,9 +282,9 @@ int main()
             
             int i = 0;
             
-            SP_FOREACH(&sl,
+            HIVE_FOREACH(&sl,
                        {
-                           ptrs[i++] = SP_ITER_ELM;
+                           ptrs[i++] = HIVE_ITER_ELM;
                        });
             
             rng.seed(42);
@@ -297,7 +296,7 @@ int main()
                         rng);
             
             for (Big* p : to_pop) {
-                bbig_sp_pop(&sl, p);
+                bbig_sp_del(&sl, p);
             }
             
             assert(sl.count == sz - sz/2);
@@ -306,7 +305,7 @@ int main()
             
             if(bench_iter)
             {
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_iter",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_iter",
                 [&]{
                     volatile unsigned int sum = 0;
                     
@@ -317,19 +316,19 @@ int main()
                     }
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool_iter = %u\n", sum);
+                    printf("hive_iter = %u\n", sum);
                 }
                 );
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_macro",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_macro",
                 [&]{
                     volatile unsigned int sum = 0;
                     
                     const bbig_sp_bucket_t *const end = sl.end_sentinel;
-                    SP_FOREACH(&sl,
-                               sum += SP_ITER_ELM->i;);
+                    HIVE_FOREACH(&sl,
+                               sum += HIVE_ITER_ELM->i;);
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("stable_pool_iter = %u\n", sum);
+                    printf("hive_iter = %u\n", sum);
                 }
                 );
             }
@@ -337,7 +336,7 @@ int main()
             if(bench_put)
             {
                 rng2.seed(41);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_put",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_put",
                     [&]{
                         bbig_sp slc = bbig_sp_clone(&sl);
                         
@@ -362,7 +361,7 @@ int main()
             if(bench_pop)
             {
                 rng2.seed(41);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_pop",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_del",
                     [&]{
                         bbig_sp slc = bbig_sp_clone(&sl);
                         
@@ -370,7 +369,7 @@ int main()
                         for(bbig_sp_iter_t it = bbig_sp_begin(&slc) ; !bbig_sp_iter_is_end(it) ; )
                         {
                             if(remove)
-                                it = bbig_sp_iter_pop(it);
+                                it = bbig_sp_iter_del(it);
                             else
                                 bbig_sp_iter_go_next(&it);
                             remove = !remove;
@@ -386,7 +385,7 @@ int main()
             {
                 rng2.seed(41);
                 srand(69420);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_rnd",
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_rnd",
                     [&]{
                         bbig_sp_iter_t it = {};
                         bool iter_set = false;
@@ -404,7 +403,7 @@ int main()
                             }
                             else
                             {
-                                it = bbig_sp_iter_pop(it);
+                                it = bbig_sp_iter_del(it);
                                 iter_set = false;
                             }
                         }
@@ -416,7 +415,7 @@ int main()
                             sum += bbig_sp_iter_elm(it)->i;
                         }
                         
-                        printf("SP SUM AFTER RND: %u\n", sum);
+                        printf("BHV SUM AFTER RND: %u\n", sum);
 #endif
                         ankerl::nanobench::doNotOptimizeAway(sl);
                     }
@@ -426,109 +425,6 @@ int main()
             free(ptrs);
             free(bigs);
         }
-        
-//         if(bench_hive)
-//         {
-//             // STABLE_POOL SETUP
-//             
-//             srand(69420);
-//             hv sl; hv_init(&sl);
-//             Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
-//             Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
-//             for (int i = 0; i < sz; i++)
-//             {
-//                 bigs[i] = (Big){.i = rand() - i};
-//                 ptrs[i] = hv_put(&sl, bigs[i]).elm[0];
-//             }
-//             
-//             rng.seed(42);
-//             std::vector<Big*> to_pop;
-//             to_pop.reserve(sz / 2);
-//             std::sample(ptrs, ptrs + sz,
-//                         std::back_inserter(to_pop),
-//                         sz / 2,
-//                         rng);
-//             
-//             // NOTE popping invalidates iterators. (but not pointers)
-//             for (Big* p : to_pop)
-//             {
-//                 hv_pop(&sl, p);
-//             }
-//             
-//             assert(sl.count == sz - sz/2);
-//             
-//             // STABLE_POOL END
-//             
-//             if(bench_iter)
-//             {
-//                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hv_iter",
-//                 [&]{
-//                     volatile unsigned int sum = 0;
-//                     
-//                     for(auto it = hv_begin(&sl) ; !hv_is_end(it) ; it = hv_iter_next(it))
-//                     {
-//                         sum += (*it.elm)->i;
-//                     }
-//                     
-//                     ankerl::nanobench::doNotOptimizeAway(sum);
-//                     printf("hv_iter = %u\n", sum);
-//                 }
-//                 );
-//             }
-//             
-//             if(bench_put)
-//             {
-//                 rng2.seed(41);
-//                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hv_put",
-//                     [&]{
-//                         // hv slc = hv_clone(&sl);
-//                         
-//                         for(int i = 0 ; i < sz/2 ; i++)
-//                         {
-//                             hv_put(&sl, (Big){.i=i});
-//                         }
-//                         
-// #if !defined(NDEBUG)
-//                         unsigned int sum = 0;
-//                         for(auto it = hv_begin(&sl) ; !hv_is_end(it) ; it = hv_iter_next(it))
-//                         {
-//                             sum += hv_iter_elm(it)->i;
-//                         }
-//                         
-//                         printf("HV SUM AFTER PUT: %u\n", sum);
-// #endif
-//                         ankerl::nanobench::doNotOptimizeAway(sl);
-//                         // hv_deinit(&sl);
-//                     }
-//                 );
-//             }
-//             
-//             if(bench_pop)
-//             {
-//                 rng2.seed(41);
-//                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hv_pop",
-//                     [&]{
-//                         hv slc = hv_clone(&sl);
-//                         
-//                         bool remove = true;
-//                         for(auto it = hv_begin(&slc) ; !hv_is_end(it) ; )
-//                         {
-//                             if(remove)
-//                                 it = hv_iter_pop(it);
-//                             else
-//                                 it = hv_iter_next(it);
-//                             remove = !remove;
-//                         }
-//                         
-//                         ankerl::nanobench::doNotOptimizeAway(slc);
-//                         hv_deinit(&slc);
-//                     }
-//                 );
-//             }
-//             hv_deinit(&sl);
-//             free(ptrs);
-//             free(bigs);
-//         }
         
         if(bench_plf_colony)
         {

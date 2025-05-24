@@ -20,9 +20,9 @@ static int compare_ints(const void *a, const void *b)
     return (arg1 > arg2) - (arg1 < arg2);
 }
 
-#define SP_IMPL
-#define SP_TYPE int
-#define SP_NAME int_sp
+#define HIVE_IMPL
+#define HIVE_TYPE int
+#define HIVE_NAME int_sp
 #include "stable_pool.h"
 
 struct Collector
@@ -201,9 +201,9 @@ typedef struct Big
     int i;
 } Big;
 
-#define SP_IMPL
-#define SP_TYPE Big
-#define SP_NAME big_sp
+#define HIVE_IMPL
+#define HIVE_TYPE Big
+#define HIVE_NAME big_sp
 #include "stable_pool.h"
 
 static void collect_big(Big *v, void *arg)
@@ -237,7 +237,7 @@ static void test_big_single_put_and_loop(void)
     ASSERT(sp.count == 1);
     
     struct Collector c = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &c););
+    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &c););
     ASSERT(c.idx == 1);
     ASSERT(c.data[0] == 42);
     free(c.data);
@@ -299,7 +299,7 @@ static void test_big_del_and_iteration(void)
     ASSERT(sp.count == 2);
     
     struct Collector col = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &col););
+    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &col););
     ASSERT(col.idx == 2);
     
     qsort(col.data, col.idx, sizeof(int), compare_ints);
@@ -385,8 +385,8 @@ static void test_int_iteration_equivalence_after_random_dels(void)
     
     int_sp_foreach(&sp, collect_int, &col1);
     
-    SP_FOREACH(&sp,
-               collect_int(SP_ITER_ELM, &col2);
+    HIVE_FOREACH(&sp,
+               collect_int(HIVE_ITER_ELM, &col2);
     );
     
     for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); !int_sp_iter_eq(it, end);
@@ -440,7 +440,7 @@ static void test_big_iteration_equivalence_after_random_dels(void)
     struct Collector col3 = {NULL, 0, 0};
     
     big_sp_foreach(&sp, collect_big, &col1);
-    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &col2););
+    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &col2););
     for (big_sp_iter_t it = big_sp_begin(&sp), end = big_sp_end(&sp); !big_sp_iter_eq(it, end);
          it = big_sp_iter_next(it))
          {
@@ -728,7 +728,7 @@ void test_clear_bucket()
     
     Big **to_delete = NULL;
     Big *copy = NULL;
-    int bucket_size = SP_GET_BUCKET_SIZE(&sp);
+    int bucket_size = HIVE_GET_BUCKET_SIZE(&sp);
     for(int i = 0 ; i < bucket_size + bucket_size + bucket_size ; i++)
     {
         arrput(to_delete, &big_sp_put(&sp, (Big){.i=i}).elm->value);
@@ -746,15 +746,21 @@ void test_clear_bucket()
     
     printf("NB BUCKETS = %zu\n\n", sp.bucket_count);
     
-    int i = 0;
-    
-    SP_FOREACH(&sp,
+    reset_loop:
+    HIVE_FOREACH(&sp,
                {
-                   Big it = *SP_ITER_ELM;
-                   i++;
+                   Big it = *HIVE_ITER_ELM;
+                   
+                   if(it.i == copy[0].i)
+                   {
+                       arrdel(copy, 0);
+                       if(arrlen(copy) == 0) goto out;
+                       goto reset_loop;
+                   }
                }
     );
-    
+    out:
+    ASSERT(arrlen(copy) == 0);
     big_sp_deinit(&sp);
     arrfree(to_delete);
     arrfree(copy);
@@ -771,7 +777,7 @@ static void test_empty_iteration(void)
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_int(SP_ITER_ELM, &c_macro););
+    HIVE_FOREACH(&sp, collect_int(HIVE_ITER_ELM, &c_macro););
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
@@ -798,7 +804,7 @@ static void test_big_empty_iteration(void)
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &c_macro););
+    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &c_macro););
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
