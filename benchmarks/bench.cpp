@@ -84,24 +84,24 @@ int main()
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 150'000;
+    int end   = 250'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = true;
-    constexpr bool bench_plf_colony  = false;
+    constexpr bool bench_small_stable_pool = false;
+    constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     constexpr bool bench_hive = false;
     
     constexpr bool bench_iter = false;
-    constexpr bool bench_put = true;
+    constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = false;
+    constexpr bool bench_random = true;
     
     int iterations = 25;
     
@@ -138,7 +138,7 @@ int main()
             std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
             
             for (Big *p : to_pop) {
-            big_sp_pop(&sl, p);
+            big_sp_del(&sl, p);
             }
             
             // assert(sl.count == sz/2);
@@ -184,7 +184,7 @@ int main()
                         for(big_sp_iter_t it = big_sp_begin(&slc) ; !big_sp_iter_is_end(it) ; )
                         {
                             if(remove)
-                                it = big_sp_iter_pop(it);
+                                it = big_sp_iter_del(it);
                             else
                                 big_sp_iter_go_next(&it);
                             remove = !remove;
@@ -244,7 +244,7 @@ int main()
                             }
                             else
                             {
-                                it = big_sp_iter_pop(it);
+                                it = big_sp_iter_del(it);
                                 iter_set = false;
                             }
                         }
@@ -820,26 +820,5 @@ int main()
     bench.render(ankerl::nanobench::templates::htmlBoxplot(), htmlFile);
     bench.render(ankerl::nanobench::templates::json(), jsonFile);
     
-    return 0;
-}
-
-int main2()
-{
-    big_sp sp;
-    big_sp_init(&sp);
-    big_sp_put(&sp, (Big){.i=10});
-    big_sp_put(&sp, (Big){.i=20});
-    big_sp_put(&sp, (Big){.i=30});
-    
-    for(auto it = big_sp_begin(&sp) ;
-        !big_sp_iter_is_end(it) ;
-        big_sp_iter_go_next(&it))
-    {
-        it = big_sp_iter_pop(it);
-        printf("%d\n", big_sp_iter_elm(it)->i);
-    }
-    
-    ankerl::nanobench::doNotOptimizeAway(sp);
-    big_sp_deinit(&sp);
     return 0;
 }

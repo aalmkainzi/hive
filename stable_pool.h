@@ -83,8 +83,8 @@
 #define sp_push_not_full_bucket  SP_CAT(SP_NAME, _push_not_full_bucket)
 #define sp_put                   SP_CAT(SP_NAME, _put)
 #define sp_put_all               SP_CAT(SP_NAME, _put_all)
-#define sp_pop_helper            SP_CAT(SP_NAME, _pop_helper)
-#define sp_pop                   SP_CAT(SP_NAME, _pop)
+#define sp_del_helper            SP_CAT(SP_NAME, _del_helper)
+#define sp_del                   SP_CAT(SP_NAME, _del)
 #define sp_foreach               SP_CAT(SP_NAME, _foreach)
 #define sp_foreach_updater       SP_CAT(SP_NAME, _foreach_updater)
 #define sp_begin                 SP_CAT(SP_NAME, _begin)
@@ -93,7 +93,7 @@
 
 #define sp_bucket_init           SP_CAT(SP_NAME, _bucket_init)
 #define sp_bucket_put            SP_CAT(SP_NAME, _bucket_put)
-#define sp_bucket_pop            SP_CAT(SP_NAME, _bucket_pop)
+#define sp_bucket_del            SP_CAT(SP_NAME, _bucket_del)
 #define sp_bucket_is_elm_within  SP_CAT(SP_NAME, _bucket_is_elm_within)
 #define sp_get_containing_bucket SP_CAT(SP_NAME, _get_containing_bucket)
 #define sp_bucket_first_elm      SP_CAT(SP_NAME, _bucket_first_elm)
@@ -102,7 +102,7 @@
 #define sp_iter_next             SP_CAT(SP_NAME, _iter_next)
 #define sp_iter_go_next          SP_CAT(SP_NAME, _iter_go_next)
 #define sp_iter_elm              SP_CAT(SP_NAME, _iter_elm)
-#define sp_iter_pop              SP_CAT(SP_NAME, _iter_pop)
+#define sp_iter_del              SP_CAT(SP_NAME, _iter_del)
 #define sp_iter_eq               SP_CAT(SP_NAME, _iter_eq)
 #define sp_iter_is_end           SP_CAT(SP_NAME, _iter_is_end)
 #define sp_iter_to               SP_CAT(SP_NAME, _iter_to)
@@ -110,8 +110,6 @@
 #define sp_alloc_mem             SP_CAT(SP_NAME, _alloc_mem)
 #define sp_realloc_mem           SP_CAT(SP_NAME, _realloc_mem)
 #define sp_free_mem              SP_CAT(SP_NAME, _free_mem)
-
-#define sp_validate SP_CAT(SP_NAME, _validate)
 
 #define SP_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
@@ -195,7 +193,7 @@ void sp_init(SP_NAME *sp);
 SP_NAME sp_clone(const SP_NAME *const sp);
 sp_iter_t sp_put(SP_NAME *sp, SP_TYPE new_elm);
 void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms);
-sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm);
+sp_iter_t sp_del(SP_NAME *sp, SP_TYPE *elm);
 void sp_foreach(const SP_NAME *sp, void(*f)(SP_TYPE*,void*), void *arg);
 void sp_foreach_updater(sp_index_t *index, sp_bucket_t **bucket);
 void sp_deinit(SP_NAME *sp);
@@ -205,7 +203,7 @@ sp_iter_t sp_end(SP_NAME *sp);
 sp_iter_t sp_iter_next(sp_iter_t it);
 void sp_iter_go_next(sp_iter_t *it);
 SP_TYPE *sp_iter_elm(sp_iter_t it);
-sp_iter_t sp_iter_pop(sp_iter_t it);
+sp_iter_t sp_iter_del(sp_iter_t it);
 bool sp_iter_eq(sp_iter_t a, sp_iter_t b);
 bool sp_iter_is_end(sp_iter_t it);
 
@@ -215,15 +213,13 @@ bool sp_iter_is_end(sp_iter_t it);
 void sp_bucket_init(sp_bucket_t *bucket);
 void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket);
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm);
-bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index);
-sp_iter_t sp_pop_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *bucket, sp_index_t index);
+bool sp_bucket_del(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index);
+sp_iter_t sp_del_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *bucket, sp_index_t index);
 bool sp_bucket_is_elm_within(const sp_bucket_t *bucket, const SP_TYPE *elm);
 sp_bucket_t *sp_get_containing_bucket(SP_NAME *sp, const SP_TYPE *elm);
 sp_index_t sp_bucket_first_elm(sp_bucket_t *bucket);
 sp_bucket_t *sp_bucket_prev(SP_NAME *sp, sp_bucket_t *bucket);
 sp_iter_t sp_iter_to(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index);
-
-bool sp_validate(SP_NAME *sp);
 
 void *sp_alloc_mem(void *ctx, size_t size, size_t alignment);
 void *sp_realloc_mem(void *ctx, void *ptr, size_t old_size, size_t new_size, size_t alignment);
@@ -438,12 +434,12 @@ void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms)
     }
 }
 
-sp_iter_t sp_pop_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *bucket, sp_index_t index)
+sp_iter_t sp_del_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *bucket, sp_index_t index)
 {
     sp_iter_t ret = {
         .sp = sp
     };
-    if(sp_bucket_pop(sp, bucket, index))
+    if(sp_bucket_del(sp, bucket, index))
     {
         if(prev_bucket != NULL)
         {
@@ -501,7 +497,7 @@ sp_iter_t sp_pop_helper(SP_NAME *sp, sp_bucket_t *prev_bucket, sp_bucket_t *buck
 }
 
 
-sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
+sp_iter_t sp_del(SP_NAME *sp, SP_TYPE *elm)
 {
     sp_bucket_t *prev = NULL;
     sp_iter_t ret = {
@@ -513,7 +509,7 @@ sp_iter_t sp_pop(SP_NAME *sp, SP_TYPE *elm)
         {
             sp_entry_t *as_entry = (sp_entry_t*) elm;
             sp_index_t index = as_entry - bucket->elms;
-            ret = sp_pop_helper(sp, prev, bucket, index);
+            ret = sp_del_helper(sp, prev, bucket, index);
             break;
         }
     }
@@ -616,7 +612,7 @@ SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
     return &bucket->elms[emptyIndex].value;
 }
 
-bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
+bool sp_bucket_del(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
 {
     (void)sp;
     assert(bucket->offsets[index].next_elm_index == index);
@@ -766,15 +762,15 @@ SP_TYPE *sp_iter_elm(sp_iter_t it)
     return &it.elm->value;
 }
 
-sp_iter_t sp_iter_pop(sp_iter_t it)
+sp_iter_t sp_iter_del(sp_iter_t it)
 {
     SP_NAME *sp = it.sp;
     sp_bucket_t *bucket = it.bucket;
     sp_index_t index = it.elm - it.bucket->elms;
     
-    return sp_pop_helper(it.sp, it.bucket->prev, it.bucket, index);
+    return sp_del_helper(it.sp, it.bucket->prev, it.bucket, index);
     
-//     if(SP_UNLIKELY(sp_bucket_pop(sp, bucket, index)))
+//     if(SP_UNLIKELY(sp_bucket_del(sp, bucket, index)))
 //     {
 //         sp_bucket_t *prev_bucket = sp_bucket_prev(sp, bucket);
 //         if(prev_bucket == NULL)
@@ -861,25 +857,31 @@ void sp_free_mem(void *ctx, void *ptr, size_t size)
 #undef sp_entry_t
 #undef sp_offset_entry_t
 #undef sp_init
+#undef sp_clone
+#undef sp_push_not_full_bucket
 #undef sp_put
-#undef sp_pop
+#undef sp_put_all
+#undef sp_del_helper
+#undef sp_del
 #undef sp_foreach
+#undef sp_foreach_updater
 #undef sp_begin
 #undef sp_end
 #undef sp_deinit
-
 #undef sp_bucket_init
 #undef sp_bucket_put
-#undef sp_bucket_pop
+#undef sp_bucket_del
 #undef sp_bucket_is_elm_within
+#undef sp_get_containing_bucket
 #undef sp_bucket_first_elm
 #undef sp_bucket_prev
-
 #undef sp_iter_next
+#undef sp_iter_go_next
 #undef sp_iter_elm
-#undef sp_iter_pop
+#undef sp_iter_del
 #undef sp_iter_eq
 #undef sp_iter_is_end
-
+#undef sp_iter_to
 #undef sp_alloc_mem
+#undef sp_realloc_mem
 #undef sp_free_mem

@@ -95,14 +95,14 @@ static void test_pointer_stability(void)
     int *p2 = &int_sp_put(&sp, 20).elm->value;
     int *p3 = &int_sp_put(&sp, 30).elm->value;
     ASSERT(sp.count == 3);
-    int_sp_pop(&sp, p3);
+    int_sp_del(&sp, p3);
     ASSERT(sp.count == 2);
     ASSERT(*p1 == 10);
     ASSERT(*p2 == 20);
     int_sp_deinit(&sp);
 }
 
-static void test_pop_and_iteration(void)
+static void test_del_and_iteration(void)
 {
     int_sp sp;
     int_sp_init(&sp);
@@ -110,7 +110,7 @@ static void test_pop_and_iteration(void)
     int *b = &int_sp_put(&sp, 2).elm->value;
     int *c = &int_sp_put(&sp, 3).elm->value;
     ASSERT(sp.count == 3);
-    int_sp_pop(&sp, b);
+    int_sp_del(&sp, b);
     ASSERT(sp.count == 2);
     struct Collector col = {NULL, 0, 0};
     int_sp_foreach(&sp, collect_int, &col);
@@ -125,18 +125,18 @@ static void test_pop_and_iteration(void)
     (void)a, (void)b, (void)c;
 }
 
-static void test_pop_invalid_pointer(void)
+static void test_del_invalid_pointer(void)
 {
     int_sp sp;
     int_sp_init(&sp);
     int dummy = 0;
     ASSERT(sp.count == 0);
-    int_sp_pop(&sp, &dummy);
+    int_sp_del(&sp, &dummy);
     ASSERT(sp.count == 0);
     int_sp_deinit(&sp);
 }
 
-static void test_stress_inserts_pops(void)
+static void test_stress_inserts_dels(void)
 {
     int_sp sp;
     int_sp_init(&sp);
@@ -148,7 +148,7 @@ static void test_stress_inserts_pops(void)
     ASSERT(sp.count == (size_t)M);
     
     for (int i = 0; i < M; i += 2)
-        int_sp_pop(&sp, ptrs[i]);
+        int_sp_del(&sp, ptrs[i]);
     ASSERT(sp.count == (size_t)M / 2);
     struct Collector c = {NULL, 0, 0};
     int_sp_foreach(&sp, collect_int, &c);
@@ -163,7 +163,7 @@ static void test_stress_inserts_pops(void)
     int_sp_deinit(&sp);
 }
 
-static void test_smaller_stress_inserts_pops(void)
+static void test_smaller_stress_inserts_dels(void)
 {
     int_sp sp;
     int_sp_init(&sp);
@@ -179,7 +179,7 @@ static void test_smaller_stress_inserts_pops(void)
     ASSERT(sp.count == (size_t)M);
     
     for (int i = 0; i < M; i += 2)
-        int_sp_pop(&sp, ptrs[i]);
+        int_sp_del(&sp, ptrs[i]);
     ASSERT(sp.count == (size_t)M / 2);
     
     struct Collector c = {NULL, 0, 0};
@@ -280,14 +280,14 @@ static void test_big_pointer_stability(void)
     Big *p2 = &big_sp_put(&sp, (Big){.i = 20}).elm->value;
     Big *p3 = &big_sp_put(&sp, (Big){.i = 30}).elm->value;
     ASSERT(sp.count == 3);
-    big_sp_pop(&sp, p3);
+    big_sp_del(&sp, p3);
     ASSERT(sp.count == 2);
     ASSERT(p1->i == 10);
     ASSERT(p2->i == 20);
     big_sp_deinit(&sp);
 }
 
-static void test_big_pop_and_iteration(void)
+static void test_big_del_and_iteration(void)
 {
     big_sp sp;
     big_sp_init(&sp);
@@ -295,7 +295,7 @@ static void test_big_pop_and_iteration(void)
     Big *b = &big_sp_put(&sp, (Big){.i = 2}).elm->value;
     Big *c = &big_sp_put(&sp, (Big){.i = 3}).elm->value;
     ASSERT(sp.count == 3);
-    big_sp_pop(&sp, b);
+    big_sp_del(&sp, b);
     ASSERT(sp.count == 2);
     
     struct Collector col = {NULL, 0, 0};
@@ -312,18 +312,18 @@ static void test_big_pop_and_iteration(void)
     (void)a, (void)b, (void)c;
 }
 
-static void test_big_pop_invalid_pointer(void)
+static void test_big_del_invalid_pointer(void)
 {
     big_sp sp;
     big_sp_init(&sp);
     Big dummy = {.i = -1};
     ASSERT(sp.count == 0);
-    big_sp_pop(&sp, &dummy);
+    big_sp_del(&sp, &dummy);
     ASSERT(sp.count == 0);
     big_sp_deinit(&sp);
 }
 
-static void test_big_stress_inserts_pops(void)
+static void test_big_stress_inserts_dels(void)
 {
     big_sp sp;
     big_sp_init(&sp);
@@ -339,7 +339,7 @@ static void test_big_stress_inserts_pops(void)
     ASSERT(sp.count == (size_t)M);
     
     for (int i = 0; i < M; i += 2)
-        big_sp_pop(&sp, ptrs[i]);
+        big_sp_del(&sp, ptrs[i]);
     ASSERT(sp.count == (size_t)M / 2);
     
     struct Collector col = {NULL, 0, 0};
@@ -358,7 +358,7 @@ static void test_big_stress_inserts_pops(void)
     big_sp_deinit(&sp);
 }
 
-static void test_int_iteration_equivalence_after_random_pops(void)
+static void test_int_iteration_equivalence_after_random_dels(void)
 {
     int_sp sp;
     int_sp_init(&sp);
@@ -374,7 +374,7 @@ static void test_int_iteration_equivalence_after_random_pops(void)
     {
         if (rand() % 2)
         {
-            int_sp_pop(&sp, ptrs[i]);
+            int_sp_del(&sp, ptrs[i]);
             ptrs[i] = NULL;
         }
     }
@@ -414,7 +414,7 @@ static void test_int_iteration_equivalence_after_random_pops(void)
     int_sp_deinit(&sp);
 }
 
-static void test_big_iteration_equivalence_after_random_pops(void)
+static void test_big_iteration_equivalence_after_random_dels(void)
 {
     big_sp sp;
     big_sp_init(&sp);
@@ -430,7 +430,7 @@ static void test_big_iteration_equivalence_after_random_pops(void)
     {
         if (rand() % 2)
         {
-            big_sp_pop(&sp, ptrs[i]);
+            big_sp_del(&sp, ptrs[i]);
             ptrs[i] = NULL;
         }
     }
@@ -504,7 +504,7 @@ static void test_against_dynamic_array(void)
         }
         ASSERT(found != NULL);
         
-        int_sp_pop(&sp, found);
+        int_sp_del(&sp, found);
         
         arrdel(expected, idx);
     }
@@ -564,7 +564,7 @@ static void test_big_against_dynamic_array(void)
         }
         ASSERT(found != NULL);
         
-        big_sp_pop(&sp, found);
+        big_sp_del(&sp, found);
         arrdel(expected, idx);
     }
     
@@ -623,7 +623,7 @@ static void test_insert_after_erase(void)
         }
         ASSERT(found != NULL);
         
-        int_sp_pop(&sp, found);
+        int_sp_del(&sp, found);
         arrdel(expected, idx);
     }
     
@@ -691,7 +691,7 @@ static void test_big_insert_after_erase(void)
         }
         ASSERT(found != NULL);
         
-        big_sp_pop(&sp, found);
+        big_sp_del(&sp, found);
         arrdel(expected, idx);
     }
     
@@ -739,7 +739,7 @@ void test_clear_bucket()
     
     for(int i = bucket_size, j = bucket_size ; i < bucket_size + bucket_size ; i++)
     {
-        big_sp_pop(&sp, to_delete[j]);
+        big_sp_del(&sp, to_delete[j]);
         arrdel(copy, j);
         arrdel(to_delete, j);
     }
@@ -821,7 +821,7 @@ static void test_int_erase_single_element(void)
     ASSERT(p != NULL);
     
     int_sp_iter_t it = int_sp_begin(&sp);
-    it = int_sp_iter_pop(it);
+    it = int_sp_iter_del(it);
     
     ASSERT(int_sp_iter_eq(it, int_sp_end(&sp)));
     ASSERT(sp.count == 0);
@@ -838,7 +838,7 @@ static void test_int_erase_first_element(void)
     
     int_sp_iter_t it = int_sp_begin(&sp);
     int elm = *int_sp_iter_elm(it);
-    it = int_sp_iter_pop(it);
+    it = int_sp_iter_del(it);
     
     ASSERT(sp.count == 2);
     
@@ -882,7 +882,7 @@ static void test_int_erase_last_element_during_iteration(void)
     }
     it = last;
     int elm = *int_sp_iter_elm(it);
-    it = int_sp_iter_pop(it);
+    it = int_sp_iter_del(it);
     
     ASSERT(sp.count == 2);
     
@@ -923,7 +923,7 @@ static void test_int_erase_every_other_element(void)
     int_sp_iter_t it = int_sp_begin(&sp);
     while (!int_sp_iter_eq(it, int_sp_end(&sp))) {
         if (remove) {
-            it = int_sp_iter_pop(it);
+            it = int_sp_iter_del(it);
         } else {
             it = int_sp_iter_next(it);
         }
@@ -940,7 +940,7 @@ static void test_int_erase_every_other_element(void)
     int_sp_deinit(&sp);
 }
 
-static void test_int_stress_iter_pop(void)
+static void test_int_stress_iter_del(void)
 {
     int_sp sp;
     int_sp_init(&sp);
@@ -952,7 +952,7 @@ static void test_int_stress_iter_pop(void)
     size_t expected = M;
     while (!int_sp_iter_eq(it, int_sp_end(&sp))) {
         if (*(int_sp_iter_elm(it)) % 2 == 0) {
-            it = int_sp_iter_pop(it);
+            it = int_sp_iter_del(it);
             expected--;
         } else {
             it = int_sp_iter_next(it);
@@ -981,7 +981,7 @@ static void test_big_erase_single_element(void)
     ASSERT(p != NULL);
     
     big_sp_iter_t it = big_sp_begin(&sp);
-    it = big_sp_iter_pop(it);
+    it = big_sp_iter_del(it);
     
     ASSERT(big_sp_iter_eq(it, big_sp_end(&sp)));
     ASSERT(sp.count == 0);
@@ -998,7 +998,7 @@ static void test_big_erase_first_element(void)
     
     big_sp_iter_t it = big_sp_begin(&sp);
     Big popped = *big_sp_iter_elm(it);
-    it = big_sp_iter_pop(it);
+    it = big_sp_iter_del(it);
     
     ASSERT(sp.count == 2);
     
@@ -1043,7 +1043,7 @@ static void test_big_erase_last_element_during_iteration(void)
     }
     it = last;
     Big popped = *big_sp_iter_elm(it);
-    it = big_sp_iter_pop(it);
+    it = big_sp_iter_del(it);
     
     ASSERT(sp.count == 2);
     
@@ -1083,7 +1083,7 @@ static void test_big_erase_every_other_element(void)
     big_sp_iter_t it = big_sp_begin(&sp);
     while (!big_sp_iter_eq(it, big_sp_end(&sp))) {
         if (remove) {
-            it = big_sp_iter_pop(it);
+            it = big_sp_iter_del(it);
         } else {
             it = big_sp_iter_next(it);
         }
@@ -1100,7 +1100,7 @@ static void test_big_erase_every_other_element(void)
     big_sp_deinit(&sp);
 }
 
-static void test_big_stress_iter_pop(void)
+static void test_big_stress_iter_del(void)
 {
     big_sp sp;
     big_sp_init(&sp);
@@ -1112,7 +1112,7 @@ static void test_big_stress_iter_pop(void)
     size_t expected = M;
     while (!big_sp_iter_eq(it, big_sp_end(&sp))) {
         if (big_sp_iter_elm(it)->i % 2 == 0) {
-            it = big_sp_iter_pop(it);
+            it = big_sp_iter_del(it);
             expected--;
         } else {
             it = big_sp_iter_next(it);
@@ -1211,7 +1211,7 @@ static void test_int_clone_with_holes(void) {
     int *p1 = &int_sp_put(&original, 1).elm->value;
     int *p2 = &int_sp_put(&original, 2).elm->value;
     int *p3 = &int_sp_put(&original, 3).elm->value;
-    int_sp_pop(&original, p2);
+    int_sp_del(&original, p2);
     
     int_sp clone = int_sp_clone(&original);
     ASSERT(clone.count == 2);
@@ -1372,7 +1372,7 @@ static void test_big_clone_with_holes(void) {
     Big *p1 = &big_sp_put(&original, (Big){.i = 1}).elm->value;
     Big *p2 = &big_sp_put(&original, (Big){.i = 2}).elm->value;
     Big *p3 = &big_sp_put(&original, (Big){.i = 3}).elm->value;
-    big_sp_pop(&original, p2);
+    big_sp_del(&original, p2);
     int *p1i = &p1->i;
     int *p2i = &p2->i;
     int *p3i = &p3->i;
@@ -1516,7 +1516,7 @@ static void test_stable_pool(void) {
             // Copy value before removal
             Big expected = *target;
             // Remove from pool, get iterator to next
-            big_sp_iter_t next_it = big_sp_pop(&pool, target);
+            big_sp_iter_t next_it = big_sp_del(&pool, target);
             (void)next_it;
             // Remove from tracking arrays (swap with last)
             vals[idx] = vals[arrlen(vals) - 1]; arrpop(vals);
@@ -1569,11 +1569,11 @@ int main(void)
     test_single_put_and_loop();
     test_multiple_puts();
     test_pointer_stability();
-    test_pop_and_iteration();
-    test_pop_invalid_pointer();
-    test_smaller_stress_inserts_pops();
-    test_stress_inserts_pops();
-    test_int_iteration_equivalence_after_random_pops();
+    test_del_and_iteration();
+    test_del_invalid_pointer();
+    test_smaller_stress_inserts_dels();
+    test_stress_inserts_dels();
+    test_int_iteration_equivalence_after_random_dels();
     test_against_dynamic_array();
     test_insert_after_erase();
     test_empty_iteration();
@@ -1581,7 +1581,7 @@ int main(void)
     test_int_erase_first_element();
     test_int_erase_last_element_during_iteration();
     test_int_erase_every_other_element();
-    test_int_stress_iter_pop();
+    test_int_stress_iter_del();
     test_int_clone_empty();
     test_int_clone_single_element();
     test_int_clone_multiple_elements();
@@ -1595,10 +1595,10 @@ int main(void)
     test_big_single_put_and_loop();
     test_big_multiple_puts();
     test_big_pointer_stability();
-    test_big_pop_and_iteration();
-    test_big_pop_invalid_pointer();
-    test_big_stress_inserts_pops();
-    test_big_iteration_equivalence_after_random_pops();
+    test_big_del_and_iteration();
+    test_big_del_invalid_pointer();
+    test_big_stress_inserts_dels();
+    test_big_iteration_equivalence_after_random_dels();
     test_big_against_dynamic_array();
     test_big_insert_after_erase();
     test_clear_bucket();
@@ -1607,7 +1607,7 @@ int main(void)
     test_big_erase_first_element();
     test_big_erase_last_element_during_iteration();
     test_big_erase_every_other_element();
-    test_big_stress_iter_pop();
+    test_big_stress_iter_del();
     test_big_clone_empty();
     test_big_clone_single_element();
     test_big_clone_multiple_elements();
