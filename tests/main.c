@@ -343,12 +343,11 @@ static void test_big_stress_inserts_pops(void)
     ASSERT(sp.count == (size_t)M / 2);
     
     struct Collector col = {NULL, 0, 0};
-    for (big_sp_iter_t it = big_sp_begin(&sp), end = big_sp_end(&sp); !big_sp_iter_eq(it, end);
-         it = big_sp_iter_next(it))
-         {
-             collect_big(big_sp_iter_elm(it), &col);
-         }
-         ASSERT(col.idx == (size_t)M / 2);
+    for (big_sp_iter_t it = big_sp_begin(&sp), end = big_sp_end(&sp); !big_sp_iter_eq(it, end); it = big_sp_iter_next(it))
+    {
+        collect_big(big_sp_iter_elm(it), &col);
+    }
+    ASSERT(col.idx == (size_t)M / 2);
     
     qsort(col.data, col.idx, sizeof(int), compare_ints);
     for (size_t i = 0; i < col.idx; i++)

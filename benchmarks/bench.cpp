@@ -103,7 +103,7 @@ int main()
     constexpr bool bench_pop = false;
     constexpr bool bench_random = true;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {

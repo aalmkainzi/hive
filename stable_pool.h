@@ -162,11 +162,11 @@ typedef struct sp_offset_entry_t
 typedef struct sp_bucket_t
 {
     uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
+    sp_index_t first_empty_idx;
     sp_index_t first_elm_idx;
     sp_index_t count;
     sp_entry_t elms[SP_BUCKET_SIZE + 1];
     sp_offset_entry_t offsets[SP_BUCKET_SIZE + 1];
-    sp_index_t empty_indexes[SP_BUCKET_SIZE];
     struct sp_bucket_t *next;
     struct sp_bucket_t *prev;
 } sp_bucket_t;
@@ -571,10 +571,7 @@ void sp_bucket_init(sp_bucket_t *bucket)
     }
     bucket->offsets[SP_BUCKET_SIZE].next_elm_index = SP_BUCKET_SIZE;
     
-    for(sp_index_t j = 0 ; j < SP_BUCKET_SIZE ; j++)
-    {
-        bucket->empty_indexes[j] = SP_BUCKET_SIZE - j - 1;
-    }
+    bucket->first_empty_idx = 0;
 }
 
 void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket)
@@ -594,28 +591,29 @@ void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket)
 
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm)
 {
-    // TODO no need to check anymore, we guaranteed before calling this function that this bucket is not full
-    if(bucket->count >= SP_BUCKET_SIZE)
-        return NULL;
+    assert(bucket->count < SP_BUCKET_SIZE);
     
-    int emptyIndex = bucket->empty_indexes[SP_BUCKET_SIZE - bucket->count - 1];
+    int emptyIndex = bucket->first_empty_idx;
     
     bucket->elms[emptyIndex].value = new_elm;
     bucket->offsets[emptyIndex].next_elm_index = emptyIndex;
+    bucket->count += 1;
     
     if(emptyIndex < bucket->first_elm_idx)
     {
         bucket->first_elm_idx = emptyIndex;
     }
     
-    for(ptrdiff_t i = emptyIndex - 1 ; i >= 0 && bucket->offsets[i].next_elm_index != i ; i--)
+    if(bucket->count != SP_BUCKET_SIZE)
     {
-        bucket->offsets[i].next_elm_index = emptyIndex;
+        sp_index_t next_empty;
+        for(next_empty = bucket->first_empty_idx + 1 ; bucket->offsets[next_empty].next_elm_index == next_empty ; next_empty++)
+            ;
+        bucket->first_empty_idx = next_empty;
     }
-    
-    bucket->count += 1;
-    if(bucket->count == SP_BUCKET_SIZE)
+    else
     {
+        bucket->first_empty_idx = SP_BUCKET_SIZE;
         sp->not_full_buckets.count -= 1;
     }
     return &bucket->elms[emptyIndex].value;
@@ -661,8 +659,15 @@ bool sp_bucket_pop(SP_NAME *sp, sp_bucket_t *bucket, sp_index_t index)
     }
     
     if(SP_UNLIKELY(bucket->count == SP_BUCKET_SIZE))
+    {
         sp_push_not_full_bucket(sp, bucket);
-    bucket->empty_indexes[SP_BUCKET_SIZE - bucket->count] = index;
+        bucket->first_empty_idx = index;
+    }
+    else if(index < bucket->first_empty_idx)
+    {
+        bucket->first_empty_idx = index;
+    }
+    
     bucket->count -= 1;
     
     return is_empty;
@@ -769,9 +774,6 @@ sp_iter_t sp_iter_pop(sp_iter_t it)
     SP_NAME *sp = it.sp;
     sp_bucket_t *bucket = it.bucket;
     sp_index_t index = it.elm - it.bucket->elms;
-    sp_iter_t ret = {
-        .sp = sp
-    };
     
     return sp_pop_helper(it.sp, it.bucket->prev, it.bucket, index);
     
