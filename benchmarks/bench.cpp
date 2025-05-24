@@ -83,9 +83,9 @@ int main()
     std::ofstream outFile(std::string("results/txt/stable_pool_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 1'000;
-    int end   = 3'000;
-    int interval = 1'000;
+    int begin = 25'000;
+    int end   = 250'000;
+    int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
@@ -103,7 +103,7 @@ int main()
     constexpr bool bench_pop = false;
     constexpr bool bench_random = true;
     
-    int iterations = 1;
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -225,6 +225,7 @@ int main()
             if(bench_random)
             {
                 rng2.seed(41);
+                srand(69420);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("stable_pool_rnd",
                     [&]{
                         big_sp_iter_t it = {};
@@ -244,6 +245,7 @@ int main()
                             else
                             {
                                 it = big_sp_iter_pop(it);
+                                iter_set = false;
                             }
                         }
                         
@@ -584,6 +586,7 @@ int main()
             if(bench_random)
             {
                 rng2.seed(41);
+                srand(69420);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf_colony_rnd",
                     [&]{
                         bool set_iter = false;
