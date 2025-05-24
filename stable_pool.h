@@ -141,7 +141,7 @@ do                                                                              
     }                                                                                          \
 } while(0)
 
-#define SP_IT \
+#define SP_ITER_ELM \
 ((typeof(sp_bucket->elms[0].value)*const) &sp_elms_base[sp_index])
 
 typedef struct sp_entry_t
@@ -195,7 +195,6 @@ sp_iter_t sp_put(SP_NAME *sp, SP_TYPE new_elm);
 void sp_put_all(SP_NAME *sp, SP_TYPE *elms, size_t nelms);
 sp_iter_t sp_del(SP_NAME *sp, SP_TYPE *elm);
 void sp_foreach(const SP_NAME *sp, void(*f)(SP_TYPE*,void*), void *arg);
-void sp_foreach_updater(sp_index_t *index, sp_bucket_t **bucket);
 void sp_deinit(SP_NAME *sp);
 
 sp_iter_t sp_begin(SP_NAME *sp);
@@ -207,9 +206,9 @@ sp_iter_t sp_iter_del(sp_iter_t it);
 bool sp_iter_eq(sp_iter_t a, sp_iter_t b);
 bool sp_iter_is_end(sp_iter_t it);
 
-#define SP_IMPL
 #if defined(SP_IMPL)
 
+void sp_foreach_updater(sp_index_t *index, sp_bucket_t **bucket);
 void sp_bucket_init(sp_bucket_t *bucket);
 void sp_push_not_full_bucket(SP_NAME *sp, sp_bucket_t *bucket);
 SP_TYPE *sp_bucket_put(SP_NAME *sp, sp_bucket_t *bucket, SP_TYPE new_elm);

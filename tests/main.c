@@ -237,7 +237,7 @@ static void test_big_single_put_and_loop(void)
     ASSERT(sp.count == 1);
     
     struct Collector c = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_big(SP_IT, &c););
+    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &c););
     ASSERT(c.idx == 1);
     ASSERT(c.data[0] == 42);
     free(c.data);
@@ -299,7 +299,7 @@ static void test_big_del_and_iteration(void)
     ASSERT(sp.count == 2);
     
     struct Collector col = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_big(SP_IT, &col););
+    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &col););
     ASSERT(col.idx == 2);
     
     qsort(col.data, col.idx, sizeof(int), compare_ints);
@@ -386,7 +386,7 @@ static void test_int_iteration_equivalence_after_random_dels(void)
     int_sp_foreach(&sp, collect_int, &col1);
     
     SP_FOREACH(&sp,
-               collect_int(SP_IT, &col2);
+               collect_int(SP_ITER_ELM, &col2);
     );
     
     for (int_sp_iter_t it = int_sp_begin(&sp), end = int_sp_end(&sp); !int_sp_iter_eq(it, end);
@@ -440,7 +440,7 @@ static void test_big_iteration_equivalence_after_random_dels(void)
     struct Collector col3 = {NULL, 0, 0};
     
     big_sp_foreach(&sp, collect_big, &col1);
-    SP_FOREACH(&sp, collect_big(SP_IT, &col2););
+    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &col2););
     for (big_sp_iter_t it = big_sp_begin(&sp), end = big_sp_end(&sp); !big_sp_iter_eq(it, end);
          it = big_sp_iter_next(it))
          {
@@ -750,7 +750,7 @@ void test_clear_bucket()
     
     SP_FOREACH(&sp,
                {
-                   Big it = *SP_IT;
+                   Big it = *SP_ITER_ELM;
                    i++;
                }
     );
@@ -771,7 +771,7 @@ static void test_empty_iteration(void)
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_int(SP_IT, &c_macro););
+    SP_FOREACH(&sp, collect_int(SP_ITER_ELM, &c_macro););
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
@@ -798,7 +798,7 @@ static void test_big_empty_iteration(void)
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
-    SP_FOREACH(&sp, collect_big(SP_IT, &c_macro););
+    SP_FOREACH(&sp, collect_big(SP_ITER_ELM, &c_macro););
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};

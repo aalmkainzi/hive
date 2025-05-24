@@ -129,7 +129,7 @@ int main()
             
             SP_FOREACH(
                 &sl,
-                ptrs[i++] = SP_IT;
+                ptrs[i++] = SP_ITER_ELM;
             );
             
             rng.seed(42);
@@ -151,7 +151,7 @@ int main()
                     [&]{
                         volatile unsigned int sum = 0;
                         
-                        SP_FOREACH(&sl, sum += SP_IT->i; );
+                        SP_FOREACH(&sl, sum += SP_ITER_ELM->i; );
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
                         printf("stable_pool = %u\n", sum);
@@ -285,7 +285,7 @@ int main()
             
             SP_FOREACH(&sl,
                        {
-                           ptrs[i++] = SP_IT;
+                           ptrs[i++] = SP_ITER_ELM;
                        });
             
             rng.seed(42);
@@ -326,7 +326,7 @@ int main()
                     
                     const bbig_sp_bucket_t *const end = sl.end_sentinel;
                     SP_FOREACH(&sl,
-                               sum += SP_IT->i;);
+                               sum += SP_ITER_ELM->i;);
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
                     printf("stable_pool_iter = %u\n", sum);
