@@ -45,13 +45,13 @@ bool eq_big(Big a, Big b)
 #define HIVE_IMPL
 #define HIVE_TYPE Big
 #define HIVE_NAME big_sp
-#include "stable_pool.h"
+#include "hive.h"
 
 #define HIVE_IMPL
 #define HIVE_TYPE Big
 #define HIVE_NAME bbig_sp
-#if __has_include("../../sp_other/stable_pool.h")
-#include "../../sp_other/stable_pool.h"
+#if __has_include("../../sp_other/hive.h")
+#include "../../sp_other/hive.h"
 #else
 #include "stable_pool.h"
 #endif
