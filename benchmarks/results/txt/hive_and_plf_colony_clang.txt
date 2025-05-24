@@ -1,24 +1,13 @@
-Warning, results might be unstable:
-* CPU frequency scaling enabled: CPU 0 between 3,000.0 and 3,900.0 MHz
-
-Recommendations
-* Use 'pyperf system tune' before benchmarking. See https://github.com/psf/pyperf
 
 | complexityN |             ns/elms |              elms/s |    err% |     total | benchmark
 |------------:|--------------------:|--------------------:|--------:|----------:|:----------
-|      25,000 |              336.35 |        2,973,054.61 |   29.2% |      0.10 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      25,000 |              172.51 |        5,796,725.08 |   17.5% |      0.05 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      38,543 |              386.62 |        2,586,524.21 |   30.9% |      0.17 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      38,543 |              171.92 |        5,816,753.33 |   17.3% |      0.07 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      52,086 |              429.31 |        2,329,295.35 |   29.8% |      0.24 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      52,086 |              172.38 |        5,801,215.64 |   17.6% |      0.10 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      65,629 |              439.56 |        2,275,016.73 |   29.2% |      0.32 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      65,629 |              172.95 |        5,782,067.11 |   17.5% |      0.13 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      79,172 |              445.47 |        2,244,823.44 |   26.5% |      0.38 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      79,172 |              171.48 |        5,831,414.01 |   18.3% |      0.15 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      92,715 |              450.47 |        2,219,883.78 |   26.1% |      0.46 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      92,715 |              172.48 |        5,797,892.65 |   17.5% |      0.18 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|     106,258 |              445.87 |        2,242,788.66 |   25.7% |      0.52 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|     106,258 |              172.16 |        5,808,520.75 |   18.0% |      0.20 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|     119,801 |              453.08 |        2,207,137.70 |   23.8% |      0.60 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|     119,801 |              172.00 |        5,813,947.56 |   17.9% |      0.23 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      25,000 |               30.45 |       32,835,579.62 |    1.8% |      0.23 | `hive_rnd`
+|      25,000 |               32.68 |       30,597,688.92 |    0.9% |      0.25 | `plf_colony_rnd`
+|      50,000 |               28.07 |       35,629,128.18 |    0.5% |      0.42 | `hive_rnd`
+|      50,000 |               32.69 |       30,589,047.16 |    0.3% |      0.49 | `plf_colony_rnd`
+|      75,000 |               28.11 |       35,573,814.75 |    0.6% |      0.64 | `hive_rnd`
+|      75,000 |               32.55 |       30,721,546.73 |    0.8% |      0.76 | `plf_colony_rnd`
+|     100,000 |               28.09 |       35,600,111.07 |    0.2% |      0.87 | `hive_rnd`
+|     100,000 |               32.82 |       30,468,916.63 |    0.5% |      0.99 | `plf_colony_rnd`
+|     125,000 |               28.06 |       35,638,426.78 |    0.4% |      1.11 | `hive_rnd`
+|     125,000 |               32.93 |       30,363,236.44 |    0.3% |      1.28 | `plf_colony_rnd`

@@ -53,7 +53,7 @@ bool eq_big(Big a, Big b)
 #if __has_include("../../sp_other/hive.h")
 #include "../../sp_other/hive.h"
 #else
-#include "stable_pool.h"
+#include "hive.h"
 #endif
 
 // #define HIVE_TYPE Big
@@ -85,7 +85,7 @@ int main()
     
     int begin = 25'000;
     int end   = 125'000;
-    int interval = 13'543;
+    int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
@@ -102,7 +102,7 @@ int main()
     constexpr bool bench_pop = false;
     constexpr bool bench_random = true;
     
-    int iterations = 1;
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {

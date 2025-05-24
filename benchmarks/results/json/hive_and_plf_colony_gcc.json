@@ -7,7 +7,7 @@
             "batch": 25000,
             "complexityN": 25000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -15,8 +15,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000761369230769231,
-            "medianAbsolutePercentError(elapsed)": 0.0179000218292949,
+            "median(elapsed)": 0.00116015384615385,
+            "medianAbsolutePercentError(elapsed)": 0.00841551610782385,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -24,11 +24,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.2272019,
+            "totalTime": 0.340033,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.000763304,
+                    "elapsed": 0.00116752,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -38,7 +38,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000775246153846154,
+                    "elapsed": 0.00117,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -48,7 +48,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000761369230769231,
+                    "elapsed": 0.00116015384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -58,7 +58,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000776524137931034,
+                    "elapsed": 0.001169,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -68,7 +68,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000761134615384615,
+                    "elapsed": 0.00116715384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -78,7 +78,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000771363333333333,
+                    "elapsed": 0.0011833,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -88,7 +88,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000777593103448276,
+                    "elapsed": 0.0011551724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -98,7 +98,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000760455555555556,
+                    "elapsed": 0.00108074074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -108,7 +108,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000741524137931035,
+                    "elapsed": 0.00106489655172414,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -118,7 +118,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000723874074074074,
+                    "elapsed": 0.00108481481481481,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -128,7 +128,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000714861538461538,
+                    "elapsed": 0.00106396153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -145,7 +145,7 @@
             "batch": 25000,
             "complexityN": 25000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -153,8 +153,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000817055172413793,
-            "medianAbsolutePercentError(elapsed)": 0.0089046769542919,
+            "median(elapsed)": 0.000983037037037037,
+            "medianAbsolutePercentError(elapsed)": 0.0204400911471619,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -162,11 +162,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.2453169,
+            "totalTime": 0.30241,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.000798864,
+                    "elapsed": 0.00117724,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -176,7 +176,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000824396153846154,
+                    "elapsed": 0.00114269230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -186,7 +186,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000815011538461538,
+                    "elapsed": 0.00100569230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -196,7 +196,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000817055172413793,
+                    "elapsed": 0.000920103448275862,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -206,7 +206,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000844538461538461,
+                    "elapsed": 0.00100646153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -216,7 +216,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000813676666666667,
+                    "elapsed": 0.000982033333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -226,7 +226,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00082918275862069,
+                    "elapsed": 0.000981724137931034,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -236,7 +236,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000805211111111111,
+                    "elapsed": 0.000985259259259259,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -246,7 +246,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000818972413793103,
+                    "elapsed": 0.000970620689655172,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -256,7 +256,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000817581481481481,
+                    "elapsed": 0.000983037037037037,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -266,7 +266,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000809457692307692,
+                    "elapsed": 0.000963346153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -283,7 +283,7 @@
             "batch": 50000,
             "complexityN": 50000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -291,8 +291,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00140334615384615,
-            "medianAbsolutePercentError(elapsed)": 0.00460228559269091,
+            "median(elapsed)": 0.0021381724137931,
+            "medianAbsolutePercentError(elapsed)": 0.00338385991554341,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -300,11 +300,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.4208717,
+            "totalTime": 0.650923,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00138288,
+                    "elapsed": 0.00254816,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -314,7 +314,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00139786153846154,
+                    "elapsed": 0.00213165384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -324,7 +324,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00140334615384615,
+                    "elapsed": 0.00214,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -334,7 +334,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00141647931034483,
+                    "elapsed": 0.0021381724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -344,7 +344,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00140983461538462,
+                    "elapsed": 0.00214792307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -354,7 +354,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00141117333333333,
+                    "elapsed": 0.00214236666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -364,7 +364,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00141211034482759,
+                    "elapsed": 0.00212724137931035,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -374,7 +374,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00140131111111111,
+                    "elapsed": 0.00214381481481481,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -384,7 +384,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00140503448275862,
+                    "elapsed": 0.00212162068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -394,7 +394,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00139037037037037,
+                    "elapsed": 0.00213062962962963,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -404,7 +404,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00139718846153846,
+                    "elapsed": 0.00213096153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -421,7 +421,7 @@
             "batch": 50000,
             "complexityN": 50000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -429,8 +429,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.001634572,
-            "medianAbsolutePercentError(elapsed)": 0.0030179131953458,
+            "median(elapsed)": 0.00195720689655172,
+            "medianAbsolutePercentError(elapsed)": 0.00595055261867436,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -438,11 +438,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.490597,
+            "totalTime": 0.587199,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.001634572,
+                    "elapsed": 0.00197772,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -452,7 +452,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00162922307692308,
+                    "elapsed": 0.00192769230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -462,7 +462,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00165962307692308,
+                    "elapsed": 0.00199342307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -472,7 +472,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00162540344827586,
+                    "elapsed": 0.00195720689655172,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -482,7 +482,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00162965384615385,
+                    "elapsed": 0.00196892307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -492,7 +492,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00164240666666667,
+                    "elapsed": 0.00195403333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -502,7 +502,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00163751034482759,
+                    "elapsed": 0.00193086206896552,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -512,7 +512,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00163764814814815,
+                    "elapsed": 0.00195144444444444,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -522,7 +522,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00163808620689655,
+                    "elapsed": 0.00196424137931034,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -532,7 +532,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00163095555555556,
+                    "elapsed": 0.00194385185185185,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -542,7 +542,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00162300769230769,
+                    "elapsed": 0.00196553846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -559,7 +559,7 @@
             "batch": 75000,
             "complexityN": 75000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -567,8 +567,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00210829230769231,
-            "medianAbsolutePercentError(elapsed)": 0.005991368367606,
+            "median(elapsed)": 0.00320110344827586,
+            "medianAbsolutePercentError(elapsed)": 0.00300365192212115,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -576,11 +576,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.6443816,
+            "totalTime": 0.971747,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.002113896,
+                    "elapsed": 0.00362184,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -590,7 +590,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00210829230769231,
+                    "elapsed": 0.00317842307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -600,7 +600,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.002121,
+                    "elapsed": 0.003194,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -610,7 +610,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00210797931034483,
+                    "elapsed": 0.00320751724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -620,7 +620,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00212155769230769,
+                    "elapsed": 0.00320053846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -630,7 +630,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00210492666666667,
+                    "elapsed": 0.0032259,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -640,7 +640,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00208337586206897,
+                    "elapsed": 0.00319151724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -650,7 +650,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00210157037037037,
+                    "elapsed": 0.003227,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -660,7 +660,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00208270689655172,
+                    "elapsed": 0.00320110344827586,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -670,7 +670,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.0022772962962963,
+                    "elapsed": 0.00319955555555556,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -680,7 +680,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00242642692307692,
+                    "elapsed": 0.00321561538461538,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -697,7 +697,7 @@
             "batch": 75000,
             "complexityN": 75000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -705,8 +705,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00244128333333333,
-            "medianAbsolutePercentError(elapsed)": 0.00784407792402551,
+            "median(elapsed)": 0.0029605,
+            "medianAbsolutePercentError(elapsed)": 0.00633665887363726,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -714,11 +714,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.7582663,
+            "totalTime": 0.897828,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.002712728,
+                    "elapsed": 0.0034434,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -728,7 +728,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00264237692307692,
+                    "elapsed": 0.00288973076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -738,7 +738,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00264595384615385,
+                    "elapsed": 0.00295861538461539,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -748,7 +748,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00264089310344828,
+                    "elapsed": 0.00296144827586207,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -758,7 +758,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00263039615384615,
+                    "elapsed": 0.00291203846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -768,7 +768,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00244128333333333,
+                    "elapsed": 0.00296916666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -778,7 +778,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00242228275862069,
+                    "elapsed": 0.00297937931034483,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -788,7 +788,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.0024245962962963,
+                    "elapsed": 0.00300218518518519,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -798,7 +798,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00243230344827586,
+                    "elapsed": 0.00294562068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -808,7 +808,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.0024254037037037,
+                    "elapsed": 0.00293181481481481,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -818,7 +818,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00242322307692308,
+                    "elapsed": 0.0029605,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -835,7 +835,7 @@
             "batch": 100000,
             "complexityN": 100000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -843,8 +843,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00280898,
-            "medianAbsolutePercentError(elapsed)": 0.00246603403912114,
+            "median(elapsed)": 0.00427903703703704,
+            "medianAbsolutePercentError(elapsed)": 0.00278480488672839,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -852,11 +852,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.8700674,
+            "totalTime": 1.300804,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00280898,
+                    "elapsed": 0.00474464,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -866,7 +866,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00281403461538462,
+                    "elapsed": 0.00427292307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -876,7 +876,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.0028129,
+                    "elapsed": 0.00427,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -886,7 +886,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00279189655172414,
+                    "elapsed": 0.00438941379310345,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -896,7 +896,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00280384615384615,
+                    "elapsed": 0.00426715384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -906,7 +906,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00280207,
+                    "elapsed": 0.00431723333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -916,7 +916,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00281827931034483,
+                    "elapsed": 0.00427768965517241,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -926,7 +926,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00281918888888889,
+                    "elapsed": 0.00430485185185185,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -936,7 +936,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00276178965517241,
+                    "elapsed": 0.00432551724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -946,7 +946,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.0028078962962963,
+                    "elapsed": 0.00427903703703704,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -956,7 +956,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00391777692307692,
+                    "elapsed": 0.00427146153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -973,7 +973,7 @@
             "batch": 100000,
             "complexityN": 100000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -981,8 +981,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00328203333333333,
-            "medianAbsolutePercentError(elapsed)": 0.00535906438260406,
+            "median(elapsed)": 0.00388876923076923,
+            "medianAbsolutePercentError(elapsed)": 0.00375879105229728,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -990,11 +990,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.9852191,
+            "totalTime": 1.173856,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.003340828,
+                    "elapsed": 0.00419576,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1004,7 +1004,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00329138076923077,
+                    "elapsed": 0.00393676923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1014,7 +1014,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00329470384615385,
+                    "elapsed": 0.00388876923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1024,7 +1024,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00327984482758621,
+                    "elapsed": 0.00389551724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1034,7 +1034,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00326453846153846,
+                    "elapsed": 0.00381288461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1044,7 +1044,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00329414333333333,
+                    "elapsed": 0.0038868,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1054,7 +1054,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00326449310344828,
+                    "elapsed": 0.00389824137931034,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1064,7 +1064,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00328203333333333,
+                    "elapsed": 0.00393581481481481,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1074,7 +1074,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00325579310344828,
+                    "elapsed": 0.00387420689655172,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1084,7 +1084,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00324713703703704,
+                    "elapsed": 0.0038847037037037,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1094,7 +1094,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00331794230769231,
+                    "elapsed": 0.00385515384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1111,7 +1111,7 @@
             "batch": 125000,
             "complexityN": 125000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -1119,8 +1119,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00350745,
-            "medianAbsolutePercentError(elapsed)": 0.0040881946069223,
+            "median(elapsed)": 0.005355,
+            "medianAbsolutePercentError(elapsed)": 0.00378484138948591,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1128,11 +1128,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 1.1128115,
+            "totalTime": 1.63231,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.003521848,
+                    "elapsed": 0.00573796,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1142,7 +1142,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00349747307692308,
+                    "elapsed": 0.00533207692307692,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1152,7 +1152,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00350465769230769,
+                    "elapsed": 0.00531630769230769,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1162,7 +1162,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00351482413793103,
+                    "elapsed": 0.00536341379310345,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1172,7 +1172,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00350729230769231,
+                    "elapsed": 0.005355,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1182,7 +1182,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00350745,
+                    "elapsed": 0.00534356666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1192,7 +1192,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00348027931034483,
+                    "elapsed": 0.00535948275862069,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1202,7 +1202,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00345312962962963,
+                    "elapsed": 0.00532540740740741,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1212,7 +1212,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00414534827586207,
+                    "elapsed": 0.00537534482758621,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1222,7 +1222,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00429891851851852,
+                    "elapsed": 0.00533881481481481,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1232,7 +1232,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00438147692307692,
+                    "elapsed": 0.00606473076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1249,7 +1249,7 @@
             "batch": 125000,
             "complexityN": 125000,
             "epochs": 11,
-            "clockResolution": 1e-07,
+            "clockResolution": 1e-06,
             "clockResolutionMultiple": 1000,
             "maxEpochTime": 0.1,
             "minEpochTime": 0.001,
@@ -1257,8 +1257,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00411682068965517,
-            "medianAbsolutePercentError(elapsed)": 0.00319812582768121,
+            "median(elapsed)": 0.00494522222222222,
+            "medianAbsolutePercentError(elapsed)": 0.0121565149337241,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1266,11 +1266,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 1.2777242,
+            "totalTime": 1.488799,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.004461056,
+                    "elapsed": 0.00540216,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1280,7 +1280,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00410980769230769,
+                    "elapsed": 0.00496303846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1290,7 +1290,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00410567692307692,
+                    "elapsed": 0.00492146153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1300,7 +1300,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00410369655172414,
+                    "elapsed": 0.0048858275862069,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1310,7 +1310,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00412958846153846,
+                    "elapsed": 0.00502588461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1320,7 +1320,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00412316,
+                    "elapsed": 0.00486623333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1330,7 +1330,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00411682068965517,
+                    "elapsed": 0.00496875862068966,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1340,7 +1340,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00407854814814815,
+                    "elapsed": 0.00492759259259259,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1350,7 +1350,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00409609310344828,
+                    "elapsed": 0.00467234482758621,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1360,7 +1360,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00446712962962963,
+                    "elapsed": 0.00494522222222222,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1370,7 +1370,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00513908076923077,
+                    "elapsed": 0.00508619230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
