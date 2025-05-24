@@ -84,26 +84,26 @@ int main()
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 250'000;
+    int end   = 150'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/stable_pool_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/stable_pool_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_stable_pool = true;
-    constexpr bool bench_small_stable_pool = false;
-    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_small_stable_pool = true;
+    constexpr bool bench_plf_colony  = false;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     constexpr bool bench_hive = false;
     
     constexpr bool bench_iter = false;
-    constexpr bool bench_put = false;
+    constexpr bool bench_put = true;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = true;
+    constexpr bool bench_random = false;
     
-    int iterations = 1;
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -378,6 +378,47 @@ int main()
                         
                         ankerl::nanobench::doNotOptimizeAway(slc);
                         bbig_sp_deinit(&slc);
+                    }
+                );
+            }
+            
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bstable_pool_rnd",
+                    [&]{
+                        bbig_sp_iter_t it = {};
+                        bool iter_set = false;
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || sl.count == 0 || !iter_set)
+                            {
+                                bbig_sp_iter_t tmp = bbig_sp_put(&sl, (Big){.i=i});
+                                random = rand() % 100;
+                                if(random < 5 || !iter_set)
+                                {
+                                    iter_set = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                it = bbig_sp_iter_pop(it);
+                                iter_set = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(it) ; bbig_sp_iter_go_next(&it))
+                        {
+                            sum += bbig_sp_iter_elm(it)->i;
+                        }
+                        
+                        printf("SP SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(sl);
                     }
                 );
             }

@@ -8,9 +8,6 @@
 #include <time.h>
 #include <assert.h>
 
-// Optimization idea:
-// on top of a first_elm_idx, keep track of first_empty_idx
-// shouldn't be too complex
 #if !defined(SP_TYPE) || !defined(SP_NAME)
 
     #error "SP_TYPE and SP_NAME must be defined"
