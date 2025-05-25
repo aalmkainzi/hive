@@ -1,5 +1,5 @@
-# stable_pool
-A container that provides pointer stability and faster iteration speed than linked list. Insertion order is not perserved.
+# hive
+A container that provides pointer/iterator stability and faster iteration speed than linked list. Insertion order is not perserved.
 ## Example
 
 ```C
