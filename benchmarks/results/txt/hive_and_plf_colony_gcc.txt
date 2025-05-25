@@ -1,13 +1,8 @@
 
 | complexityN |             ns/elms |              elms/s |    err% |     total | benchmark
 |------------:|--------------------:|--------------------:|--------:|----------:|:----------
-|      25,000 |               46.41 |       21,548,866.20 |    0.8% |      0.34 | `hive_rnd`
-|      25,000 |               39.32 |       25,431,391.76 |    2.0% |      0.30 | `plf_colony_rnd`
-|      50,000 |               42.76 |       23,384,456.59 |    0.3% |      0.65 | `hive_rnd`
-|      50,000 |               39.14 |       25,546,609.35 |    0.6% |      0.59 | `plf_colony_rnd`
-|      75,000 |               42.68 |       23,429,420.89 |    0.3% |      0.97 | `hive_rnd`
-|      75,000 |               39.47 |       25,333,558.52 |    0.6% |      0.90 | `plf_colony_rnd`
-|     100,000 |               42.79 |       23,369,743.97 |    0.3% |      1.30 | `hive_rnd`
-|     100,000 |               38.89 |       25,715,076.95 |    0.4% |      1.17 | `plf_colony_rnd`
-|     125,000 |               42.84 |       23,342,670.40 |    0.4% |      1.63 | `hive_rnd`
-|     125,000 |               39.56 |       25,276,922.73 |    1.2% |      1.49 | `plf_colony_rnd`
+|      25,000 |               58.03 |       17,232,237.54 |    5.8% |      0.45 | :wavy_dash: `plf::colony::erase` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|      50,000 |               71.38 |       14,009,073.57 |    6.8% |      1.04 | :wavy_dash: `plf::colony::erase` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|      75,000 |               54.97 |       18,191,781.81 |    8.2% |      1.28 | :wavy_dash: `plf::colony::erase` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     100,000 |               71.65 |       13,956,214.70 |   18.4% |      2.27 | :wavy_dash: `plf::colony::erase` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     125,000 |               65.30 |       15,314,585.14 |    3.8% |      2.48 | `plf::colony::erase`
