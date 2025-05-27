@@ -124,7 +124,7 @@ do                                                                              
     const typeof(*hive_hv->buckets) *const hive_end_bucket = hive_hv->end_sentinel;            \
     typeof(hive_hv->buckets) hive_bucket = hive_hv->buckets;                                   \
     typeof(hive_bucket->next_ptrs[0].next_elm_index) hive_index = hive_bucket->first_elm_idx;  \
-    typeof(hive_bucket->next_ptrs[0]) *hive_next_ptrs_base = &hive_bucket->next_ptrs[0]; \
+    typeof(hive_bucket->next_ptrs[0]) *hive_next_ptrs_base = &hive_bucket->next_ptrs[0];       \
     typeof(*hive_bucket->elms) *hive_elms_base = &hive_bucket->elms[0];                        \
     while( hive_bucket != hive_end_bucket )                                                    \
     {                                                                                          \
@@ -147,11 +147,13 @@ do                                                                              
 #define HIVE_GET_ITER(itr) \
 *(itr) = (typeof(*(itr))){.hv = hive_hv, .bucket = hive_bucket, .next_entry = hive_next_ptrs_base + hive_index + 1, .elm = &hive_elms_base[hive_index]}
 
-#define HIVE_SET_ITER(itr) \
-do { \
-    const typeof(itr) hive_itr = itr; \
-    hive_bucket = hive_itr.bucket; \
-    hive_index = hive_itr.elm - hive_elms_base; \
+#define HIVE_SET_ITER(itr)                            \
+do {                                                  \
+    const typeof(itr) hive_itr = itr;                 \
+    hive_bucket = hive_itr.bucket;                    \
+    hive_elms_base = &hive_bucket->elms[0];           \
+    hive_next_ptrs_base = &hive_bucket->next_ptrs[0]; \
+    hive_index = hive_itr.elm - hive_elms_base;       \
 } while(0)
 
 typedef struct hive_entry_t
