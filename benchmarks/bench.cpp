@@ -76,33 +76,33 @@ constexpr std::string_view compiler_name =
 "gcc";
 #endif
 
-int main()
+int main(int argc, char **argv)
 {
     ankerl::nanobench::Bench bench;
     
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 25'000;
-    int end   = 125'000;
-    int interval = 25'000;
+    int begin = 71770;
+    int end   = 71770;
+    int interval = 1;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
     
-    constexpr bool bench_hive = false;
+    constexpr bool bench_hive = true;
     constexpr bool bench_small_hive = false;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
-    constexpr bool bench_linked_list = false;
+    constexpr bool bench_linked_list = true;
     
     constexpr bool bench_iter = false;
     constexpr bool bench_put = false;
-    constexpr bool bench_pop = true;
-    constexpr bool bench_random = false;
+    constexpr bool bench_pop = false;
+    constexpr bool bench_random = true;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -120,7 +120,7 @@ int main()
             Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
             Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
             for (int i = 0; i < sz; i++)
-                bigs[i] = (Big){.i = rand() - i};
+                bigs[i] = (Big){.i = i};
             
             big_sp_put_all(&sl, bigs, sz);
             
@@ -137,10 +137,38 @@ int main()
             std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
             
             for (Big *p : to_pop) {
-            big_sp_del(&sl, p);
+                big_sp_del(&sl, p);
             }
             
-            // assert(sl.count == sz/2);
+            assert(sl.count == sz - sz/2);
+            
+            if(argc > 1)
+            {
+                FILE *f;
+                size_t bucket_size;
+                
+                f = fopen(argv[1], "w");
+                bucket_size = HIVE_GET_BUCKET_SIZE(&sl);
+                
+                fwrite(&sl.count, sizeof(sl.count), 1, f);
+                fwrite(&sl.bucket_count, sizeof(sl.bucket_count), 1, f);
+                fwrite(&bucket_size, sizeof(bucket_size), 1, f);
+                
+                typedef struct bucket_data
+                {
+                    uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
+                    uint16_t first_empty_idx;
+                    uint16_t first_elm_idx;
+                    uint16_t count;
+                    big_sp_entry_t elms[HIVE_GET_BUCKET_SIZE(&sl) + 1];
+                    big_sp_next_entry_t next_entries[HIVE_GET_BUCKET_SIZE(&sl) + 1];
+                } bucket_data;
+                
+                for(size_t i = 0 ; i < sl.bucket_count ; i++)
+                {
+                    ;//fwrite();
+                }
+            }
             
             // STABLE_POOL END
             
@@ -276,7 +304,7 @@ int main()
             Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
             Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
             for (int i = 0; i < sz; i++)
-                bigs[i] = (Big){.i = rand() - i};
+                bigs[i] = (Big){.i = i};
             
             bbig_sp_put_all(&sl, bigs, sz);
             
@@ -436,7 +464,7 @@ int main()
             elms.reserve(sz);
             for (int i = 0; i < sz; ++i)
             {
-                elms.push_back(i_colony.insert((Big){.i = rand() - i}));
+                elms.push_back(i_colony.insert((Big){.i = i}));
             }
             
             rng.seed(42);
@@ -562,52 +590,6 @@ int main()
             }
         }
         
-        if(bench_slot_map)
-        {
-            // SLOT MAP SETUP
-            
-            srand(69420);
-            dod::slot_map<Big> slot_map;
-            
-            std::vector<dod::slot_map_key64<Big>> slot_elms;
-            for (int i = 0; i < sz; ++i) {
-                Big b;
-                b.i = rand() - i;
-                dod::slot_map_key64<Big> lsit = slot_map.emplace(b);
-                slot_elms.push_back(lsit);
-            }
-            
-            rng.seed(42);
-            std::vector<dod::slot_map_key64<Big>> sm_to_erase;
-            sm_to_erase.reserve(sz/2);
-            std::sample(slot_elms.begin(), slot_elms.end(),
-                        std::back_inserter(sm_to_erase),
-                        sz/2,
-                        rng);
-            
-            for (auto it : sm_to_erase)
-            {
-                slot_map.pop(it);
-            }
-            
-            assert(slot_map.size() == sz/2);
-            // SLOT MAP END
-            
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("dod::slot_map", 
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    for (const auto& value : slot_map)
-                    {
-                        sum += value.i;
-                    }
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("slotsum = %u\n", sum);
-                    
-                }
-            );
-        }
-        
         if(bench_stable_vec)
         {
             // STABLE_VECTOR SETUP
@@ -656,55 +638,141 @@ int main()
         
         if(bench_linked_list)
         {
-            // LINKED LIST SETUP
-            
-            std::forward_list<Big> flist;
-            auto last = flist.before_begin();               // points to before the first
-            std::vector<decltype(flist.begin())> elems;     // will store iterators to each element
-            
+            // LIST SETUP
             srand(69420);
-            for (int i = 0; i < sz; ++i) {
-                Big b;
-                b.i = rand() - i;
-                // insert AFTER last, then update last to the newly inserted element
-                last = flist.insert_after(last, b);
-                elems.push_back(last);
+            std::list<Big> ls;
+            
+            std::vector<decltype(ls.begin())> elms;
+            elms.reserve(sz);
+            for (int i = 0; i < sz; ++i)
+            {
+                ls.push_back((Big){.i = i});
+                elms.push_back(std::prev(ls.end()));
             }
             
-            // --- 2) pick half of them at random to erase ---
-            std::mt19937_64 rng{42};
-            std::vector<decltype(flist.begin())> to_erase;
+            rng.seed(42);
+            std::vector<decltype(ls.begin())> to_erase;
             to_erase.reserve(sz/2);
-            std::sample(elems.begin(), elems.end(),
+            std::sample(elms.begin(), elms.end(),
                         std::back_inserter(to_erase),
                         sz/2,
                         rng);
             
-            // --- 3) erase each one by first finding its "previous" node ---
-            for (auto it : to_erase) {
-                auto prev = flist.before_begin();
-                // walk until prev->next == it
-                while (std::next(prev) != it) {
-                    ++prev;
-                }
-                // erase the node after prev
-                flist.erase_after(prev);
+            auto beg = to_erase.begin();
+            auto end = to_erase.end();
+            for ( ; beg != end ; beg++)
+            {
+                ls.erase(*beg);
             }
             
-            assert(std::distance(flist.begin(), flist.end()) == sz/2);
-            // LINKED LIST END
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("std::forward_list", 
-                [&]{
-                    volatile unsigned int sum = 0;
-                    
-                    for (const auto& value : flist)
-                    {
-                        sum += value.i;
+            // assert(i_colony.size() == sz/2);
+            // PLF SETUP END
+            
+            if(bench_iter)
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("std::list", 
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        for (const auto& value : ls)
+                        {
+                            sum += value.i;
+                        }
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("lssum = %u\n", sum);
+                        
                     }
-                    ankerl::nanobench::doNotOptimizeAway(sum);
-                    printf("forward_list_sum = %u\n", sum);
+                );
+            
+            if(bench_pop)
+            {
+                // std::cout << "SZ: " << sz << std::endl;
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("std::list::erase", 
+                [&]{
+                    std::list<Big> ls2 = std::list<Big>(ls);
+                    bool remove = true;
+                    for (auto it = ls2.begin() ; it != ls2.end() ; )
+                    {
+                        if(remove)
+                            it = ls2.erase(it);
+                        else
+                            it++;
+                        remove = !remove;
+                    }
+                    
+                    ankerl::nanobench::doNotOptimizeAway(ls2);
                 }
-            );
+                );
+            }
+            
+            if(bench_put)
+            {
+                // std::cout << "SZ: " << sz << std::endl;
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("std::list::insert", 
+                [&]{
+                    // plf::colony<Big> icol = plf::colony<Big>(i_colony);
+                    
+                    for (int i = 0 ; i < sz/2 ; i++)
+                    {
+                        ls.push_back((Big){.i=i});
+                    }
+#if !defined(NDEBUG)
+                    unsigned int sum = 0;
+                    for(auto it : ls)
+                    {
+                        sum += it.i;
+                    }
+                    
+                    printf("LS SUM AFTER INS %u\n", sum);
+#endif
+                    ankerl::nanobench::doNotOptimizeAway(ls);
+                }
+                );
+            }
+            
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("std::list rnd",
+                    [&]{
+                        bool set_iter = false;
+                        auto it = ls.begin();
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || ls.size() == 0 || !set_iter)
+                            {
+                                ls.push_back((Big){.i=i});
+                                auto tmp = std::prev(ls.end());
+                                random = rand() % 100;
+                                if(random < 5 || !set_iter)
+                                {
+                                    set_iter = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                it = ls.erase(it);
+                                set_iter = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = ls.begin() ; it != ls.end() ; it++)
+                        {
+                            sum += it->i;
+                        }
+                        
+                        printf("LS SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(ls);
+                    }
+                );
+            }
+
         }
         
         

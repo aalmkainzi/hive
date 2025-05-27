@@ -471,7 +471,7 @@ static void test_against_dynamic_array(void)
     int_hv sp;
     int_hv_init(&sp);
     int *expected = NULL;
-    const int N = 20;
+    const int N = 71770;
     for (int i = 0; i < N; i++)
     {
         int *ptr = &int_hv_put(&sp, i).elm->value;
@@ -1498,10 +1498,31 @@ static int big_equal(const Big *a, const Big *b) {
 }
 
 static void test_hive(void) {
-    srand(69);
-    constexpr int NUM_OPS = 1000000;
     big_hv pool;
     big_hv_init(&pool);
+    
+    size_t init_size = 76790;
+    
+    for(size_t i = 0 ; i < init_size ; i++)
+    {
+        big_hv_put(&pool, (Big){.i=i});
+    }
+    
+    srand(69);
+    const int NUM_OPS = 1000000;
+    
+    bool rem = true;
+    for(big_hv_iter_t it = big_hv_begin(&pool) ; !big_hv_iter_is_end(it) ; )
+    {
+        if(rem)
+        {
+            it = big_hv_iter_del(it);
+        }
+        else
+        {
+            it = big_hv_iter_next(it);
+        }
+    }
     
     Big *vals = NULL;    // array of values for verification
     Big **ptrs = NULL;   // array of pointers to pool elements

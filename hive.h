@@ -77,7 +77,7 @@
 #define hive_iter_t                HIVE_CAT(HIVE_NAME, _iter_t)
 #define hive_bucket_t              HIVE_CAT(HIVE_NAME, _bucket_t)
 #define hive_entry_t               HIVE_CAT(HIVE_NAME, _entry_t)
-#define hive_next_entry_t          HIVE_CAT(HIVE_NAME, _next_entry_entry_t)
+#define hive_next_entry_t          HIVE_CAT(HIVE_NAME, _next_entry_t)
 #define hive_init                  HIVE_CAT(HIVE_NAME, _init)
 #define hive_clone                 HIVE_CAT(HIVE_NAME, _clone)
 #define hive_push_not_full_bucket  HIVE_CAT(HIVE_NAME, _push_not_full_bucket)
@@ -147,11 +147,13 @@ do                                                                              
 #define HIVE_GET_ITER(itr) \
 *(itr) = (typeof(*(itr))){.hv = hive_hv, .bucket = hive_bucket, .next_entry = hive_next_entries_base + hive_index + 1, .elm = &hive_elms_base[hive_index]}
 
-#define HIVE_SET_ITER(itr) \
-do { \
-    const typeof(itr) hive_itr = itr; \
-    hive_bucket = hive_itr.bucket; \
-    hive_index = hive_itr.elm - hive_elms_base; \
+#define HIVE_SET_ITER(itr)                            \
+do {                                                  \
+    const typeof(itr) hive_itr = itr;                 \
+    hive_bucket = hive_itr.bucket;                    \
+    hive_elms_base = &hive_bucket->elms[0];           \
+    hive_next_ptrs_base = &hive_bucket->next_ptrs[0]; \
+    hive_index = hive_itr.elm - hive_elms_base;       \
 } while(0)
 
 typedef struct hive_entry_t
@@ -617,6 +619,7 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *hv, hive_bucket_t *bucket, HIVE_TYPE new_e
     else
     {
         bucket->first_empty_idx = HIVE_BUCKET_SIZE;
+        bucket->not_full_idx = UINT16_MAX;
         hv->not_full_buckets.count -= 1;
     }
     return &bucket->elms[empty_index].value;
