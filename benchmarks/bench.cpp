@@ -133,25 +133,25 @@ int main(int argc, char **argv)
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 150'000;
+    int end   = 100'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_hive = true;
-    constexpr bool bench_small_hive = true;
+    constexpr bool bench_small_hive = false;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
     
-    constexpr bool bench_iter = true;
+    constexpr bool bench_iter = false;
     constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = false;
+    constexpr bool bench_random = true;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
