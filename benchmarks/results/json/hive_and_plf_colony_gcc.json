@@ -2,7 +2,7 @@
     "results": [
         {
             "title": "benchmark",
-            "name": "hive_macro",
+            "name": "hive_rnd",
             "unit": "elms",
             "batch": 25000,
             "complexityN": 25000,
@@ -15,8 +15,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000172846153846154,
-            "medianAbsolutePercentError(elapsed)": 0.0944407121263015,
+            "median(elapsed)": 0.00162074074074074,
+            "medianAbsolutePercentError(elapsed)": 0.0205289534801434,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -24,11 +24,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.0541,
+            "totalTime": 0.515025,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.0002392,
+                    "elapsed": 0.00163736,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -38,7 +38,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000214115384615385,
+                    "elapsed": 0.00161034615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -48,7 +48,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000205307692307692,
+                    "elapsed": 0.00160476923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -58,7 +58,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000187965517241379,
+                    "elapsed": 0.00158813793103448,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -68,7 +68,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000172846153846154,
+                    "elapsed": 0.00155476923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -78,7 +78,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.0001768,
+                    "elapsed": 0.00230273333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -88,7 +88,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000163896551724138,
+                    "elapsed": 0.00198327586206897,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -98,7 +98,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000163,
+                    "elapsed": 0.00167774074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -108,7 +108,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000157931034482759,
+                    "elapsed": 0.00163834482758621,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -118,7 +118,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000156037037037037,
+                    "elapsed": 0.00162074074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -128,7 +128,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000154576923076923,
+                    "elapsed": 0.00157115384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -140,7 +140,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_iter",
+            "name": "bhive_rnd",
             "unit": "elms",
             "batch": 25000,
             "complexityN": 25000,
@@ -153,8 +153,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000195230769230769,
-            "medianAbsolutePercentError(elapsed)": 0.05685618729097,
+            "median(elapsed)": 0.00247374074074074,
+            "medianAbsolutePercentError(elapsed)": 0.0262213372175206,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -162,11 +162,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.057931,
+            "totalTime": 0.763513,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00015608,
+                    "elapsed": 0.002444,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -176,7 +176,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000195230769230769,
+                    "elapsed": 0.00259546153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -186,7 +186,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000207,
+                    "elapsed": 0.00263976923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -196,7 +196,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00019951724137931,
+                    "elapsed": 0.0024101724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -206,7 +206,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000219307692307692,
+                    "elapsed": 0.00288811538461538,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -216,7 +216,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.0002068,
+                    "elapsed": 0.00241053333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -226,7 +226,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000214724137931034,
+                    "elapsed": 0.0024411724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -236,7 +236,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000193481481481481,
+                    "elapsed": 0.00247374074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -246,7 +246,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000193310344827586,
+                    "elapsed": 0.00277796551724138,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -256,7 +256,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000168888888888889,
+                    "elapsed": 0.00245644444444444,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -266,7 +266,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000163923076923077,
+                    "elapsed": 0.00248173076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -278,7 +278,7 @@
         },
         {
             "title": "benchmark",
-            "name": "plf::colony",
+            "name": "plf_colony_rnd",
             "unit": "elms",
             "batch": 25000,
             "complexityN": 25000,
@@ -291,8 +291,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000106115384615385,
-            "medianAbsolutePercentError(elapsed)": 0.0154242664551941,
+            "median(elapsed)": 0.00147813793103448,
+            "medianAbsolutePercentError(elapsed)": 0.0164934989128373,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -300,11 +300,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.032639,
+            "totalTime": 0.464372,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00012956,
+                    "elapsed": 0.00146524,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -314,7 +314,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000116615384615385,
+                    "elapsed": 0.00145415384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -324,7 +324,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000109307692307692,
+                    "elapsed": 0.00144676923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -334,7 +334,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000105758620689655,
+                    "elapsed": 0.0014878275862069,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -344,7 +344,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000106115384615385,
+                    "elapsed": 0.00149688461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -354,7 +354,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000105133333333333,
+                    "elapsed": 0.00210973333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -364,7 +364,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000107137931034483,
+                    "elapsed": 0.00158610344827586,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -374,7 +374,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000107777777777778,
+                    "elapsed": 0.00151533333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -384,7 +384,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000104586206896552,
+                    "elapsed": 0.00147813793103448,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -394,7 +394,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000103555555555556,
+                    "elapsed": 0.0014637037037037,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -404,7 +404,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000103846153846154,
+                    "elapsed": 0.00144853846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -416,7 +416,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_macro",
+            "name": "hive_rnd",
             "unit": "elms",
             "batch": 50000,
             "complexityN": 50000,
@@ -429,8 +429,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000309,
-            "medianAbsolutePercentError(elapsed)": 0.00840968997113089,
+            "median(elapsed)": 0.0033827037037037,
+            "medianAbsolutePercentError(elapsed)": 0.0929983259758199,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -438,11 +438,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.10037,
+            "totalTime": 1.079782,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00036864,
+                    "elapsed": 0.00439072,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -452,7 +452,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000308,
+                    "elapsed": 0.00369803846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -462,7 +462,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000306423076923077,
+                    "elapsed": 0.00336373076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -472,7 +472,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000306931034482759,
+                    "elapsed": 0.00341827586206897,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -482,7 +482,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000309,
+                    "elapsed": 0.00309488461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -492,7 +492,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000308633333333333,
+                    "elapsed": 0.00314766666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -502,7 +502,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000355551724137931,
+                    "elapsed": 0.00457472413793104,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -512,7 +512,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000456,
+                    "elapsed": 0.0033827037037037,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -522,7 +522,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000340551724137931,
+                    "elapsed": 0.00462048275862069,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -532,7 +532,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000313148148148148,
+                    "elapsed": 0.0028922962962963,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -542,7 +542,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000308884615384615,
+                    "elapsed": 0.00293442307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -554,7 +554,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_iter",
+            "name": "bhive_rnd",
             "unit": "elms",
             "batch": 50000,
             "complexityN": 50000,
@@ -567,8 +567,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000311192307692308,
-            "medianAbsolutePercentError(elapsed)": 0.00209669462259509,
+            "median(elapsed)": 0.00548484,
+            "medianAbsolutePercentError(elapsed)": 0.085192295526045,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -576,11 +576,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.093424,
+            "totalTime": 1.749707,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00031068,
+                    "elapsed": 0.00548484,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -590,7 +590,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000311846153846154,
+                    "elapsed": 0.00599823076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -600,7 +600,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000309730769230769,
+                    "elapsed": 0.0052225,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -610,7 +610,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000310172413793103,
+                    "elapsed": 0.00599562068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -620,7 +620,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000311192307692308,
+                    "elapsed": 0.00827815384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -630,7 +630,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000310366666666667,
+                    "elapsed": 0.0060186,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -640,7 +640,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000314551724137931,
+                    "elapsed": 0.00503044827586207,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -650,7 +650,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000312851851851852,
+                    "elapsed": 0.00545518518518519,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -660,7 +660,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000311758620689655,
+                    "elapsed": 0.00511196551724138,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -670,7 +670,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000311481481481482,
+                    "elapsed": 0.00518448148148148,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -680,7 +680,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000310730769230769,
+                    "elapsed": 0.00653011538461538,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -692,7 +692,7 @@
         },
         {
             "title": "benchmark",
-            "name": "plf::colony",
+            "name": "plf_colony_rnd",
             "unit": "elms",
             "batch": 50000,
             "complexityN": 50000,
@@ -705,8 +705,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000297615384615385,
-            "medianAbsolutePercentError(elapsed)": 0.00899726170296008,
+            "median(elapsed)": 0.00313992,
+            "medianAbsolutePercentError(elapsed)": 0.149813664596273,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -714,11 +714,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.095962,
+            "totalTime": 0.991735,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00033384,
+                    "elapsed": 0.00313992,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -728,7 +728,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000297615384615385,
+                    "elapsed": 0.00273030769230769,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -738,7 +738,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000294961538461538,
+                    "elapsed": 0.00385380769230769,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -748,7 +748,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000295724137931035,
+                    "elapsed": 0.00405886206896552,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -758,7 +758,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000296115384615385,
+                    "elapsed": 0.00285688461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -768,7 +768,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000295033333333333,
+                    "elapsed": 0.0030857,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -778,7 +778,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000294172413793103,
+                    "elapsed": 0.00370431034482759,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -788,7 +788,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000300074074074074,
+                    "elapsed": 0.00283092592592593,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -798,7 +798,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000313275862068965,
+                    "elapsed": 0.00328189655172414,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -808,7 +808,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000421111111111111,
+                    "elapsed": 0.00397988888888889,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -818,7 +818,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000384423076923077,
+                    "elapsed": 0.00273080769230769,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -830,7 +830,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_macro",
+            "name": "hive_rnd",
             "unit": "elms",
             "batch": 75000,
             "complexityN": 75000,
@@ -843,8 +843,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000552407407407407,
-            "medianAbsolutePercentError(elapsed)": 0.105272168815704,
+            "median(elapsed)": 0.00475333333333333,
+            "medianAbsolutePercentError(elapsed)": 0.0156012701919093,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -852,11 +852,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.164431,
+            "totalTime": 1.516319,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00056948,
+                    "elapsed": 0.00671072,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -866,7 +866,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000486307692307692,
+                    "elapsed": 0.00478803846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -876,7 +876,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000585153846153846,
+                    "elapsed": 0.00472376923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -886,7 +886,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000620275862068966,
+                    "elapsed": 0.00554041379310345,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -896,7 +896,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000541038461538462,
+                    "elapsed": 0.00568838461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -906,7 +906,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000574333333333333,
+                    "elapsed": 0.00482866666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -916,7 +916,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000657655172413793,
+                    "elapsed": 0.00471486206896552,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -926,7 +926,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000552407407407407,
+                    "elapsed": 0.00475333333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -936,7 +936,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000499793103448276,
+                    "elapsed": 0.00475179310344828,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -946,7 +946,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000467,
+                    "elapsed": 0.00463518518518519,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -956,7 +956,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000460038461538461,
+                    "elapsed": 0.00460734615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -968,7 +968,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_iter",
+            "name": "bhive_rnd",
             "unit": "elms",
             "batch": 75000,
             "complexityN": 75000,
@@ -981,8 +981,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000523827586206897,
-            "medianAbsolutePercentError(elapsed)": 0.0375403315694993,
+            "median(elapsed)": 0.00782993103448276,
+            "medianAbsolutePercentError(elapsed)": 0.0724605803822102,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -990,11 +990,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.164227,
+            "totalTime": 2.530496,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00049812,
+                    "elapsed": 0.01100452,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1004,7 +1004,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000667269230769231,
+                    "elapsed": 0.00903238461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1014,7 +1014,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000574423076923077,
+                    "elapsed": 0.00844161538461538,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1024,7 +1024,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000513068965517241,
+                    "elapsed": 0.00782993103448276,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1034,7 +1034,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000516307692307692,
+                    "elapsed": 0.00745315384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1044,7 +1044,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000639,
+                    "elapsed": 0.0077916,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1054,7 +1054,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000543310344827586,
+                    "elapsed": 0.00730468965517241,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1064,7 +1064,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000544259259259259,
+                    "elapsed": 0.00735340740740741,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1074,7 +1074,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000523827586206897,
+                    "elapsed": 0.0113915862068966,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1084,7 +1084,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000506555555555556,
+                    "elapsed": 0.00888562962962963,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1094,7 +1094,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000488384615384615,
+                    "elapsed": 0.0063775,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1106,7 +1106,7 @@
         },
         {
             "title": "benchmark",
-            "name": "plf::colony",
+            "name": "plf_colony_rnd",
             "unit": "elms",
             "batch": 75000,
             "complexityN": 75000,
@@ -1119,8 +1119,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000487692307692308,
-            "medianAbsolutePercentError(elapsed)": 0.055103550295858,
+            "median(elapsed)": 0.00433046153846154,
+            "medianAbsolutePercentError(elapsed)": 0.0210668173716472,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1128,11 +1128,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.15464,
+            "totalTime": 1.32569,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00055432,
+                    "elapsed": 0.00427176,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1142,7 +1142,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000487692307692308,
+                    "elapsed": 0.00444538461538462,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1152,7 +1152,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000512192307692308,
+                    "elapsed": 0.00442365384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1162,7 +1162,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000686241379310345,
+                    "elapsed": 0.00432362068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1172,7 +1172,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000582230769230769,
+                    "elapsed": 0.00422257692307692,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1182,7 +1182,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000517766666666667,
+                    "elapsed": 0.00472506666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1192,7 +1192,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000474379310344828,
+                    "elapsed": 0.00493120689655172,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1202,7 +1202,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000458259259259259,
+                    "elapsed": 0.00430118518518518,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1212,7 +1212,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00046748275862069,
+                    "elapsed": 0.004201,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1222,7 +1222,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000462222222222222,
+                    "elapsed": 0.00436366666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1232,7 +1232,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000463307692307692,
+                    "elapsed": 0.00433046153846154,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1244,7 +1244,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_macro",
+            "name": "hive_rnd",
             "unit": "elms",
             "batch": 100000,
             "complexityN": 100000,
@@ -1257,8 +1257,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000652333333333333,
-            "medianAbsolutePercentError(elapsed)": 0.008458162304316,
+            "median(elapsed)": 0.00718979310344828,
+            "medianAbsolutePercentError(elapsed)": 0.0534863898947515,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1266,11 +1266,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.207843,
+            "totalTime": 2.180965,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00093792,
+                    "elapsed": 0.00759608,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1280,7 +1280,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000802038461538462,
+                    "elapsed": 0.00791869230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1290,7 +1290,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000711923076923077,
+                    "elapsed": 0.00702853846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1300,7 +1300,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00065548275862069,
+                    "elapsed": 0.00742779310344828,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1310,7 +1310,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000646038461538462,
+                    "elapsed": 0.00848907692307692,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1320,7 +1320,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000650666666666667,
+                    "elapsed": 0.00715036666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1330,7 +1330,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000645689655172414,
+                    "elapsed": 0.00718979310344828,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1340,7 +1340,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000652333333333333,
+                    "elapsed": 0.00637248148148148,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1350,7 +1350,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000646862068965517,
+                    "elapsed": 0.00626213793103448,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1360,7 +1360,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000656444444444444,
+                    "elapsed": 0.0076872962962963,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1370,7 +1370,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000649423076923077,
+                    "elapsed": 0.00700315384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1382,7 +1382,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_iter",
+            "name": "bhive_rnd",
             "unit": "elms",
             "batch": 100000,
             "complexityN": 100000,
@@ -1395,8 +1395,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000655444444444444,
-            "medianAbsolutePercentError(elapsed)": 0.00565552998070258,
+            "median(elapsed)": 0.0119008846153846,
+            "medianAbsolutePercentError(elapsed)": 0.116856791876828,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1404,11 +1404,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.203406,
+            "totalTime": 3.724937,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00065516,
+                    "elapsed": 0.01974652,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1418,7 +1418,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.0006535,
+                    "elapsed": 0.0123571538461538,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1428,7 +1428,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000655,
+                    "elapsed": 0.0120757692307692,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1438,7 +1438,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000660275862068965,
+                    "elapsed": 0.0116799310344828,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1448,7 +1448,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000816615384615385,
+                    "elapsed": 0.0119008846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1458,7 +1458,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000667333333333333,
+                    "elapsed": 0.0134756,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1468,7 +1468,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000730689655172414,
+                    "elapsed": 0.0136987931034483,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1478,7 +1478,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000654148148148148,
+                    "elapsed": 0.0107224074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1488,7 +1488,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000659172413793103,
+                    "elapsed": 0.0106514137931034,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1498,7 +1498,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000655444444444444,
+                    "elapsed": 0.0104731851851852,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1508,7 +1508,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000651576923076923,
+                    "elapsed": 0.0101989230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1520,7 +1520,7 @@
         },
         {
             "title": "benchmark",
-            "name": "plf::colony",
+            "name": "plf_colony_rnd",
             "unit": "elms",
             "batch": 100000,
             "complexityN": 100000,
@@ -1533,8 +1533,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000656307692307692,
-            "medianAbsolutePercentError(elapsed)": 0.00455259026687588,
+            "median(elapsed)": 0.00613638461538461,
+            "medianAbsolutePercentError(elapsed)": 0.0440894887726995,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1542,11 +1542,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.196877,
+            "totalTime": 1.842326,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00075644,
+                    "elapsed": 0.00583392,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1556,7 +1556,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000656192307692308,
+                    "elapsed": 0.00683126923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1566,7 +1566,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000610615384615385,
+                    "elapsed": 0.00548203846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1576,7 +1576,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000604,
+                    "elapsed": 0.00656544827586207,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1586,7 +1586,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000656307692307692,
+                    "elapsed": 0.00608615384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1596,7 +1596,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000653333333333333,
+                    "elapsed": 0.00632743333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1606,7 +1606,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000659931034482759,
+                    "elapsed": 0.00633127586206897,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1616,7 +1616,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000656740740740741,
+                    "elapsed": 0.00587725925925926,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1626,7 +1626,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000654551724137931,
+                    "elapsed": 0.00586262068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1636,7 +1636,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000661666666666667,
+                    "elapsed": 0.00614874074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1646,7 +1646,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000658923076923077,
+                    "elapsed": 0.00613638461538461,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1658,7 +1658,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_macro",
+            "name": "hive_rnd",
             "unit": "elms",
             "batch": 125000,
             "complexityN": 125000,
@@ -1671,8 +1671,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000827115384615385,
-            "medianAbsolutePercentError(elapsed)": 0.00504743655652657,
+            "median(elapsed)": 0.00905062068965517,
+            "medianAbsolutePercentError(elapsed)": 0.0628839893178428,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1680,11 +1680,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.253239,
+            "totalTime": 2.779787,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00096836,
+                    "elapsed": 0.00881748,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1694,7 +1694,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000822961538461538,
+                    "elapsed": 0.00855261538461538,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1704,7 +1704,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000831576923076923,
+                    "elapsed": 0.00963092307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1714,7 +1714,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00082448275862069,
+                    "elapsed": 0.00905062068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1724,7 +1724,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000824807692307692,
+                    "elapsed": 0.0108388076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1734,7 +1734,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.0008243,
+                    "elapsed": 0.0107587333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1744,7 +1744,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000829275862068966,
+                    "elapsed": 0.00967627586206896,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1754,7 +1754,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000854444444444444,
+                    "elapsed": 0.00839392592592593,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1764,7 +1764,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000867827586206896,
+                    "elapsed": 0.00837637931034483,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1774,7 +1774,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000819888888888889,
+                    "elapsed": 0.00918451851851852,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1784,7 +1784,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000827115384615385,
+                    "elapsed": 0.00851515384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1796,7 +1796,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_iter",
+            "name": "bhive_rnd",
             "unit": "elms",
             "batch": 125000,
             "complexityN": 125000,
@@ -1809,8 +1809,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000837033333333333,
-            "medianAbsolutePercentError(elapsed)": 0.00378151932332394,
+            "median(elapsed)": 0.014945,
+            "medianAbsolutePercentError(elapsed)": 0.0414706722694932,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1818,11 +1818,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.272034,
+            "totalTime": 4.920086,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00083388,
+                    "elapsed": 0.02787296,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1832,7 +1832,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000834846153846154,
+                    "elapsed": 0.0215832307692308,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1842,7 +1842,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.0008315,
+                    "elapsed": 0.014945,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1852,7 +1852,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000838310344827586,
+                    "elapsed": 0.0138430689655172,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1862,7 +1862,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000839153846153846,
+                    "elapsed": 0.0148318846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1872,7 +1872,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000837033333333333,
+                    "elapsed": 0.0143499,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1882,7 +1882,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000832103448275862,
+                    "elapsed": 0.0134343103448276,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1892,7 +1892,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000836481481481482,
+                    "elapsed": 0.0148018888888889,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1902,7 +1902,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00111044827586207,
+                    "elapsed": 0.0152110689655172,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1912,7 +1912,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00108659259259259,
+                    "elapsed": 0.0152944814814815,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1922,7 +1922,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00109096153846154,
+                    "elapsed": 0.0158705769230769,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1934,7 +1934,7 @@
         },
         {
             "title": "benchmark",
-            "name": "plf::colony",
+            "name": "plf_colony_rnd",
             "unit": "elms",
             "batch": 125000,
             "complexityN": 125000,
@@ -1947,8 +1947,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.000834103448275862,
-            "medianAbsolutePercentError(elapsed)": 0.0473242119847594,
+            "median(elapsed)": 0.00771423076923077,
+            "medianAbsolutePercentError(elapsed)": 0.0361361507812342,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -1956,11 +1956,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.259602,
+            "totalTime": 2.348353,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00101436,
+                    "elapsed": 0.00707428,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1970,7 +1970,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000842269230769231,
+                    "elapsed": 0.00735034615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1980,7 +1980,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000829384615384615,
+                    "elapsed": 0.00771423076923077,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -1990,7 +1990,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000834103448275862,
+                    "elapsed": 0.00802251724137931,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2000,7 +2000,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000833153846153846,
+                    "elapsed": 0.00771534615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2010,7 +2010,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.0009316,
+                    "elapsed": 0.00753926666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2020,7 +2020,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000950689655172414,
+                    "elapsed": 0.00763879310344828,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2030,7 +2030,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000892259259259259,
+                    "elapsed": 0.00800344444444444,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2040,7 +2040,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000796413793103448,
+                    "elapsed": 0.00784362068965517,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2050,7 +2050,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000805814814814815,
+                    "elapsed": 0.0101844074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2060,7 +2060,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000787192307692308,
+                    "elapsed": 0.00693557692307692,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2072,7 +2072,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_macro",
+            "name": "hive_rnd",
             "unit": "elms",
             "batch": 150000,
             "complexityN": 150000,
@@ -2085,8 +2085,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00106106896551724,
-            "medianAbsolutePercentError(elapsed)": 0.0459606450881896,
+            "median(elapsed)": 0.00996696551724138,
+            "medianAbsolutePercentError(elapsed)": 0.0733479033270683,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -2094,11 +2094,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.321543,
+            "totalTime": 3.06809,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00118844,
+                    "elapsed": 0.01013144,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2108,7 +2108,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00108315384615385,
+                    "elapsed": 0.00969976923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2118,7 +2118,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.001175,
+                    "elapsed": 0.00958265384615385,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2128,7 +2128,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00106106896551724,
+                    "elapsed": 0.00996696551724138,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2138,7 +2138,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.001001,
+                    "elapsed": 0.0108573846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2148,7 +2148,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.000997766666666667,
+                    "elapsed": 0.00928586666666667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2158,7 +2158,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.0011768275862069,
+                    "elapsed": 0.0118895862068966,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2168,7 +2168,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00101492592592593,
+                    "elapsed": 0.00890951851851852,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2178,7 +2178,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00101503448275862,
+                    "elapsed": 0.0104946551724138,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2188,7 +2188,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00101444444444444,
+                    "elapsed": 0.0124042592592593,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2198,7 +2198,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00107819230769231,
+                    "elapsed": 0.00918984615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2210,7 +2210,7 @@
         },
         {
             "title": "benchmark",
-            "name": "hive_iter",
+            "name": "bhive_rnd",
             "unit": "elms",
             "batch": 150000,
             "complexityN": 150000,
@@ -2223,8 +2223,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00103238461538462,
-            "medianAbsolutePercentError(elapsed)": 0.0699394915375846,
+            "median(elapsed)": 0.0192667,
+            "medianAbsolutePercentError(elapsed)": 0.142673430338629,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -2232,11 +2232,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.316488,
+            "totalTime": 6.549375,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00113068,
+                    "elapsed": 0.03879588,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2246,7 +2246,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00117842307692308,
+                    "elapsed": 0.0356753846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2256,7 +2256,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00107930769230769,
+                    "elapsed": 0.0210784230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2266,7 +2266,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00100727586206897,
+                    "elapsed": 0.022473,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2276,7 +2276,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000964884615384615,
+                    "elapsed": 0.0213691923076923,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2286,7 +2286,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.0009649,
+                    "elapsed": 0.0192667,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2296,7 +2296,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000966689655172414,
+                    "elapsed": 0.0163591034482759,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2306,7 +2306,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.001158,
+                    "elapsed": 0.0174334074074074,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2316,7 +2316,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00112037931034483,
+                    "elapsed": 0.0168335517241379,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2326,7 +2326,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00102377777777778,
+                    "elapsed": 0.0170003333333333,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2336,7 +2336,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00103238461538462,
+                    "elapsed": 0.0163947692307692,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2348,7 +2348,7 @@
         },
         {
             "title": "benchmark",
-            "name": "plf::colony",
+            "name": "plf_colony_rnd",
             "unit": "elms",
             "batch": 150000,
             "complexityN": 150000,
@@ -2361,8 +2361,8 @@
             "epochIterations": 0,
             "warmup": 0,
             "relative": 0,
-            "median(elapsed)": 0.00102534615384615,
-            "medianAbsolutePercentError(elapsed)": 0.0250807061790668,
+            "median(elapsed)": 0.00894122222222222,
+            "medianAbsolutePercentError(elapsed)": 0.0817923999058971,
             "median(instructions)": 0,
             "medianAbsolutePercentError(instructions)": 0,
             "median(cpucycles)": 0,
@@ -2370,11 +2370,11 @@
             "median(pagefaults)": 0,
             "median(branchinstructions)": 0,
             "median(branchmisses)": 0,
-            "totalTime": 0.31117,
+            "totalTime": 2.687312,
             "measurements": [
                 {
                     "iterations": 25,
-                    "elapsed": 0.00119528,
+                    "elapsed": 0.0089314,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2384,7 +2384,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00102534615384615,
+                    "elapsed": 0.00826519230769231,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2394,7 +2394,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00102603846153846,
+                    "elapsed": 0.00817303846153846,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2404,7 +2404,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00101589655172414,
+                    "elapsed": 0.00922758620689655,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2414,7 +2414,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.00100669230769231,
+                    "elapsed": 0.00796084615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2424,7 +2424,7 @@
                 },
                 {
                     "iterations": 30,
-                    "elapsed": 0.00104066666666667,
+                    "elapsed": 0.0097651,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2434,7 +2434,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.00105172413793103,
+                    "elapsed": 0.00958337931034483,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2444,7 +2444,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.00112277777777778,
+                    "elapsed": 0.00894122222222222,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2454,7 +2454,7 @@
                 },
                 {
                     "iterations": 29,
-                    "elapsed": 0.000988172413793103,
+                    "elapsed": 0.009508,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2464,7 +2464,7 @@
                 },
                 {
                     "iterations": 27,
-                    "elapsed": 0.000982222222222222,
+                    "elapsed": 0.00985522222222222,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,
@@ -2474,1663 +2474,7 @@
                 },
                 {
                     "iterations": 26,
-                    "elapsed": 0.000965576923076923,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_macro",
-            "unit": "elms",
-            "batch": 175000,
-            "complexityN": 175000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.0012795,
-            "medianAbsolutePercentError(elapsed)": 0.0647192780229977,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.376264,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00125756,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00106169230769231,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.001054,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00105251724137931,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00136803846153846,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.0012795,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00145120689655172,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00131477777777778,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00128468965517241,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00123866666666667,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00142523076923077,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_iter",
-            "unit": "elms",
-            "batch": 175000,
-            "complexityN": 175000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00131938461538462,
-            "medianAbsolutePercentError(elapsed)": 0.0693955761904862,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.411003,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00157136,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00153861538461538,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00131938461538462,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00137106896551724,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00152876923076923,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.00123376666666667,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00120410344827586,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00150255555555556,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00128565517241379,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00127751851851852,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00129323076923077,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "plf::colony",
-            "unit": "elms",
-            "batch": 175000,
-            "complexityN": 175000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00134811538461538,
-            "medianAbsolutePercentError(elapsed)": 0.0753951696038486,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.415072,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00179164,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00162919230769231,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00134811538461538,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00125851724137931,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00125919230769231,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.0012536,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00124620689655172,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.0014087037037037,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00141124137931034,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.001484,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00118684615384615,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_macro",
-            "unit": "elms",
-            "batch": 200000,
-            "complexityN": 200000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00116933333333333,
-            "medianAbsolutePercentError(elapsed)": 0.0698383653552913,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.393655,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00200644,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00165523076923077,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00151823076923077,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.0014178275862069,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00124615384615385,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.00116933333333333,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00113179310344828,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.001093,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00108727586206897,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00109985185185185,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00110873076923077,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_iter",
-            "unit": "elms",
-            "batch": 200000,
-            "complexityN": 200000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00147315384615385,
-            "medianAbsolutePercentError(elapsed)": 0.0908831989974652,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.424315,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00108824,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00111080769230769,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00129653846153846,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00126896551724138,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00135042307692308,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.00174793333333333,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00158955172413793,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00155692592592593,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.0015031724137931,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.0014867037037037,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00147315384615385,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "plf::colony",
-            "unit": "elms",
-            "batch": 200000,
-            "complexityN": 200000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.0014057,
-            "medianAbsolutePercentError(elapsed)": 0.0838397395625106,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.459374,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00202892,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00167061538461538,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00165296153846154,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00179831034482759,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00171969230769231,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.0014057,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.001321,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00129696296296296,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00135144827586207,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00134992592592593,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00131680769230769,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_macro",
-            "unit": "elms",
-            "batch": 225000,
-            "complexityN": 225000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00188496,
-            "medianAbsolutePercentError(elapsed)": 0.0457252592497759,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.544185,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00188496,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00146465384615385,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.0014735,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00148975862068966,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00180253846153846,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.00197106666666667,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00191048275862069,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00212318518518519,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.0020171724137931,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.0018447037037037,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00193973076923077,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_iter",
-            "unit": "elms",
-            "batch": 225000,
-            "complexityN": 225000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00154638461538462,
-            "medianAbsolutePercentError(elapsed)": 0.0506652058528049,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.476974,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00175388,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00183342307692308,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00171780769230769,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00152493103448276,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00154638461538462,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.00152766666666667,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00162896551724138,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00158237037037037,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.0014658275862069,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00147181481481481,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.001474,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "plf::colony",
-            "unit": "elms",
-            "batch": 225000,
-            "complexityN": 225000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.0020282962962963,
-            "medianAbsolutePercentError(elapsed)": 0.0377925501541099,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.612915,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00210324,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00211234615384615,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00210796153846154,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00203272413793103,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00197526923076923,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.00196103333333333,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00194731034482759,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00191492592592593,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00242958620689655,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.0020282962962963,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00184892307692308,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_macro",
-            "unit": "elms",
-            "batch": 250000,
-            "complexityN": 250000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00231814814814815,
-            "medianAbsolutePercentError(elapsed)": 0.0475628182176007,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.71343,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00296424,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00250792307692308,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00219419230769231,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00221289655172414,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00226084615384615,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.0022817,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00237420689655172,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00217159259259259,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00249993103448276,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00231814814814815,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.0024265,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "hive_iter",
-            "unit": "elms",
-            "batch": 250000,
-            "complexityN": 250000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.0014207,
-            "medianAbsolutePercentError(elapsed)": 0.0824533679487541,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.500012,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00235976,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00232211538461538,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00245492307692308,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00176072413793103,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00151446153846154,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.0014207,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00135210344827586,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00135651851851852,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.001346,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00131248148148148,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.0012865,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                }
-            ]
-        },
-        {
-            "title": "benchmark",
-            "name": "plf::colony",
-            "unit": "elms",
-            "batch": 250000,
-            "complexityN": 250000,
-            "epochs": 11,
-            "clockResolution": 1e-06,
-            "clockResolutionMultiple": 1000,
-            "maxEpochTime": 0.1,
-            "minEpochTime": 0.001,
-            "minEpochIterations": 25,
-            "epochIterations": 0,
-            "warmup": 0,
-            "relative": 0,
-            "median(elapsed)": 0.00146486206896552,
-            "medianAbsolutePercentError(elapsed)": 0.0948925700269906,
-            "median(instructions)": 0,
-            "medianAbsolutePercentError(instructions)": 0,
-            "median(cpucycles)": 0,
-            "median(contextswitches)": 0,
-            "median(pagefaults)": 0,
-            "median(branchinstructions)": 0,
-            "median(branchmisses)": 0,
-            "totalTime": 0.435409,
-            "measurements": [
-                {
-                    "iterations": 25,
-                    "elapsed": 0.00161844,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00140415384615385,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00134888461538462,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00119327586206897,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00119253846153846,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 30,
-                    "elapsed": 0.0011942,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00146486206896552,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00149262962962963,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 29,
-                    "elapsed": 0.00159910344827586,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 27,
-                    "elapsed": 0.00177751851851852,
-                    "pagefaults": 0,
-                    "cpucycles": 0,
-                    "contextswitches": 0,
-                    "instructions": 0,
-                    "branchinstructions": 0,
-                    "branchmisses": 0
-                },
-                {
-                    "iterations": 26,
-                    "elapsed": 0.00172242307692308,
+                    "elapsed": 0.00799784615384615,
                     "pagefaults": 0,
                     "cpucycles": 0,
                     "contextswitches": 0,

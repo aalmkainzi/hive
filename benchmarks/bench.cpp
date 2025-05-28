@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 250'000;
+    int end   = 150'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
@@ -277,9 +277,6 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 srand(69420);
                 
-#if !defined(NDEBUG2)
-                unsigned int sum = hv_sum(sl);
-#endif
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
                     [&]{
                         big_sp_iter_t it = {};
@@ -290,22 +287,6 @@ int main(int argc, char **argv)
                             if(random < 75 || sl.count == 0 || !iter_set)
                             {
                                 big_sp_iter_t tmp = big_sp_put(&sl, (Big){.i=i});
-#if !defined(NDEBUG2)
-                                unsigned int new_sum = hv_sum(sl);
-                                
-                                // printf("i = %d\n", i);
-                                bool sum_ok = (new_sum == sum + i);
-                                if(!sum_ok)
-                                {
-                                    puts("wtf");
-                                    printf("ERROR i = %d\n", i);
-                                    fflush(stdout);
-                                    exit(69);
-                                    assert(0);
-                                }
-                                sum = new_sum;
-                                
-#endif
                                 
                                 random = rand() % 100;
                                 if(random < 5 || !iter_set)
@@ -319,19 +300,7 @@ int main(int argc, char **argv)
                                 int val = it.elm->value.i;
                                 it = big_sp_iter_del(&sl, it);
                                 iter_set = false;
-                                
-#if !defined(NDEBUG2)
-                                unsigned int new_sum = hv_sum(sl);
-                                assert(new_sum == sum - val);
-                                sum = new_sum;
-#endif
                             }
-                        }
-                        
-                        if(argc > 1)
-                        {
-                            argc = 0;
-                            print_hv(sl, argv[1]);
                         }
                         
 #if !defined(NDEBUG)
@@ -471,15 +440,18 @@ int main(int argc, char **argv)
             {
                 rng2.seed(41);
                 srand(69420);
+                
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_rnd",
                     [&]{
                         bbig_sp_iter_t it = {};
                         bool iter_set = false;
+                        printf("COUNT = %zu\n", sl.count);
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
                             if(random < 75 || sl.count == 0 || !iter_set)
                             {
                                 bbig_sp_iter_t tmp = bbig_sp_put(&sl, (Big){.i=i});
+                                
                                 random = rand() % 100;
                                 if(random < 5 || !iter_set)
                                 {
@@ -489,6 +461,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
+                                int val = it.elm->value.i;
                                 it = bbig_sp_iter_del(&sl, it);
                                 iter_set = false;
                             }
@@ -496,12 +469,12 @@ int main(int argc, char **argv)
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl); !bbig_sp_iter_eq(it, end) ; bbig_sp_iter_go_next(&it))
+                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl) ; !bbig_sp_iter_eq(it,end) ; bbig_sp_iter_go_next(&it))
                         {
                             sum += bbig_sp_iter_elm(it)->i;
                         }
                         
-                        printf("BHV SUM AFTER RND: %u\n", sum);
+                        printf("HV SUM AFTER RND: %u\n", sum);
 #endif
                         ankerl::nanobench::doNotOptimizeAway(sl);
                     }
