@@ -611,10 +611,10 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
     
     if(_bucket->count != HIVE_BUCKET_SIZE)
     {
-        hive_index_t next_empty;
-        for(next_empty = _bucket->first_empty_idx + 1 ; _bucket->next_entries[next_empty].next_elm_index == next_empty ; next_empty++)
+        hive_index_t _next_empty;
+        for(_next_empty = _bucket->first_empty_idx + 1 ; _bucket->next_entries[_next_empty].next_elm_index == _next_empty ; _next_empty++)
             ;
-        _bucket->first_empty_idx = next_empty;
+        _bucket->first_empty_idx = _next_empty;
     }
     else
     {
