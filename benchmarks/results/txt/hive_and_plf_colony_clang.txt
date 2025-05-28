@@ -1,13 +1,63 @@
 
 | complexityN |             ns/elms |              elms/s |    err% |     total | benchmark
 |------------:|--------------------:|--------------------:|--------:|----------:|:----------
-|      25,000 |              308.99 |        3,236,304.92 |    5.2% |      2.39 | :wavy_dash: `hive_del` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
-|      25,000 |               74.63 |       13,400,072.57 |    2.6% |      0.57 | `plf::colony::erase`
-|      50,000 |              152.61 |        6,552,573.56 |    3.3% |      2.21 | `hive_del`
-|      50,000 |               68.84 |       14,525,772.63 |    2.3% |      1.07 | `plf::colony::erase`
-|      75,000 |              214.49 |        4,662,219.52 |    3.9% |      4.84 | `hive_del`
-|      75,000 |               78.20 |       12,787,336.18 |    4.9% |      1.76 | `plf::colony::erase`
-|     100,000 |              156.15 |        6,404,136.81 |    1.5% |      4.67 | `hive_del`
-|     100,000 |               77.60 |       12,886,029.51 |    5.8% |      2.42 | :wavy_dash: `plf::colony::erase` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
-|     125,000 |              134.23 |        7,449,801.58 |    6.4% |      4.99 | :wavy_dash: `hive_del` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
-|     125,000 |               85.80 |       11,654,447.43 |    3.6% |      3.24 | `plf::colony::erase`
+|      25,000 |                6.80 |      146,981,308.03 |   13.7% |      0.05 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|      25,000 |                5.85 |      170,893,833.68 |    0.8% |      0.04 | `hive_iter`
+|      25,000 |                6.64 |      150,558,624.41 |   10.4% |      0.05 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|      50,000 |                6.35 |      157,514,660.98 |    3.7% |      0.10 | `hive_macro`
+|      50,000 |                6.19 |      161,498,708.01 |    0.0% |      0.09 | `hive_iter`
+|      50,000 |                6.08 |      164,523,795.02 |    0.2% |      0.09 | `plf::colony`
+|      75,000 |                6.25 |      160,042,972.46 |    1.0% |      0.15 | `hive_macro`
+|      75,000 |                6.68 |      149,769,585.25 |    0.7% |      0.15 | `hive_iter`
+|      75,000 |                5.99 |      166,840,637.25 |    1.8% |      0.15 | `plf::colony`
+|     100,000 |                6.20 |      161,329,802.62 |    1.2% |      0.19 | `hive_macro`
+|     100,000 |                6.50 |      153,875,541.22 |    5.5% |      0.21 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     100,000 |                6.39 |      156,459,905.80 |    1.8% |      0.20 | `plf::colony`
+|     125,000 |                6.64 |      150,590,314.03 |    1.5% |      0.26 | `hive_macro`
+|     125,000 |                6.65 |      150,344,444.31 |    0.8% |      0.26 | `hive_iter`
+|     125,000 |                6.40 |      156,291,243.52 |    6.8% |      0.27 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     150,000 |                6.90 |      144,905,458.48 |    9.3% |      0.32 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     150,000 |                6.85 |      146,040,293.69 |    3.2% |      0.32 | `hive_iter`
+|     150,000 |                6.21 |      161,058,526.19 |    1.2% |      0.30 | `plf::colony`
+|     175,000 |                7.54 |      132,648,873.86 |    9.7% |      0.41 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     175,000 |                6.82 |      146,631,006.01 |    1.8% |      0.38 | `hive_iter`
+|     175,000 |                5.98 |      167,104,595.95 |    3.0% |      0.33 | `plf::colony`
+|     200,000 |                7.88 |      126,954,674.74 |    2.4% |      0.48 | `hive_macro`
+|     200,000 |                7.83 |      127,702,002.47 |    2.7% |      0.47 | `hive_iter`
+|     200,000 |                7.23 |      138,331,081.61 |    1.1% |      0.45 | `plf::colony`
+|     225,000 |                8.20 |      121,950,763.66 |    9.1% |      0.55 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     225,000 |                8.25 |      121,253,128.63 |    2.4% |      0.57 | `hive_iter`
+|     225,000 |                8.11 |      123,232,401.09 |    4.5% |      0.56 | `plf::colony`
+|     250,000 |                7.78 |      128,504,752.96 |   18.1% |      0.59 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     250,000 |                5.93 |      168,505,974.18 |   10.1% |      0.46 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     250,000 |                4.84 |      206,791,311.91 |    6.7% |      0.36 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     275,000 |                6.23 |      160,603,668.41 |   13.7% |      0.51 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     275,000 |                5.95 |      168,139,948.88 |   10.4% |      0.51 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     275,000 |                5.88 |      169,960,582.88 |   12.0% |      0.55 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     300,000 |                7.69 |      130,046,592.56 |   15.5% |      0.69 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     300,000 |                5.71 |      175,127,809.62 |    7.4% |      0.53 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     300,000 |                6.38 |      156,705,933.21 |    7.5% |      0.58 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     325,000 |                9.93 |      100,715,497.19 |    9.5% |      0.95 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     325,000 |               10.24 |       97,678,110.98 |   10.3% |      0.96 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     325,000 |                7.38 |      135,489,868.83 |    7.4% |      0.77 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     350,000 |                6.21 |      161,106,091.34 |    3.6% |      0.69 | `hive_macro`
+|     350,000 |                7.39 |      135,291,456.45 |    6.5% |      0.75 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     350,000 |                8.77 |      114,003,246.81 |    4.3% |      0.91 | `plf::colony`
+|     375,000 |                7.18 |      139,315,169.49 |    6.2% |      0.82 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     375,000 |                7.04 |      141,951,258.49 |    8.6% |      0.80 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     375,000 |                7.05 |      141,784,331.36 |    7.3% |      0.91 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     400,000 |                9.19 |      108,864,171.30 |    9.0% |      1.16 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     400,000 |                9.50 |      105,209,407.53 |   15.0% |      1.18 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     400,000 |               11.97 |       83,555,848.80 |    4.2% |      1.42 | `plf::colony`
+|     425,000 |                7.54 |      132,672,917.04 |    6.1% |      1.10 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     425,000 |                7.17 |      139,537,768.22 |    3.4% |      0.94 | `hive_iter`
+|     425,000 |                7.19 |      139,147,385.41 |    3.5% |      0.95 | `plf::colony`
+|     450,000 |                8.42 |      118,706,886.32 |    5.6% |      1.16 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     450,000 |                7.90 |      126,534,288.85 |    5.4% |      1.03 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     450,000 |                8.11 |      123,260,422.35 |    8.6% |      1.13 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     475,000 |                8.36 |      119,552,696.73 |    3.0% |      1.29 | `hive_macro`
+|     475,000 |                8.14 |      122,920,298.77 |    5.9% |      1.23 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     475,000 |                8.26 |      121,057,543.01 |    4.0% |      1.22 | `plf::colony`
+|     500,000 |               10.03 |       99,698,099.38 |   17.6% |      1.60 | :wavy_dash: `hive_macro` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     500,000 |                9.77 |      102,368,525.28 |   12.2% |      1.49 | :wavy_dash: `hive_iter` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)
+|     500,000 |               12.49 |       80,064,988.13 |   11.2% |      1.83 | :wavy_dash: `plf::colony` (Unstable with ~27.3 iters. Increase `minEpochIterations` to e.g. 273)

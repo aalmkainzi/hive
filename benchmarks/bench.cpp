@@ -132,9 +132,9 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 71770;
-    int end   = 71770;
-    int interval = 1;
+    int begin = 25'000;
+    int end   = 500'000;
+    int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
@@ -144,14 +144,14 @@ int main(int argc, char **argv)
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
-    constexpr bool bench_linked_list = true;
+    constexpr bool bench_linked_list = false;
     
-    constexpr bool bench_iter = false;
+    constexpr bool bench_iter = true;
     constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = true;
+    constexpr bool bench_random = false;
     
-    int iterations = 1;
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
                     [&]{
                         volatile unsigned int sum = 0;
                         
-                        for(big_sp_iter_t it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+                        for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
                         {
                             sum += big_sp_iter_elm(it)->i;
                         }
@@ -231,10 +231,10 @@ int main(int argc, char **argv)
                         big_sp slc = big_sp_clone(&sl);
                         
                         bool remove = true;
-                        for(big_sp_iter_t it = big_sp_begin(&slc) ; !big_sp_iter_is_end(it) ; )
+                        for(big_sp_iter_t it = big_sp_begin(&slc), end = big_sp_end(&slc); !big_sp_iter_eq(it, end) ; )
                         {
                             if(remove)
-                                it = big_sp_iter_del(it);
+                                it = big_sp_iter_del(&slc, it);
                             else
                                 big_sp_iter_go_next(&it);
                             remove = !remove;
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+                        for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
                         {
                             sum += big_sp_iter_elm(it)->i;
                         }
@@ -277,7 +277,9 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 srand(69420);
                 
+#if !defined(NDEBUG2)
                 unsigned int sum = hv_sum(sl);
+#endif
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
                     [&]{
                         big_sp_iter_t it = {};
@@ -315,7 +317,7 @@ int main(int argc, char **argv)
                             else
                             {
                                 int val = it.elm->value.i;
-                                it = big_sp_iter_del(it);
+                                it = big_sp_iter_del(&sl, it);
                                 iter_set = false;
                                 
 #if !defined(NDEBUG2)
@@ -334,7 +336,7 @@ int main(int argc, char **argv)
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = big_sp_begin(&sl) ; !big_sp_iter_is_end(it) ; big_sp_iter_go_next(&it))
+                        for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
                         {
                             sum += big_sp_iter_elm(it)->i;
                         }
@@ -678,7 +680,9 @@ int main(int argc, char **argv)
             
             // STABLE_VECTOR END
             
-            bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("boost::stable_vector", 
+            if(bench_iter)
+            {
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("boost::stable_vector", 
                 [&]{
                     volatile unsigned int sum = 0;
                     
@@ -689,7 +693,50 @@ int main(int argc, char **argv)
                     ankerl::nanobench::doNotOptimizeAway(sum);
                     printf("stable_vec_sum = %u\n", sum);
                 }
-            );
+                );
+            }
+            
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("boost:stable_vec rnd",
+                    [&]{
+                        bool set_iter = false;
+                        auto it = stable_vec.begin();
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || stable_vec.size() == 0 || !set_iter)
+                            {
+                                stable_vec.push_back((Big){.i=i});
+                                auto tmp = std::prev(stable_vec.end());
+                                random = rand() % 100;
+                                if(random < 5 || !set_iter)
+                                {
+                                    set_iter = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                it = stable_vec.erase(it);
+                                set_iter = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = stable_vec.begin() ; it != stable_vec.end() ; it++)
+                        {
+                            sum += it->i;
+                        }
+                        
+                        printf("LS SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(stable_vec);
+                    }
+                );
+            }
         }
         
         if(bench_linked_list)

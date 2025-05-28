@@ -93,7 +93,6 @@
 #define hive_iter_elm              HIVE_CAT(HIVE_NAME, _iter_elm)
 #define hive_iter_del              HIVE_CAT(HIVE_NAME, _iter_del)
 #define hive_iter_eq               HIVE_CAT(HIVE_NAME, _iter_eq)
-#define hive_iter_is_end           HIVE_CAT(HIVE_NAME, _iter_is_end)
 #define hive_iter_to               HIVE_CAT(HIVE_NAME, _iter_to)
 
 #define HIVE_ARR_LEN(arr) \
@@ -130,15 +129,15 @@ do                                                                              
 ((typeof(hive_bucket->elms[0].value)*const) &hive_elms_base[hive_index])
 
 #define HIVE_GET_ITER(itr) \
-*(itr) = (typeof(*(itr))){.hv = hive_hv, .bucket = hive_bucket, .next_entry = hive_next_entries_base + hive_index + 1, .elm = &hive_elms_base[hive_index]}
+*(itr) = (typeof(*(itr))){.bucket = hive_bucket, .next_entry = hive_next_entries_base + hive_index + 1, .elm = &hive_elms_base[hive_index]}
 
-#define HIVE_SET_ITER(itr)                            \
-do {                                                  \
-    const typeof(itr) hive_itr = itr;                 \
-    hive_bucket = hive_itr.bucket;                    \
-    hive_elms_base = &hive_bucket->elms[0];           \
+#define HIVE_SET_ITER(itr)                                  \
+do {                                                        \
+    const typeof(itr) hive_itr = itr;                       \
+    hive_bucket = hive_itr.bucket;                          \
+    hive_elms_base = &hive_bucket->elms[0];                 \
     hive_next_entries_base = &hive_bucket->next_entries[0]; \
-    hive_index = hive_itr.elm - hive_elms_base;       \
+    hive_index = hive_itr.elm - hive_elms_base;             \
 } while(0)
 
 typedef struct hive_entry_t
@@ -180,7 +179,6 @@ typedef struct HIVE_NAME
 
 typedef struct hive_iter_t
 {
-    HIVE_NAME *hv;
     hive_bucket_t *bucket;
     hive_next_entry_t *next_entry;
     hive_entry_t *elm;
@@ -199,9 +197,8 @@ hive_iter_t hive_end(HIVE_NAME *hv);
 hive_iter_t hive_iter_next(hive_iter_t it);
 void hive_iter_go_next(hive_iter_t *it);
 HIVE_TYPE *hive_iter_elm(hive_iter_t it);
-hive_iter_t hive_iter_del(hive_iter_t it);
+hive_iter_t hive_iter_del(HIVE_NAME *hv, hive_iter_t it);
 bool hive_iter_eq(hive_iter_t a, hive_iter_t b);
-bool hive_iter_is_end(hive_iter_t it);
 
 #define HIVE_IMPL
 #if defined(HIVE_IMPL)
@@ -453,9 +450,7 @@ void hive_put_all(HIVE_NAME *hv, HIVE_TYPE *elms, size_t nelms)
 
 hive_iter_t hive_del_helper(HIVE_NAME *hv, hive_bucket_t *prev_bucket, hive_bucket_t *bucket, hive_index_t index)
 {
-    hive_iter_t ret = {
-        .hv = hv
-    };
+    hive_iter_t ret;
     if(hive_bucket_del(hv, bucket, index))
     {
         if(prev_bucket != NULL)
@@ -517,9 +512,7 @@ hive_iter_t hive_del_helper(HIVE_NAME *hv, hive_bucket_t *prev_bucket, hive_buck
 hive_iter_t hive_del(HIVE_NAME *hv, HIVE_TYPE *elm)
 {
     hive_bucket_t *prev = NULL;
-    hive_iter_t ret = {
-        .hv = hv
-    };
+    hive_iter_t ret;
     for(hive_bucket_t *bucket = hv->buckets ; bucket != hv->end_sentinel ; prev = bucket, bucket = bucket->next)
     {
         if(hive_bucket_is_elm_within(bucket, elm))
@@ -722,7 +715,6 @@ hive_iter_t hive_end(HIVE_NAME *hv)
 hive_iter_t hive_iter_to(HIVE_NAME *hv, hive_bucket_t *bucket, hive_index_t index)
 {
     hive_iter_t ret;
-    ret.hv = hv;
     ret.bucket = bucket;
     ret.elm = &bucket->elms[index];
     ret.next_entry = &ret.bucket->next_entries[index] + 1;
@@ -732,11 +724,6 @@ hive_iter_t hive_iter_to(HIVE_NAME *hv, hive_bucket_t *bucket, hive_index_t inde
 bool hive_iter_eq(hive_iter_t a, hive_iter_t b)
 {
     return (a.elm == b.elm);
-}
-
-bool hive_iter_is_end(hive_iter_t it)
-{
-    return (it.bucket == it.hv->end_sentinel);
 }
 
 hive_iter_t hive_iter_next(hive_iter_t it)
@@ -772,13 +759,12 @@ HIVE_TYPE *hive_iter_elm(hive_iter_t it)
     return &it.elm->value;
 }
 
-hive_iter_t hive_iter_del(hive_iter_t it)
+hive_iter_t hive_iter_del(HIVE_NAME *hv, hive_iter_t it)
 {
-    HIVE_NAME *hv = it.hv;
     hive_bucket_t *bucket = it.bucket;
     hive_index_t index = it.elm - it.bucket->elms;
     
-    return hive_del_helper(it.hv, it.bucket->prev, it.bucket, index);
+    return hive_del_helper(hv, it.bucket->prev, it.bucket, index);
 }
 
 bool hive_validate(HIVE_NAME *hive)
@@ -792,7 +778,11 @@ bool hive_validate(HIVE_NAME *hive)
         {
             for(hive_index_t i = begin ; i <= next_elm ; i++)
             {
-                assert(b->next_entries[i].next_elm_index == next_elm);
+                if(b->next_entries[i].next_elm_index != next_elm)
+                {
+                    assert(0);
+                    return false;
+                }
             }
             
             begin = next_elm + 1;
@@ -813,11 +803,16 @@ bool hive_validate(HIVE_NAME *hive)
                         break;
                     }
                 }
-            assert(set);
+                
+            if(!set)
+            {
+                assert(0);
+                return false;
+            }
         }
-        
         b = b->next;
     }
+    return true;
 }
 
 void *hive_alloc_mem(void *ctx, size_t size, size_t alignment)

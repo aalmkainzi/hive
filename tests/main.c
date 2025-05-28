@@ -828,7 +828,7 @@ static void test_int_erase_single_element(void)
     ASSERT(p != NULL);
     
     int_hv_iter_t it = int_hv_begin(&sp);
-    it = int_hv_iter_del(it);
+    it = int_hv_iter_del(&sp, it);
     
     ASSERT(int_hv_iter_eq(it, int_hv_end(&sp)));
     ASSERT(sp.count == 0);
@@ -845,7 +845,7 @@ static void test_int_erase_first_element(void)
     
     int_hv_iter_t it = int_hv_begin(&sp);
     int elm = *int_hv_iter_elm(it);
-    it = int_hv_iter_del(it);
+    it = int_hv_iter_del(&sp, it);
     
     ASSERT(sp.count == 2);
     
@@ -889,7 +889,7 @@ static void test_int_erase_last_element_during_iteration(void)
     }
     it = last;
     int elm = *int_hv_iter_elm(it);
-    it = int_hv_iter_del(it);
+    it = int_hv_iter_del(&sp, it);
     
     ASSERT(sp.count == 2);
     
@@ -930,7 +930,7 @@ static void test_int_erase_every_other_element(void)
     int_hv_iter_t it = int_hv_begin(&sp);
     while (!int_hv_iter_eq(it, int_hv_end(&sp))) {
         if (remove) {
-            it = int_hv_iter_del(it);
+            it = int_hv_iter_del(&sp, it);
         } else {
             it = int_hv_iter_next(it);
         }
@@ -959,7 +959,7 @@ static void test_int_stress_iter_del(void)
     size_t expected = M;
     while (!int_hv_iter_eq(it, int_hv_end(&sp))) {
         if (*(int_hv_iter_elm(it)) % 2 == 0) {
-            it = int_hv_iter_del(it);
+            it = int_hv_iter_del(&sp, it);
             expected--;
         } else {
             it = int_hv_iter_next(it);
@@ -988,7 +988,7 @@ static void test_big_erase_single_element(void)
     ASSERT(p != NULL);
     
     big_hv_iter_t it = big_hv_begin(&sp);
-    it = big_hv_iter_del(it);
+    it = big_hv_iter_del(&sp, it);
     
     ASSERT(big_hv_iter_eq(it, big_hv_end(&sp)));
     ASSERT(sp.count == 0);
@@ -1005,7 +1005,7 @@ static void test_big_erase_first_element(void)
     
     big_hv_iter_t it = big_hv_begin(&sp);
     Big popped = *big_hv_iter_elm(it);
-    it = big_hv_iter_del(it);
+    it = big_hv_iter_del(&sp, it);
     
     ASSERT(sp.count == 2);
     
@@ -1050,7 +1050,7 @@ static void test_big_erase_last_element_during_iteration(void)
     }
     it = last;
     Big popped = *big_hv_iter_elm(it);
-    it = big_hv_iter_del(it);
+    it = big_hv_iter_del(&sp, it);
     
     ASSERT(sp.count == 2);
     
@@ -1090,7 +1090,7 @@ static void test_big_erase_every_other_element(void)
     big_hv_iter_t it = big_hv_begin(&sp);
     while (!big_hv_iter_eq(it, big_hv_end(&sp))) {
         if (remove) {
-            it = big_hv_iter_del(it);
+            it = big_hv_iter_del(&sp, it);
         } else {
             it = big_hv_iter_next(it);
         }
@@ -1119,7 +1119,7 @@ static void test_big_stress_iter_del(void)
     size_t expected = M;
     while (!big_hv_iter_eq(it, big_hv_end(&sp))) {
         if (big_hv_iter_elm(it)->i % 2 == 0) {
-            it = big_hv_iter_del(it);
+            it = big_hv_iter_del(&sp, it);
             expected--;
         } else {
             it = big_hv_iter_next(it);
@@ -1513,11 +1513,11 @@ static void test_hive(void) {
     const int NUM_OPS = 1000000;
     
     bool rem = true;
-    for(big_hv_iter_t it = big_hv_begin(&pool) ; !big_hv_iter_is_end(it) ; )
+    for(big_hv_iter_t it = big_hv_begin(&pool), end = big_hv_end(&pool) ; !big_hv_iter_eq(it,end) ; )
     {
         if(rem)
         {
-            it = big_hv_iter_del(it);
+            it = big_hv_iter_del(&pool, it);
         }
         else
         {
@@ -1556,8 +1556,8 @@ static void test_hive(void) {
         // Periodic full validation
         if (op % 10000 == 0) {
             size_t count = 0;
-            for (big_hv_iter_t it = big_hv_begin(&pool);
-                 !big_hv_iter_is_end(it);
+            for (big_hv_iter_t it = big_hv_begin(&pool), end = big_hv_end(&pool);
+                 !big_hv_iter_eq(it,end);
             it = big_hv_iter_next(it)) {
                 ++count;
             }
@@ -1567,8 +1567,8 @@ static void test_hive(void) {
             for (size_t i = 0; i < arrlen(ptrs); ++i) {
                 Big *p = ptrs[i];
                 int found = 0;
-                for (big_hv_iter_t it = big_hv_begin(&pool);
-                     !big_hv_iter_is_end(it);
+                for (big_hv_iter_t it = big_hv_begin(&pool), end = big_hv_end(&pool);
+                     !big_hv_iter_eq(it,end);
                 it = big_hv_iter_next(it)) {
                     if (big_equal(p, big_hv_iter_elm(it))) {
                         found = 1;
@@ -1601,7 +1601,7 @@ void test_macro_iter()
     HIVE_FOREACH(&sp,
         big_hv_iter_t it;
         HIVE_GET_ITER(&it);
-        HIVE_SET_ITER(big_hv_iter_del(it));
+        HIVE_SET_ITER(big_hv_iter_del(&sp, it));
     );
     
     big_hv_deinit(&sp);
