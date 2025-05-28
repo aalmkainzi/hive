@@ -76,6 +76,55 @@ constexpr std::string_view compiler_name =
 "gcc";
 #endif
 
+unsigned int hv_sum(big_sp sl)
+{
+    unsigned int sum = 0;
+    HIVE_FOREACH(&sl,
+                 sum += HIVE_ITER_ELM->i;);
+    return sum;
+}
+
+void print_hv(big_sp sl, char *fname)
+{
+    FILE *f;
+    size_t bucket_size;
+    
+    f = fopen(fname, "w");
+    bucket_size = HIVE_GET_BUCKET_SIZE(&sl);
+    
+    fwrite(&sl.count, sizeof(sl.count), 1, f);
+    fwrite(&sl.bucket_count, sizeof(sl.bucket_count), 1, f);
+    fwrite(&bucket_size, sizeof(bucket_size), 1, f);
+    
+    typedef struct bucket_data
+    {
+        uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
+        uint16_t first_empty_idx;
+        uint16_t first_elm_idx;
+        uint16_t count;
+        big_sp_entry_t elms[HIVE_GET_BUCKET_SIZE(&sl) + 1];
+        big_sp_next_entry_t next_entries[HIVE_GET_BUCKET_SIZE(&sl) + 1];
+    } bucket_data;
+    
+    big_sp_bucket_t *b = sl.buckets;
+    while(b != NULL)
+    {
+        bucket_data bd = {
+            .not_full_idx = b->not_full_idx,
+            .first_empty_idx = b->first_empty_idx,
+            .first_elm_idx = b->first_elm_idx,
+            .count = b->count,
+            // .elms = b->elms,
+            // .next_entries = b->next_entries
+        };
+        memcpy(bd.elms, b->elms, sizeof(bd.elms));
+        memcpy(bd.next_entries, b->next_entries, sizeof(bd.next_entries));
+        
+        fwrite(&bd, sizeof(bd), 1, f);
+        b = b->next;
+    }
+}
+
 int main(int argc, char **argv)
 {
     ankerl::nanobench::Bench bench;
@@ -142,33 +191,7 @@ int main(int argc, char **argv)
             
             assert(sl.count == sz - sz/2);
             
-            if(argc > 1)
-            {
-                FILE *f;
-                size_t bucket_size;
-                
-                f = fopen(argv[1], "w");
-                bucket_size = HIVE_GET_BUCKET_SIZE(&sl);
-                
-                fwrite(&sl.count, sizeof(sl.count), 1, f);
-                fwrite(&sl.bucket_count, sizeof(sl.bucket_count), 1, f);
-                fwrite(&bucket_size, sizeof(bucket_size), 1, f);
-                
-                typedef struct bucket_data
-                {
-                    uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
-                    uint16_t first_empty_idx;
-                    uint16_t first_elm_idx;
-                    uint16_t count;
-                    big_sp_entry_t elms[HIVE_GET_BUCKET_SIZE(&sl) + 1];
-                    big_sp_next_entry_t next_entries[HIVE_GET_BUCKET_SIZE(&sl) + 1];
-                } bucket_data;
-                
-                for(size_t i = 0 ; i < sl.bucket_count ; i++)
-                {
-                    ;//fwrite();
-                }
-            }
+            
             
             // STABLE_POOL END
             
@@ -253,15 +276,35 @@ int main(int argc, char **argv)
             {
                 rng2.seed(41);
                 srand(69420);
+                
+                unsigned int sum = hv_sum(sl);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
                     [&]{
                         big_sp_iter_t it = {};
                         bool iter_set = false;
+                        printf("COUNT = %zu\n", sl.count);
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
                             if(random < 75 || sl.count == 0 || !iter_set)
                             {
                                 big_sp_iter_t tmp = big_sp_put(&sl, (Big){.i=i});
+#if !defined(NDEBUG2)
+                                unsigned int new_sum = hv_sum(sl);
+                                
+                                // printf("i = %d\n", i);
+                                bool sum_ok = (new_sum == sum + i);
+                                if(!sum_ok)
+                                {
+                                    puts("wtf");
+                                    printf("ERROR i = %d\n", i);
+                                    fflush(stdout);
+                                    exit(69);
+                                    assert(0);
+                                }
+                                sum = new_sum;
+                                
+#endif
+                                
                                 random = rand() % 100;
                                 if(random < 5 || !iter_set)
                                 {
@@ -271,9 +314,22 @@ int main(int argc, char **argv)
                             }
                             else
                             {
+                                int val = it.elm->value.i;
                                 it = big_sp_iter_del(it);
                                 iter_set = false;
+                                
+#if !defined(NDEBUG2)
+                                unsigned int new_sum = hv_sum(sl);
+                                assert(new_sum == sum - val);
+                                sum = new_sum;
+#endif
                             }
+                        }
+                        
+                        if(argc > 1)
+                        {
+                            argc = 0;
+                            print_hv(sl, argv[1]);
                         }
                         
 #if !defined(NDEBUG)

@@ -1,6 +1,6 @@
 
 | complexityN |             ns/elms |              elms/s |    err% |        ins/elms |        cyc/elms |    IPC |       bra/elms |   miss% |     total | benchmark
 |------------:|--------------------:|--------------------:|--------:|----------------:|----------------:|-------:|---------------:|--------:|----------:|:----------
-|      71,770 |              269.44 |        3,711,378.93 |   10.7% |        5,948.50 |        1,075.12 |  5.533 |         995.47 |    0.1% |      0.22 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      71,770 |              200.60 |        4,985,076.72 |   22.6% |        5,241.61 |          988.38 |  5.303 |         929.83 |    0.1% |      0.17 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
-|      71,770 |              495.84 |        2,016,782.26 |   14.7% |        7,290.44 |        2,066.21 |  3.528 |       1,460.22 |    0.1% |      0.38 | :wavy_dash: `std::list rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      71,770 |              491.26 |        2,035,580.08 |   18.1% |        5,993.28 |          887.83 |  6.750 |       1,002.03 |    0.1% |      0.42 | :wavy_dash: `hive_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      71,770 |              652.90 |        1,531,633.51 |   30.1% |        5,241.61 |        1,297.36 |  4.040 |         929.83 |    0.1% |      0.59 | :wavy_dash: `plf_colony_rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)
+|      71,770 |            1,519.00 |          658,329.25 |   10.0% |        7,290.44 |        2,745.46 |  2.655 |       1,460.22 |    0.2% |      1.11 | :wavy_dash: `std::list rnd` (Unstable with ~1.0 iters. Increase `minEpochIterations` to e.g. 10)

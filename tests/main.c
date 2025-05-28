@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #define STB_DS_IMPLEMENTATION
@@ -1606,9 +1607,84 @@ void test_macro_iter()
     big_hv_deinit(&sp);
 }
 
+void test71770()
+{
+    big_hv hv;
+    big_hv_init(&hv);
+    
+    FILE *f = fopen("../benchmarks/HIVE", "r");
+    
+    size_t count;
+    size_t bucket_count;
+    size_t bucket_size;
+    
+    fread(&count,        sizeof(count),        1, f);
+    fread(&bucket_count, sizeof(bucket_count), 1, f);
+    fread(&bucket_size,  sizeof(bucket_size),  1, f);
+    
+    hv.count = count;
+    hv.bucket_count = bucket_count;
+    
+    for(size_t i = 0 ; i < bucket_count ; i++)
+    {
+        typedef struct bucket_data
+        {
+            uint16_t not_full_idx;
+            uint16_t first_empty_idx;
+            uint16_t first_elm_idx;
+            uint16_t count;
+            big_hv_entry_t elms[HIVE_GET_BUCKET_SIZE(&hv) + 1];
+            big_hv_next_entry_t next_entries[HIVE_GET_BUCKET_SIZE(&hv) + 1];
+        } bucket_data;
+        
+        bucket_data bd;
+        fread(&bd, sizeof(bd), 1, f);
+        
+        big_hv_bucket_t *bkt = malloc(sizeof(*bkt));
+        bkt->not_full_idx = bd.not_full_idx;
+        bkt->first_empty_idx = bd.first_empty_idx;
+        bkt->first_elm_idx = bd.first_elm_idx;
+        bkt->count = bd.count;
+        
+        memcpy(bkt->elms, bd.elms, sizeof(bd.elms));
+        memcpy(bkt->next_entries, bd.next_entries, sizeof(bd.next_entries));
+        
+        if(i == 0)
+        {
+            hv.buckets = bkt;
+            hv.tail = bkt;
+            hv.tail->next = hv.end_sentinel;
+        }
+        else
+        {
+            hv.tail->next = bkt;
+            hv.tail = hv.tail->next;
+            hv.tail->next = hv.end_sentinel;
+        }
+        
+        if(bkt->not_full_idx != UINT16_MAX)
+        {
+            big_hv_push_not_full_bucket(&hv, bkt);
+        }
+    }
+    
+    big_hv_validate(&hv);
+    
+    unsigned int sum = 0;
+    HIVE_FOREACH(
+        &hv,
+        sum += HIVE_ITER_ELM->i;
+    );
+    
+    printf("SUM = %u\n", sum);
+}
+
 int main(void)
 {
     printf("Running tests...\n");
+    
+    test71770();
+    
     test_init_deinit();
     test_single_put_and_loop();
     test_multiple_puts();
@@ -1662,6 +1738,7 @@ int main(void)
     test_big_clone_after_original_deinit();
     test_hive();
     test_macro_iter();
+    
     printf("ALL PASSED\n");
     return 0;
 }
