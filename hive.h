@@ -80,24 +80,13 @@
 #define hive_next_entry_t          HIVE_CAT(HIVE_NAME, _next_entry_t)
 #define hive_init                  HIVE_CAT(HIVE_NAME, _init)
 #define hive_clone                 HIVE_CAT(HIVE_NAME, _clone)
-#define hive_push_not_full_bucket  HIVE_CAT(HIVE_NAME, _push_not_full_bucket)
 #define hive_put                   HIVE_CAT(HIVE_NAME, _put)
 #define hive_put_all               HIVE_CAT(HIVE_NAME, _put_all)
-#define hive_del_helper            HIVE_CAT(HIVE_NAME, _del_helper)
 #define hive_del                   HIVE_CAT(HIVE_NAME, _del)
 #define hive_foreach               HIVE_CAT(HIVE_NAME, _foreach)
-#define hive_foreach_updater       HIVE_CAT(HIVE_NAME, _foreach_updater)
 #define hive_begin                 HIVE_CAT(HIVE_NAME, _begin)
 #define hive_end                   HIVE_CAT(HIVE_NAME, _end)
 #define hive_deinit                HIVE_CAT(HIVE_NAME, _deinit)
-
-#define hive_bucket_init           HIVE_CAT(HIVE_NAME, _bucket_init)
-#define hive_bucket_put            HIVE_CAT(HIVE_NAME, _bucket_put)
-#define hive_bucket_del            HIVE_CAT(HIVE_NAME, _bucket_del)
-#define hive_bucket_is_elm_within  HIVE_CAT(HIVE_NAME, _bucket_is_elm_within)
-#define hive_get_containing_bucket HIVE_CAT(HIVE_NAME, _get_containing_bucket)
-#define hive_bucket_first_elm      HIVE_CAT(HIVE_NAME, _bucket_first_elm)
-#define hive_bucket_prev           HIVE_CAT(HIVE_NAME, _bucket_prev)
 
 #define hive_iter_next             HIVE_CAT(HIVE_NAME, _iter_next)
 #define hive_iter_go_next          HIVE_CAT(HIVE_NAME, _iter_go_next)
@@ -106,11 +95,6 @@
 #define hive_iter_eq               HIVE_CAT(HIVE_NAME, _iter_eq)
 #define hive_iter_is_end           HIVE_CAT(HIVE_NAME, _iter_is_end)
 #define hive_iter_to               HIVE_CAT(HIVE_NAME, _iter_to)
-#define hive_validate              HIVE_CAT(HIVE_NAME, _validate)
-
-#define hive_alloc_mem             HIVE_CAT(HIVE_NAME, _alloc_mem)
-#define hive_realloc_mem           HIVE_CAT(HIVE_NAME, _realloc_mem)
-#define hive_free_mem              HIVE_CAT(HIVE_NAME, _free_mem)
 
 #define HIVE_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
@@ -222,6 +206,24 @@ bool hive_iter_is_end(hive_iter_t it);
 #define HIVE_IMPL
 #if defined(HIVE_IMPL)
 
+#define hive_push_not_full_bucket  HIVE_CAT(HIVE_NAME, _push_not_full_bucket)
+#define hive_foreach_updater       HIVE_CAT(HIVE_NAME, _foreach_updater)
+
+#define hive_bucket_init           HIVE_CAT(HIVE_NAME, _bucket_init)
+#define hive_bucket_put            HIVE_CAT(HIVE_NAME, _bucket_put)
+#define hive_bucket_del            HIVE_CAT(HIVE_NAME, _bucket_del)
+#define hive_bucket_is_elm_within  HIVE_CAT(HIVE_NAME, _bucket_is_elm_within)
+#define hive_get_containing_bucket HIVE_CAT(HIVE_NAME, _get_containing_bucket)
+#define hive_bucket_first_elm      HIVE_CAT(HIVE_NAME, _bucket_first_elm)
+#define hive_bucket_prev           HIVE_CAT(HIVE_NAME, _bucket_prev)
+#define hive_del_helper            HIVE_CAT(HIVE_NAME, _del_helper)
+
+#define hive_validate              HIVE_CAT(HIVE_NAME, _validate)
+
+#define hive_alloc_mem             HIVE_CAT(HIVE_NAME, _alloc_mem)
+#define hive_realloc_mem           HIVE_CAT(HIVE_NAME, _realloc_mem)
+#define hive_free_mem              HIVE_CAT(HIVE_NAME, _free_mem)
+
 void hive_foreach_updater(hive_index_t *index, hive_bucket_t **bucket);
 void hive_bucket_init(hive_bucket_t *bucket);
 void hive_push_not_full_bucket(HIVE_NAME *hv, hive_bucket_t *bucket);
@@ -233,6 +235,7 @@ hive_bucket_t *hive_get_containing_bucket(HIVE_NAME *hv, const HIVE_TYPE *elm);
 hive_index_t hive_bucket_first_elm(hive_bucket_t *bucket);
 hive_bucket_t *hive_bucket_prev(HIVE_NAME *hv, hive_bucket_t *bucket);
 hive_iter_t hive_iter_to(HIVE_NAME *hv, hive_bucket_t *bucket, hive_index_t index);
+bool hive_validate(HIVE_NAME *hv);
 
 void *hive_alloc_mem(void *ctx, size_t size, size_t alignment);
 void *hive_realloc_mem(void *ctx, void *ptr, size_t old_size, size_t new_size, size_t alignment);

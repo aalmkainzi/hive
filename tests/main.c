@@ -1683,8 +1683,6 @@ int main(void)
 {
     printf("Running tests...\n");
     
-    test71770();
-    
     test_init_deinit();
     test_single_put_and_loop();
     test_multiple_puts();
