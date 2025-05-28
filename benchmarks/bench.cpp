@@ -133,14 +133,14 @@ int main(int argc, char **argv)
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 500'000;
+    int end   = 250'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
     
     constexpr bool bench_hive = true;
-    constexpr bool bench_small_hive = false;
+    constexpr bool bench_small_hive = true;
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
@@ -452,10 +452,10 @@ int main(int argc, char **argv)
                         bbig_sp slc = bbig_sp_clone(&sl);
                         
                         bool remove = true;
-                        for(bbig_sp_iter_t it = bbig_sp_begin(&slc) ; !bbig_sp_iter_is_end(it) ; )
+                        for(bbig_sp_iter_t it = bbig_sp_begin(&slc), end = bbig_sp_end(&slc) ; !bbig_sp_iter_eq(it, end) ; )
                         {
                             if(remove)
-                                it = bbig_sp_iter_del(it);
+                                it = bbig_sp_iter_del(&slc, it);
                             else
                                 bbig_sp_iter_go_next(&it);
                             remove = !remove;
@@ -489,14 +489,14 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                it = bbig_sp_iter_del(it);
+                                it = bbig_sp_iter_del(&sl, it);
                                 iter_set = false;
                             }
                         }
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = bbig_sp_begin(&sl) ; !bbig_sp_iter_is_end(it) ; bbig_sp_iter_go_next(&it))
+                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl); !bbig_sp_iter_eq(it, end) ; bbig_sp_iter_go_next(&it))
                         {
                             sum += bbig_sp_iter_elm(it)->i;
                         }
