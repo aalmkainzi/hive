@@ -56,9 +56,9 @@ bool eq_big(Big a, Big b)
 #include "hive.h"
 #endif
 
-// #define HIVE_TYPE Big
-// #define HIVE_NAME hv
-// #include "../../hive/hive.h"
+#define BRACE_TYPE Big
+#define BRACE_NAME bbrace
+#include "../../brace/brace.h"
 
 void add_sum(Big *big, void *arg)
 {
@@ -145,11 +145,12 @@ int main(int argc, char **argv)
     constexpr bool bench_slot_map    = false;
     constexpr bool bench_stable_vec  = false;
     constexpr bool bench_linked_list = false;
+    constexpr bool bench_brace = true;
     
-    constexpr bool bench_iter = false;
+    constexpr bool bench_iter = true;
     constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = true;
+    constexpr bool bench_random = false;
     
     int iterations = 1;
     
@@ -318,6 +319,157 @@ int main(int argc, char **argv)
             }
             
             big_sp_deinit(&sl);
+            free(ptrs);
+            free(bigs);
+        }
+        
+        if(bench_brace)
+        {
+            // BRACE SETUP
+            
+            srand(69420);
+            bbrace sl; bbrace_init(&sl);
+            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
+            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            for (int i = 0; i < sz; i++)
+            {
+                bigs[i] = (Big){.i = i};
+                bbrace_put(&sl, bigs[i]);
+            }
+            
+            int i = 0;
+            
+            for(auto it = bbrace_begin(&sl); !bbrace_iter_eq(it, bbrace_end(&sl)) ; it = bbrace_iter_next(it))
+            {
+                ptrs[i++] = bbrace_iter_elm(it);
+            }
+            
+            rng.seed(42);
+            std::vector<Big *> to_pop;
+            to_pop.reserve(sz / 2);
+            std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
+            
+            for (Big *p : to_pop) {
+                bbrace_del(&sl, p);
+            }
+            
+            assert(sl.count == sz - sz/2);
+            
+            
+            
+            // BRACE END
+            
+            if(bench_iter)
+            {
+                bbrace_optimize(&sl);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_iter",
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        for(auto it = bbrace_begin(&sl); !bbrace_iter_eq(it, bbrace_end(&sl)) ; it = bbrace_iter_next(it))
+                        {
+                            sum += bbrace_iter_elm(it)->i;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("brace_iter = %u\n", sum);
+                    }
+                );
+            }
+            
+            if(bench_pop)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_del",
+                    [&]{
+                        bbrace slc = bbrace_clone(&sl);
+                        
+                        bool remove = true;
+                        for(bbrace_iter_t it = bbrace_begin(&slc); !bbrace_iter_eq(it, bbrace_end(&slc)) ; )
+                        {
+                            if(remove)
+                                it = bbrace_iter_del(&slc, it);
+                            else
+                                it = bbrace_iter_next(it);
+                            remove = !remove;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        bbrace_deinit(&slc);
+                    }
+                );
+            }
+            
+            if(bench_put)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_put",
+                    [&]{
+                        for(int i = 0 ; i < sz/2 ; i++)
+                        {
+                            bbrace_put(&sl, (Big){.i=i});
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = bbrace_begin(&sl) ; !bbrace_iter_eq(it,bbrace_end(&sl)) ; it = bbrace_iter_next(it))
+                        {
+                            sum += bbrace_iter_elm(it)->i;
+                        }
+                        
+                        printf("BRACE SUM AFTER PUT: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(sl);
+                    }
+                );
+            }
+            
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_rnd",
+                    [&]{
+                        bbrace_iter_t it = {};
+                        bool iter_set = false;
+                        printf("COUNT = %zu\n", sl.count);
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || sl.count == 0 || !iter_set)
+                            {
+                                bbrace_iter_t tmp = bbrace_put(&sl, (Big){.i=i});
+                                
+                                random = rand() % 100;
+                                if(random < 5 || !iter_set)
+                                {
+                                    iter_set = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                int val = bbrace_iter_elm(it)->i;
+                                it = bbrace_iter_del(&sl, it);
+                                iter_set = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = bbrace_begin(&sl) ; !bbrace_iter_eq(it,bbrace_end(&sl)) ; it = bbrace_iter_next(it))
+                        {
+                            sum += bbrace_iter_elm(it)->i;
+                        }
+                        
+                        printf("BRACE SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(sl);
+                    }
+                );
+            }
+            
+            bbrace_deinit(&sl);
             free(ptrs);
             free(bigs);
         }
