@@ -9,7 +9,7 @@
 #include "plf_list.h"
 #include "slot_map.h"
 
-#if !defined(NDEBUG)
+#if !defined(NO_PRINT)
 #define printf(...) printf(__VA_ARGS__)
 #else
 #define printf(...)
@@ -132,9 +132,9 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 25'000;
-    int end   = 100'000;
-    int interval = 25'000;
+    int begin = 12'500;
+    int end   = 300'000;
+    int interval = 12'500;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
     constexpr bool bench_pop = false;
     constexpr bool bench_random = false;
     
-    int iterations = 1;
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -195,6 +195,51 @@ int main(int argc, char **argv)
             
             
             // STABLE_POOL END
+            
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
+                    [&]{
+                        big_sp_iter_t it = {};
+                        bool iter_set = false;
+                        printf("COUNT = %zu\n", sl.count);
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || sl.count == 0 || !iter_set)
+                            {
+                                big_sp_iter_t tmp = big_sp_put(&sl, (Big){.i=i});
+                                
+                                random = rand() % 100;
+                                if(random < 5 || !iter_set)
+                                {
+                                    iter_set = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                int val = it.elm->value.i;
+                                it = big_sp_iter_del(&sl, it);
+                                iter_set = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
+                        {
+                            sum += big_sp_iter_elm(it)->i;
+                        }
+                        
+                        printf("HV SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(sl);
+                    }
+                );
+            }
             
             if(bench_iter)
             {
@@ -273,51 +318,6 @@ int main(int argc, char **argv)
                 );
             }
             
-            if(bench_random)
-            {
-                rng2.seed(41);
-                srand(69420);
-                
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
-                    [&]{
-                        big_sp_iter_t it = {};
-                        bool iter_set = false;
-                        printf("COUNT = %zu\n", sl.count);
-                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
-                        {
-                            if(random < 75 || sl.count == 0 || !iter_set)
-                            {
-                                big_sp_iter_t tmp = big_sp_put(&sl, (Big){.i=i});
-                                
-                                random = rand() % 100;
-                                if(random < 5 || !iter_set)
-                                {
-                                    iter_set = true;
-                                    it = tmp;
-                                }
-                            }
-                            else
-                            {
-                                int val = it.elm->value.i;
-                                it = big_sp_iter_del(&sl, it);
-                                iter_set = false;
-                            }
-                        }
-                        
-#if !defined(NDEBUG)
-                        unsigned int sum = 0;
-                        for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
-                        {
-                            sum += big_sp_iter_elm(it)->i;
-                        }
-                        
-                        printf("HV SUM AFTER RND: %u\n", sum);
-#endif
-                        ankerl::nanobench::doNotOptimizeAway(sl);
-                    }
-                );
-            }
-            
             big_sp_deinit(&sl);
             free(ptrs);
             free(bigs);
@@ -358,72 +358,6 @@ int main(int argc, char **argv)
             
             
             // BRACE END
-            
-            if(bench_iter)
-            {
-                bbrace_optimize(&sl);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_iter",
-                    [&]{
-                        volatile unsigned int sum = 0;
-                        
-                        for(auto it = bbrace_begin(&sl); !bbrace_iter_eq(it, bbrace_end(&sl)) ; it = bbrace_iter_next(it))
-                        {
-                            sum += bbrace_iter_elm(it)->i;
-                        }
-                        
-                        ankerl::nanobench::doNotOptimizeAway(sum);
-                        printf("brace_iter = %u\n", sum);
-                    }
-                );
-            }
-            
-            if(bench_pop)
-            {
-                rng2.seed(41);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_del",
-                    [&]{
-                        bbrace slc = bbrace_clone(&sl);
-                        
-                        bool remove = true;
-                        for(bbrace_iter_t it = bbrace_begin(&slc); !bbrace_iter_eq(it, bbrace_end(&slc)) ; )
-                        {
-                            if(remove)
-                                it = bbrace_iter_del(&slc, it);
-                            else
-                                it = bbrace_iter_next(it);
-                            remove = !remove;
-                        }
-                        
-                        ankerl::nanobench::doNotOptimizeAway(slc);
-                        bbrace_deinit(&slc);
-                    }
-                );
-            }
-            
-            if(bench_put)
-            {
-                rng2.seed(41);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_put",
-                    [&]{
-                        for(int i = 0 ; i < sz/2 ; i++)
-                        {
-                            bbrace_put(&sl, (Big){.i=i});
-                        }
-                        
-#if !defined(NDEBUG)
-                        unsigned int sum = 0;
-                        for(auto it = bbrace_begin(&sl) ; !bbrace_iter_eq(it,bbrace_end(&sl)) ; it = bbrace_iter_next(it))
-                        {
-                            sum += bbrace_iter_elm(it)->i;
-                        }
-                        
-                        printf("BRACE SUM AFTER PUT: %u\n", sum);
-#endif
-                        ankerl::nanobench::doNotOptimizeAway(sl);
-                    }
-                );
-            }
-            
             if(bench_random)
             {
                 rng2.seed(41);
@@ -463,6 +397,88 @@ int main(int argc, char **argv)
                         }
                         
                         printf("BRACE SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(sl);
+                    }
+                );
+            }
+            
+            
+            if(bench_iter)
+            {
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_iter",
+                    [&]{
+                        volatile unsigned int sum = 0;
+                        
+                        for(auto it = bbrace_begin(&sl), end = bbrace_end(&sl) ; !bbrace_iter_eq(it, end) ; it = bbrace_iter_next(it))
+                        {
+                            sum += bbrace_iter_elm(it)->i;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(sum);
+                        printf("brace_iter = %u\n", sum);
+                    }
+                );
+                
+                bbrace_optimize(&sl);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_iter_opt",
+                [&]{
+                    volatile unsigned int sum = 0;
+                    
+                    for(auto it = bbrace_begin(&sl), end = bbrace_end(&sl); !bbrace_iter_eq(it, end) ; it = bbrace_iter_next(it))
+                    {
+                        sum += bbrace_iter_elm(it)->i;
+                    }
+                    
+                    ankerl::nanobench::doNotOptimizeAway(sum);
+                    printf("brace_iter = %u\n", sum);
+                }
+                );
+            }
+            
+            if(bench_pop)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_del",
+                    [&]{
+                        bbrace slc = bbrace_clone(&sl);
+                        
+                        bool remove = true;
+                        for(bbrace_iter_t it = bbrace_begin(&slc), end = bbrace_end(&slc); !bbrace_iter_eq(it, end) ; )
+                        {
+                            if(remove)
+                                it = bbrace_iter_del(&slc, it);
+                            else
+                                it = bbrace_iter_next(it);
+                            remove = !remove;
+                        }
+                        
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        bbrace_deinit(&slc);
+                    }
+                );
+            }
+            
+            if(bench_put)
+            {
+                int d = 0;
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_put",
+                    [&]{
+                        printf("new iter %d\n", d++);
+                        for(int i = 0 ; i < sz/2 ; i++)
+                        {
+                            bbrace_put(&sl, (Big){.i=i});
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = bbrace_begin(&sl), end = bbrace_end(&sl) ; !bbrace_iter_eq(it, end) ; it = bbrace_iter_next(it))
+                        {
+                            sum += bbrace_iter_elm(it)->i;
+                        }
+                        
+                        printf("BRACE SUM AFTER PUT: %u\n", sum);
 #endif
                         ankerl::nanobench::doNotOptimizeAway(sl);
                     }
@@ -509,6 +525,50 @@ int main(int argc, char **argv)
             assert(sl.count == sz - sz/2);
             
             // STABLE_POOL END
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_rnd",
+                    [&]{
+                        bbig_sp_iter_t it = {};
+                        bool iter_set = false;
+                        printf("COUNT = %zu\n", sl.count);
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || sl.count == 0 || !iter_set)
+                            {
+                                bbig_sp_iter_t tmp = bbig_sp_put(&sl, (Big){.i=i});
+                                
+                                random = rand() % 100;
+                                if(random < 5 || !iter_set)
+                                {
+                                    iter_set = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                int val = it.elm->value.i;
+                                it = bbig_sp_iter_del(&sl, it);
+                                iter_set = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl) ; !bbig_sp_iter_eq(it,end) ; bbig_sp_iter_go_next(&it))
+                        {
+                            sum += bbig_sp_iter_elm(it)->i;
+                        }
+                        
+                        printf("HV SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(sl);
+                    }
+                );
+            }
             
             if(bench_iter)
             {
@@ -588,50 +648,7 @@ int main(int argc, char **argv)
                 );
             }
             
-            if(bench_random)
-            {
-                rng2.seed(41);
-                srand(69420);
-                
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_rnd",
-                    [&]{
-                        bbig_sp_iter_t it = {};
-                        bool iter_set = false;
-                        printf("COUNT = %zu\n", sl.count);
-                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
-                        {
-                            if(random < 75 || sl.count == 0 || !iter_set)
-                            {
-                                bbig_sp_iter_t tmp = bbig_sp_put(&sl, (Big){.i=i});
-                                
-                                random = rand() % 100;
-                                if(random < 5 || !iter_set)
-                                {
-                                    iter_set = true;
-                                    it = tmp;
-                                }
-                            }
-                            else
-                            {
-                                int val = it.elm->value.i;
-                                it = bbig_sp_iter_del(&sl, it);
-                                iter_set = false;
-                            }
-                        }
-                        
-#if !defined(NDEBUG)
-                        unsigned int sum = 0;
-                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl) ; !bbig_sp_iter_eq(it,end) ; bbig_sp_iter_go_next(&it))
-                        {
-                            sum += bbig_sp_iter_elm(it)->i;
-                        }
-                        
-                        printf("HV SUM AFTER RND: %u\n", sum);
-#endif
-                        ankerl::nanobench::doNotOptimizeAway(sl);
-                    }
-                );
-            }
+            
             bbig_sp_deinit(&sl);
             free(ptrs);
             free(bigs);
@@ -667,7 +684,46 @@ int main(int argc, char **argv)
             
             // assert(i_colony.size() == sz/2);
             // PLF SETUP END
-            
+            if(bench_random)
+            {
+                rng2.seed(41);
+                srand(69420);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf_colony_rnd",
+                    [&]{
+                        bool set_iter = false;
+                        decltype(i_colony)::iterator it = i_colony.begin();
+                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
+                        {
+                            if(random < 75 || i_colony.size() == 0 || !set_iter)
+                            {
+                                auto tmp = i_colony.insert((Big){.i=i});
+                                random = rand() % 100;
+                                if(random < 5 || !set_iter)
+                                {
+                                    set_iter = true;
+                                    it = tmp;
+                                }
+                            }
+                            else
+                            {
+                                it = i_colony.erase(it);
+                                set_iter = false;
+                            }
+                        }
+                        
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = i_colony.begin() ; it != i_colony.end() ; it++)
+                        {
+                            sum += it->i;
+                        }
+                        
+                        printf("PLF SUM AFTER RND: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(i_colony);
+                    }
+                );
+            }
             if(bench_iter)
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony", 
                     [&]{
@@ -728,47 +784,6 @@ int main(int argc, char **argv)
 #endif
                     ankerl::nanobench::doNotOptimizeAway(i_colony);
                 }
-                );
-            }
-            
-            if(bench_random)
-            {
-                rng2.seed(41);
-                srand(69420);
-                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf_colony_rnd",
-                    [&]{
-                        bool set_iter = false;
-                        decltype(i_colony)::iterator it = i_colony.begin();
-                        for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
-                        {
-                            if(random < 75 || i_colony.size() == 0 || !set_iter)
-                            {
-                                auto tmp = i_colony.insert((Big){.i=i});
-                                random = rand() % 100;
-                                if(random < 5 || !set_iter)
-                                {
-                                    set_iter = true;
-                                    it = tmp;
-                                }
-                            }
-                            else
-                            {
-                                it = i_colony.erase(it);
-                                set_iter = false;
-                            }
-                        }
-                        
-#if !defined(NDEBUG)
-                        unsigned int sum = 0;
-                        for(auto it = i_colony.begin() ; it != i_colony.end() ; it++)
-                        {
-                            sum += it->i;
-                        }
-                        
-                        printf("PLF SUM AFTER RND: %u\n", sum);
-#endif
-                        ankerl::nanobench::doNotOptimizeAway(i_colony);
-                    }
                 );
             }
         }
