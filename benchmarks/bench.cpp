@@ -132,9 +132,9 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 12'500;
-    int end   = 300'000;
-    int interval = 12'500;
+    int begin = 25'000;
+    int end   = 100'000;
+    int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     constexpr bool bench_iter = true;
     constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = false;
+    constexpr bool bench_random = true;
     
     int iterations = 25;
     
@@ -274,20 +274,9 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_del",
                     [&]{
-                        big_sp slc = big_sp_clone(&sl);
+                        big_sp_iter_del(&sl, big_sp_begin(&sl));
                         
-                        bool remove = true;
-                        for(big_sp_iter_t it = big_sp_begin(&slc), end = big_sp_end(&slc); !big_sp_iter_eq(it, end) ; )
-                        {
-                            if(remove)
-                                it = big_sp_iter_del(&slc, it);
-                            else
-                                big_sp_iter_go_next(&it);
-                            remove = !remove;
-                        }
-                        
-                        ankerl::nanobench::doNotOptimizeAway(slc);
-                        big_sp_deinit(&slc);
+                        ankerl::nanobench::doNotOptimizeAway(sl);
                     }
                 );
             }
@@ -441,20 +430,8 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bbrace_del",
                     [&]{
-                        bbrace slc = bbrace_clone(&sl);
-                        
-                        bool remove = true;
-                        for(bbrace_iter_t it = bbrace_begin(&slc), end = bbrace_end(&slc); !bbrace_iter_eq(it, end) ; )
-                        {
-                            if(remove)
-                                it = bbrace_iter_del(&slc, it);
-                            else
-                                it = bbrace_iter_next(it);
-                            remove = !remove;
-                        }
-                        
-                        ankerl::nanobench::doNotOptimizeAway(slc);
-                        bbrace_deinit(&slc);
+                        bbrace_iter_del(&sl, bbrace_begin(&sl));
+                        ankerl::nanobench::doNotOptimizeAway(sl);
                     }
                 );
             }
@@ -630,20 +607,9 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_del",
                     [&]{
-                        bbig_sp slc = bbig_sp_clone(&sl);
+                        bbig_sp_iter_del(&sl, bbig_sp_begin(&sl));
                         
-                        bool remove = true;
-                        for(bbig_sp_iter_t it = bbig_sp_begin(&slc), end = bbig_sp_end(&slc) ; !bbig_sp_iter_eq(it, end) ; )
-                        {
-                            if(remove)
-                                it = bbig_sp_iter_del(&slc, it);
-                            else
-                                bbig_sp_iter_go_next(&it);
-                            remove = !remove;
-                        }
-                        
-                        ankerl::nanobench::doNotOptimizeAway(slc);
-                        bbig_sp_deinit(&slc);
+                        ankerl::nanobench::doNotOptimizeAway(sl);
                     }
                 );
             }

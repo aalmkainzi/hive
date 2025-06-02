@@ -16,7 +16,7 @@
 
 #if !defined(HIVE_BUCKET_SIZE)
 
-    #define HIVE_BUCKET_SIZE (UINT16_MAX - 1)
+    #define HIVE_BUCKET_SIZE (UINT8_MAX - 1)
 
 #endif
 
