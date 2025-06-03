@@ -132,9 +132,9 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 25'000;
-    int end   = 100'000;
-    int interval = 25'000;
+    int begin = 1'000;
+    int end   = 5'000;
+    int interval = 1'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
@@ -192,8 +192,6 @@ int main(int argc, char **argv)
             
             assert(sl.count == sz - sz/2);
             
-            
-            
             // STABLE_POOL END
             
             if(bench_random)
@@ -208,7 +206,7 @@ int main(int argc, char **argv)
                         printf("COUNT = %zu\n", sl.count);
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
-                            if(random < 75 || sl.count == 0 || !iter_set)
+                            if(random <55 || sl.count == 0 || !iter_set)
                             {
                                 big_sp_iter_t tmp = big_sp_put(&sl, (Big){.i=i});
                                 
@@ -223,7 +221,8 @@ int main(int argc, char **argv)
                             {
                                 int val = it.elm->value.i;
                                 it = big_sp_iter_del(&sl, it);
-                                iter_set = false;
+                                if(big_sp_iter_eq(it, big_sp_end(&sl)))
+                                    iter_set = false;
                             }
                         }
                         
@@ -359,7 +358,7 @@ int main(int argc, char **argv)
                         printf("COUNT = %zu\n", sl.count);
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
-                            if(random < 75 || sl.count == 0 || !iter_set)
+                            if(random <55 || sl.count == 0 || !iter_set)
                             {
                                 bbrace_iter_t tmp = bbrace_put(&sl, (Big){.i=i});
                                 
@@ -374,7 +373,8 @@ int main(int argc, char **argv)
                             {
                                 int val = bbrace_iter_elm(it)->i;
                                 it = bbrace_iter_del(&sl, it);
-                                iter_set = false;
+                                if(bbrace_iter_eq(it, bbrace_end(&sl)))
+                                    iter_set = false;
                             }
                         }
                         
@@ -514,7 +514,7 @@ int main(int argc, char **argv)
                         printf("COUNT = %zu\n", sl.count);
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
-                            if(random < 75 || sl.count == 0 || !iter_set)
+                            if(random <55 || sl.count == 0 || !iter_set)
                             {
                                 bbig_sp_iter_t tmp = bbig_sp_put(&sl, (Big){.i=i});
                                 
@@ -529,7 +529,8 @@ int main(int argc, char **argv)
                             {
                                 int val = it.elm->value.i;
                                 it = bbig_sp_iter_del(&sl, it);
-                                iter_set = false;
+                                if(bbig_sp_iter_eq(it, bbig_sp_end(&sl)))
+                                    iter_set = false;
                             }
                         }
                         
@@ -660,7 +661,7 @@ int main(int argc, char **argv)
                         decltype(i_colony)::iterator it = i_colony.begin();
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
-                            if(random < 75 || i_colony.size() == 0 || !set_iter)
+                            if(random < 55 || i_colony.size() == 0 || !set_iter)
                             {
                                 auto tmp = i_colony.insert((Big){.i=i});
                                 random = rand() % 100;
@@ -673,7 +674,8 @@ int main(int argc, char **argv)
                             else
                             {
                                 it = i_colony.erase(it);
-                                set_iter = false;
+                                if(it == i_colony.end())
+                                    set_iter = false;
                             }
                         }
                         
@@ -812,7 +814,7 @@ int main(int argc, char **argv)
                         auto it = stable_vec.begin();
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
-                            if(random < 75 || stable_vec.size() == 0 || !set_iter)
+                            if(random <55 || stable_vec.size() == 0 || !set_iter)
                             {
                                 stable_vec.push_back((Big){.i=i});
                                 auto tmp = std::prev(stable_vec.end());
@@ -950,7 +952,7 @@ int main(int argc, char **argv)
                         auto it = ls.begin();
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
-                            if(random < 75 || ls.size() == 0 || !set_iter)
+                            if(random <55 || ls.size() == 0 || !set_iter)
                             {
                                 ls.push_back((Big){.i=i});
                                 auto tmp = std::prev(ls.end());
