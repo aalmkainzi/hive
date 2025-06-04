@@ -551,7 +551,7 @@ void hive_deinit(HIVE_NAME *_hv)
         HIVE_FREE(HIVE_ALLOC_CTX, _current, sizeof(hive_bucket_t));
         _current = _next;
     }
-    HIVE_FREE_N(_hv->not_full_buckets.array, _hv->not_full_buckets.count);
+    HIVE_FREE_N(_hv->not_full_buckets.array, _hv->not_full_buckets.cap);
     *_hv = (HIVE_NAME){0};
 }
 
