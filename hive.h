@@ -507,15 +507,14 @@ hive_iter_t hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_bu
 
 hive_iter_t hive_del(HIVE_NAME *_hv, HIVE_TYPE *_elm)
 {
-    hive_bucket_t *_prev = NULL;
     hive_iter_t _ret;
-    for(hive_bucket_t *_bucket = _hv->buckets ; _bucket != _hv->end_sentinel ; _prev = _bucket, _bucket = _bucket->next)
+    for(hive_bucket_t *_bucket = _hv->buckets ; _bucket != _hv->end_sentinel ; _bucket = _bucket->next)
     {
         if(hive_bucket_is_elm_within(_bucket, _elm))
         {
             hive_entry_t *as_entry = (hive_entry_t*) _elm;
             hive_index_t index = as_entry - _bucket->elms;
-            _ret = hive_del_helper(_hv, _prev, _bucket, index);
+            _ret = hive_del_helper(_hv, _bucket->prev, _bucket, index);
             break;
         }
     }

@@ -132,9 +132,9 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 1'000;
-    int end   = 5'000;
-    int interval = 1'000;
+    int begin = 100;
+    int end   = 25'000;
+    int interval = 8'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/hive_and_plf_colony_").append(compiler_name).append(".json");
@@ -150,9 +150,9 @@ int main(int argc, char **argv)
     constexpr bool bench_iter = true;
     constexpr bool bench_put = false;
     constexpr bool bench_pop = false;
-    constexpr bool bench_random = true;
+    constexpr bool bench_random = false;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
