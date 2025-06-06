@@ -384,6 +384,7 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
             _bucket->next_entries[_j].next_elm_index = _j;
         }
         _bucket->first_elm_idx = 0;
+        _bucket->first_empty_idx = HIVE_BUCKET_SIZE;
         _bucket->count = HIVE_BUCKET_SIZE;
         _hv->bucket_count += 1;
         _hv->count += HIVE_BUCKET_SIZE;
