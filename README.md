@@ -11,7 +11,7 @@ To list some:
 - In the "skip field" I don't store the offset index. Instead I store the absolute index the next element is in.
 - I don't cache "skip blocks", this has shown to make my `hive`'s erasure speed to be a bit slower than `plf::colony`. Because now I must iterate backwards to find the previous element (I will probably implement skip block caching).
 
-## Benchmark Results
+## Benchmark
 
 From my (very limited) benchmarking, it seems my `hive` has slightly faster iteration speed, slightly slower insertion, and noticeably slower deletion.
 I won't post any benchmark results because I'm afraid they might not be too accurate.
