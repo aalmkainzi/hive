@@ -1,1 +1,1 @@
-# Don't expect this to compile, it's for my own use.
+# Don't expect this benchmark to compile for you, it's for my own use.
