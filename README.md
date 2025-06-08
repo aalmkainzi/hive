@@ -1,7 +1,7 @@
 # hive
 A container that provides pointer/iterator stability and fast iteration. Insertion order is not preserved.
 
-It's my own implementation of Matt Bentley's [`plf::colony`](https://github.com/mattreecebentley/plf_colony) data structure in C.
+It's my own C implementation of Matt Bentley's [`plf::colony`](https://github.com/mattreecebentley/plf_colony) data structure.
 
 However, There are some differences.
 
