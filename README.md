@@ -1,5 +1,21 @@
 # hive
 A container that provides pointer/iterator stability and fast iteration. Insertion order is not preserved.
+
+It's my own implementation of the Matt Bentley's [`plf::colony`](https://github.com/mattreecebentley/plf_colony) data structure in C.
+
+However, There are some differences.
+
+To list some:
+- I use fixed bucket sizes, while `plf::colony` doubles the bucket size each time a new bucket is created.
+- My `hive` doesn't have a reverse iterator.
+- In the "skip field" I don't store the offset index. Instead I store the absolute index the next element is in.
+- I don't cache "skip blocks", this has shown to make my `hive`'s erasure speed to be a bit slower than `plf::colony`. Because now I must iterate backwards to find the previous element (I will probably implement skip block caching).
+
+## Benchmark Results
+
+From my (very limited) benchmarking, it seems my `hive` has slightly faster iteration speed, slightly slower insertion, and noticeably slower deletion.
+I won't post any benchmark results because I'm afraid they might not be too accurate.
+
 ## Example
 
 ```C
@@ -51,7 +67,8 @@ bool             HIVE_NAME_iter_eq(HIVE_NAME_iter_t _a, HIVE_NAME_iter_t _b);
 ```
 
 ## How to include
-Make a new header for your hive type. Inside it, define `HIVE_TYPE` and `HIVE_NAME` and include the `"hive.h"` header
+You can do it like in the example, but that means you have to recompile `hive` each time.
+The best way to do it is to make a new header for your hive type. Inside it, define `HIVE_TYPE` and `HIVE_NAME` and include the `"hive.h"` header
 e.g.
 
 ```C
@@ -66,7 +83,7 @@ e.g.
 #endif
 ```
 
-And make a `.c` file to include the implementation
+And make a corresponding `.c` file for the implementation
 
 ```C
 // foo_hive.c
