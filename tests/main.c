@@ -258,7 +258,7 @@ static void test_big_multiple_puts(void)
     ASSERT(sp.count == (size_t)N);
     
     struct Collector c = {NULL, 0, 0};
-    for (big_hv_iter_t it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end);
+    for (big_hv_iter it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end);
          it = big_hv_iter_next(it))
          {
              collect_big(big_hv_iter_elm(it), &c);
@@ -344,7 +344,7 @@ static void test_big_stress_inserts_dels(void)
     ASSERT(sp.count == (size_t)M / 2);
     
     struct Collector col = {NULL, 0, 0};
-    for (big_hv_iter_t it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end); it = big_hv_iter_next(it))
+    for (big_hv_iter it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end); it = big_hv_iter_next(it))
     {
         collect_big(big_hv_iter_elm(it), &col);
     }
@@ -390,7 +390,7 @@ static void test_int_iteration_equivalence_after_random_dels(void)
                collect_int(HIVE_ITER_ELM, &col2);
     );
     
-    for (int_hv_iter_t it = int_hv_begin(&sp), end = int_hv_end(&sp); !int_hv_iter_eq(it, end);
+    for (int_hv_iter it = int_hv_begin(&sp), end = int_hv_end(&sp); !int_hv_iter_eq(it, end);
          it = int_hv_iter_next(it))
          {
              collect_int(int_hv_iter_elm(it), &col3);
@@ -442,7 +442,7 @@ static void test_big_iteration_equivalence_after_random_dels(void)
     
     big_hv_foreach(&sp, collect_big, &col1);
     HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &col2););
-    for (big_hv_iter_t it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end);
+    for (big_hv_iter it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end);
          it = big_hv_iter_next(it))
          {
              collect_big(big_hv_iter_elm(it), &col3);
@@ -492,7 +492,7 @@ static void test_against_dynamic_array(void)
         int idx = rand() % arrlen(expected);
         int value = expected[idx];
         
-        int_hv_iter_t it;
+        int_hv_iter it;
         int *found = NULL;
         for (it = int_hv_begin(&sp); !int_hv_iter_eq(it, int_hv_end(&sp)); it = int_hv_iter_next(it))
         {
@@ -552,7 +552,7 @@ static void test_big_against_dynamic_array(void)
         int idx = rand() % arrlen(expected);
         int value = expected[idx];
         
-        big_hv_iter_t it;
+        big_hv_iter it;
         Big *found = NULL;
         for (it = big_hv_begin(&sp); !big_hv_iter_eq(it, big_hv_end(&sp)); it = big_hv_iter_next(it))
         {
@@ -611,7 +611,7 @@ static void test_insert_after_erase(void)
         int idx = rand() % arrlen(expected);
         int value = expected[idx];
         
-        int_hv_iter_t it;
+        int_hv_iter it;
         int *found = NULL;
         for (it = int_hv_begin(&sp); !int_hv_iter_eq(it, int_hv_end(&sp)); it = int_hv_iter_next(it))
         {
@@ -679,7 +679,7 @@ static void test_big_insert_after_erase(void)
         int idx = rand() % arrlen(expected);
         int value = expected[idx];
         
-        big_hv_iter_t it;
+        big_hv_iter it;
         Big *found = NULL;
         for (it = big_hv_begin(&sp); !big_hv_iter_eq(it, big_hv_end(&sp)); it = big_hv_iter_next(it))
         {
@@ -782,7 +782,7 @@ static void test_empty_iteration(void)
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
-    for (int_hv_iter_t it = int_hv_begin(&sp),
+    for (int_hv_iter it = int_hv_begin(&sp),
         end = int_hv_end(&sp); 
     !int_hv_iter_eq(it, end); 
     it = int_hv_iter_next(it))
@@ -809,7 +809,7 @@ static void test_big_empty_iteration(void)
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
-    for (big_hv_iter_t it = big_hv_begin(&sp), end = big_hv_end(&sp); 
+    for (big_hv_iter it = big_hv_begin(&sp), end = big_hv_end(&sp); 
          !big_hv_iter_eq(it, end); 
     it = big_hv_iter_next(it))
          {
@@ -827,7 +827,7 @@ static void test_int_erase_single_element(void)
     int *p = &int_hv_put(&sp, 42).elm->value;
     ASSERT(p != NULL);
     
-    int_hv_iter_t it = int_hv_begin(&sp);
+    int_hv_iter it = int_hv_begin(&sp);
     it = int_hv_iter_del(&sp, it);
     
     ASSERT(int_hv_iter_eq(it, int_hv_end(&sp)));
@@ -843,7 +843,7 @@ static void test_int_erase_first_element(void)
     &int_hv_put(&sp, 2).elm->value;
     &int_hv_put(&sp, 3).elm->value;
     
-    int_hv_iter_t it = int_hv_begin(&sp);
+    int_hv_iter it = int_hv_begin(&sp);
     int elm = *int_hv_iter_elm(it);
     it = int_hv_iter_del(&sp, it);
     
@@ -881,8 +881,8 @@ static void test_int_erase_last_element_during_iteration(void)
     &int_hv_put(&sp, 2).elm->value;
     &int_hv_put(&sp, 3).elm->value;
     
-    int_hv_iter_t it = int_hv_begin(&sp);
-    int_hv_iter_t last = int_hv_end(&sp);
+    int_hv_iter it = int_hv_begin(&sp);
+    int_hv_iter last = int_hv_end(&sp);
     while (!int_hv_iter_eq(it, int_hv_end(&sp))) {
         last = it;
         it = int_hv_iter_next(it);
@@ -927,7 +927,7 @@ static void test_int_erase_every_other_element(void)
         &int_hv_put(&sp, i).elm->value;
     
     bool remove = false;
-    int_hv_iter_t it = int_hv_begin(&sp);
+    int_hv_iter it = int_hv_begin(&sp);
     while (!int_hv_iter_eq(it, int_hv_end(&sp))) {
         if (remove) {
             it = int_hv_iter_del(&sp, it);
@@ -955,7 +955,7 @@ static void test_int_stress_iter_del(void)
     for (int i = 0; i < M; i++)
         &int_hv_put(&sp, i).elm->value;
     
-    int_hv_iter_t it = int_hv_begin(&sp);
+    int_hv_iter it = int_hv_begin(&sp);
     size_t expected = M;
     while (!int_hv_iter_eq(it, int_hv_end(&sp))) {
         if (*(int_hv_iter_elm(it)) % 2 == 0) {
@@ -987,7 +987,7 @@ static void test_big_erase_single_element(void)
     Big *p = &big_hv_put(&sp, (Big){.i = 42}).elm->value;
     ASSERT(p != NULL);
     
-    big_hv_iter_t it = big_hv_begin(&sp);
+    big_hv_iter it = big_hv_begin(&sp);
     it = big_hv_iter_del(&sp, it);
     
     ASSERT(big_hv_iter_eq(it, big_hv_end(&sp)));
@@ -1003,7 +1003,7 @@ static void test_big_erase_first_element(void)
     &big_hv_put(&sp, (Big){.i = 2}).elm->value;
     &big_hv_put(&sp, (Big){.i = 3}).elm->value;
     
-    big_hv_iter_t it = big_hv_begin(&sp);
+    big_hv_iter it = big_hv_begin(&sp);
     Big popped = *big_hv_iter_elm(it);
     it = big_hv_iter_del(&sp, it);
     
@@ -1042,8 +1042,8 @@ static void test_big_erase_last_element_during_iteration(void)
     &big_hv_put(&sp, (Big){.i = 2}).elm->value;
     &big_hv_put(&sp, (Big){.i = 3}).elm->value;
     
-    big_hv_iter_t it = big_hv_begin(&sp);
-    big_hv_iter_t last = big_hv_end(&sp);
+    big_hv_iter it = big_hv_begin(&sp);
+    big_hv_iter last = big_hv_end(&sp);
     while (!big_hv_iter_eq(it, big_hv_end(&sp))) {
         last = it;
         it = big_hv_iter_next(it);
@@ -1087,7 +1087,7 @@ static void test_big_erase_every_other_element(void)
         &big_hv_put(&sp, (Big){.i = i}).elm->value;
     
     bool remove = false;
-    big_hv_iter_t it = big_hv_begin(&sp);
+    big_hv_iter it = big_hv_begin(&sp);
     while (!big_hv_iter_eq(it, big_hv_end(&sp))) {
         if (remove) {
             it = big_hv_iter_del(&sp, it);
@@ -1115,7 +1115,7 @@ static void test_big_stress_iter_del(void)
     for (int i = 0; i < M; i++)
         &big_hv_put(&sp, (Big){.i = i}).elm->value;
     
-    big_hv_iter_t it = big_hv_begin(&sp);
+    big_hv_iter it = big_hv_begin(&sp);
     size_t expected = M;
     while (!big_hv_iter_eq(it, big_hv_end(&sp))) {
         if (big_hv_iter_elm(it)->i % 2 == 0) {
@@ -1193,7 +1193,7 @@ static void test_int_clone_multiple_elements(void) {
     // Collect clone pointers and verify uniqueness
     int *clone_ptrs[N];
     size_t idx = 0;
-    for (int_hv_iter_t it = int_hv_begin(&clone); 
+    for (int_hv_iter it = int_hv_begin(&clone); 
          !int_hv_iter_eq(it, int_hv_end(&clone)); 
     it = int_hv_iter_next(it)) 
          {
@@ -1226,7 +1226,7 @@ static void test_int_clone_with_holes(void) {
     // Collect clone pointers
     int *clone_ptrs[2];
     size_t idx = 0;
-    for (int_hv_iter_t it = int_hv_begin(&clone);
+    for (int_hv_iter it = int_hv_begin(&clone);
          !int_hv_iter_eq(it, int_hv_end(&clone));
     it = int_hv_iter_next(it)) {
         clone_ptrs[idx++] = int_hv_iter_elm(it);
@@ -1266,7 +1266,7 @@ static void test_int_clone_stress(void) {
     
     // Verify clone pointers are unique
     size_t clone_idx = 0;
-    for (int_hv_iter_t it = int_hv_begin(&clone); 
+    for (int_hv_iter it = int_hv_begin(&clone); 
          !int_hv_iter_eq(it, int_hv_end(&clone)); 
     it = int_hv_iter_next(it)) 
          {
@@ -1327,7 +1327,7 @@ static void test_big_clone_multiple_elements(void) {
     // Collect clone pointers and verify uniqueness
     Big *clone_ptrs[N];
     size_t idx = 0;
-    for (big_hv_iter_t it = big_hv_begin(&clone); 
+    for (big_hv_iter it = big_hv_begin(&clone); 
          !big_hv_iter_eq(it, big_hv_end(&clone)); 
     it = big_hv_iter_next(it)) 
          {
@@ -1390,7 +1390,7 @@ static void test_big_clone_with_holes(void) {
     // Collect clone pointers
     int *clone_ptrs[2];
     size_t idx = 0;
-    for (big_hv_iter_t it = big_hv_begin(&clone); 
+    for (big_hv_iter it = big_hv_begin(&clone); 
          !big_hv_iter_eq(it, big_hv_end(&clone)); 
     it = big_hv_iter_next(it)) 
          {
@@ -1448,7 +1448,7 @@ static void test_big_clone_stress(void) {
     
     // Verify clone pointers are unique and values match
     size_t clone_idx = 0;
-    for (big_hv_iter_t it = big_hv_begin(&clone); 
+    for (big_hv_iter it = big_hv_begin(&clone); 
          !big_hv_iter_eq(it, big_hv_end(&clone)); 
     it = big_hv_iter_next(it)) 
          {
@@ -1513,7 +1513,7 @@ static void test_hive(void) {
     const int NUM_OPS = 1000000;
     
     bool rem = true;
-    for(big_hv_iter_t it = big_hv_begin(&pool), end = big_hv_end(&pool) ; !big_hv_iter_eq(it,end) ; )
+    for(big_hv_iter it = big_hv_begin(&pool), end = big_hv_end(&pool) ; !big_hv_iter_eq(it,end) ; )
     {
         if(rem)
         {
@@ -1544,7 +1544,7 @@ static void test_hive(void) {
             // Copy value before removal
             Big expected = *target;
             // Remove from pool, get iterator to next
-            big_hv_iter_t next_it = big_hv_del(&pool, target);
+            big_hv_iter next_it = big_hv_del(&pool, target);
             (void)next_it;
             // Remove from tracking arrays (swap with last)
             vals[idx] = vals[arrlen(vals) - 1]; arrpop(vals);
@@ -1556,7 +1556,7 @@ static void test_hive(void) {
         // Periodic full validation
         if (op % 10000 == 0) {
             size_t count = 0;
-            for (big_hv_iter_t it = big_hv_begin(&pool), end = big_hv_end(&pool);
+            for (big_hv_iter it = big_hv_begin(&pool), end = big_hv_end(&pool);
                  !big_hv_iter_eq(it,end);
             it = big_hv_iter_next(it)) {
                 ++count;
@@ -1567,7 +1567,7 @@ static void test_hive(void) {
             for (size_t i = 0; i < arrlen(ptrs); ++i) {
                 Big *p = ptrs[i];
                 int found = 0;
-                for (big_hv_iter_t it = big_hv_begin(&pool), end = big_hv_end(&pool);
+                for (big_hv_iter it = big_hv_begin(&pool), end = big_hv_end(&pool);
                      !big_hv_iter_eq(it,end);
                 it = big_hv_iter_next(it)) {
                     if (big_equal(p, big_hv_iter_elm(it))) {
@@ -1599,7 +1599,7 @@ void test_macro_iter()
         big_hv_put(&sp, (Big){.i = i});
     
     HIVE_FOREACH(&sp,
-        big_hv_iter_t it;
+        big_hv_iter it;
         HIVE_GET_ITER(&it);
         HIVE_SET_ITER(big_hv_iter_del(&sp, it));
     );
@@ -1708,7 +1708,6 @@ int main(void)
     
     test_big_clone_stress();
     
-    
     test_big_init_deinit();
     test_big_single_put_and_loop();
     test_big_multiple_puts();
@@ -1719,7 +1718,7 @@ int main(void)
     test_big_iteration_equivalence_after_random_dels();
     test_big_against_dynamic_array();
     test_big_insert_after_erase();
-    // test_clear_bucket();
+    test_clear_bucket();
     test_big_empty_iteration();
     test_big_erase_single_element();
     test_big_erase_first_element();
