@@ -3,6 +3,8 @@ A container that provides pointer/iterator stability and fast iteration. Inserti
 ## Example
 
 ```C
+#include <stdio.h>
+
 #define HIVE_TYPE int
 #define HIVE_NAME my_hive
 #define HIVE_IMPL
