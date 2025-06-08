@@ -33,11 +33,11 @@ int main()
     
     my_hive_put(&ints, 10);
     my_hive_put(&ints, 20);
-    my_hive_iter_t thirty = my_hive_put(&ints, 30);
+    my_hive_iter thirty = my_hive_put(&ints, 30);
     my_hive_put(&ints, 40);
     my_hive_put(&ints, 50);
     
-    for(my_hive_iter_t it = my_hive_begin(&ints) ; !my_hive_iter_eq(it, my_hive_end(&ints)) ; my_hive_iter_go_next(&it))
+    for(my_hive_iter it = my_hive_begin(&ints) ; !my_hive_iter_eq(it, my_hive_end(&ints)) ; my_hive_iter_go_next(&it))
     {
         printf("%d\n", *my_hive_iter_elm(it));
     }
