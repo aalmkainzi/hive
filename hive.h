@@ -200,7 +200,7 @@ HIVE_TYPE *hive_iter_elm(hive_iter_t _it);
 hive_iter_t hive_iter_del(HIVE_NAME *_hv, hive_iter_t _it);
 bool hive_iter_eq(hive_iter_t _a, hive_iter_t _b);
 
-#define HIVE_IMPL
+// #define HIVE_IMPL
 #if defined(HIVE_IMPL)
 
 #define hive_push_not_full_bucket  HIVE_CAT(HIVE_NAME, _push_not_full_bucket)
