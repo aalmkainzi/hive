@@ -135,8 +135,8 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 25'000;
-    int end   = 500'000;
+    int begin = 100;
+    int end   = 150'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/hive_and_plf_colony_").append(compiler_name).append(".html");
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
     constexpr bool bench_pop = false;
     constexpr bool bench_random = false;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -205,14 +205,14 @@ int main(int argc, char **argv)
                 
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_rnd",
                     [&]{
-                        big_sp_iter_t it = {};
+                        big_sp_iter it = {};
                         bool iter_set = false;
                         printf("COUNT = %zu\n", sl.count);
                         for(int i = 0, random = rand() % 100 ; i < sz ; i++, random = rand() % 100)
                         {
                             if(random <55 || sl.count == 0 || !iter_set)
                             {
-                                big_sp_iter_t tmp = big_sp_put(&sl, (Big){.i=i});
+                                big_sp_iter tmp = big_sp_put(&sl, (Big){.i=i});
                                 
                                 random = rand() % 100;
                                 if(random < 5 || !iter_set)
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
                     [&]{
                         volatile unsigned int sum = 0;
                         
-                        for(big_sp_iter_t it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
+                        for(big_sp_iter it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; big_sp_iter_go_next(&it))
                         {
                             sum += big_sp_iter_elm(it)->i;
                         }
