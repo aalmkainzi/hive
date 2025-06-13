@@ -235,13 +235,13 @@ void *hive_realloc_mem(void *_ctx, void *_ptr, size_t _old_size, size_t _new_siz
 void hive_free_mem(void *_ctx, void *_ptr, size_t _size);
 
 #define HIVE_ALLOC_N(type, count) \
-(typeof(type)*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(type) * count, alignof(type))
+(typeof(type)*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(type) * (count), alignof(type))
 
 #define HIVE_REALLOC_N(ptr, old_count, new_count) \
 (typeof(ptr)) HIVE_REALLOC(HIVE_ALLOC_CTX, (void*)(ptr), sizeof((ptr)[0]) * (old_count), sizeof((ptr)[0]) * (new_count), alignof(typeof((ptr)[0])))
 
 #define HIVE_FREE_N(ptr, count) \
-HIVE_FREE(HIVE_ALLOC_CTX, (void*)ptr, sizeof(ptr[0]) * count)
+HIVE_FREE(HIVE_ALLOC_CTX, (void*)ptr, sizeof(ptr[0]) * (count))
 
 void hive_init(HIVE_NAME *_hv)
 {
