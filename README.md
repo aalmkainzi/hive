@@ -87,8 +87,8 @@ And make a corresponding `.c` file for the implementation
 
 ```C
 // foo_hive.c
-#define HIVE_TYPE Foo
-#define HIVE_NAME Foo_Hive
+#include "foo_hive.h"
+
 #define HIVE_IMPL
 #include "hive.h"
 ```
