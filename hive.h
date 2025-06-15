@@ -224,7 +224,7 @@ void hive_free_mem(void *_ctx, void *_ptr, size_t _size);
 (typeof(ptr)) HIVE_REALLOC(HIVE_ALLOC_CTX, (void*)(ptr), sizeof((ptr)[0]) * (old_count), sizeof((ptr)[0]) * (new_count), alignof(typeof((ptr)[0])))
 
 #define HIVE_FREE_N(ptr, count) \
-HIVE_FREE(HIVE_ALLOC_CTX, (void*)ptr, sizeof(ptr[0]) * (count))
+HIVE_FREE(HIVE_ALLOC_CTX, (void*)(ptr), sizeof(ptr[0]) * (count))
 
 void hive_init(HIVE_NAME *_hv)
 {
