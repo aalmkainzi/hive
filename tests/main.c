@@ -58,7 +58,7 @@ static void test_single_put_and_loop(void)
 {
     int_hv sp;
     int_hv_init(&sp);
-    int *p = &int_hv_put(&sp, 42).elm->value;
+    int *p = int_hv_put(&sp, 42).elm;
     ASSERT(p && *p == 42);
     ASSERT(sp.count == (size_t)1);
     struct Collector c = {NULL, 0, 0};
@@ -92,9 +92,9 @@ static void test_pointer_stability(void)
 {
     int_hv sp;
     int_hv_init(&sp);
-    int *p1 = &int_hv_put(&sp, 10).elm->value;
-    int *p2 = &int_hv_put(&sp, 20).elm->value;
-    int *p3 = &int_hv_put(&sp, 30).elm->value;
+    int *p1 = int_hv_put(&sp, 10).elm;
+    int *p2 = int_hv_put(&sp, 20).elm;
+    int *p3 = int_hv_put(&sp, 30).elm;
     ASSERT(sp.count == 3);
     int_hv_del(&sp, p3);
     ASSERT(sp.count == 2);
@@ -107,9 +107,9 @@ static void test_del_and_iteration(void)
 {
     int_hv sp;
     int_hv_init(&sp);
-    int *a = &int_hv_put(&sp, 1).elm->value;
-    int *b = &int_hv_put(&sp, 2).elm->value;
-    int *c = &int_hv_put(&sp, 3).elm->value;
+    int *a = int_hv_put(&sp, 1).elm;
+    int *b = int_hv_put(&sp, 2).elm;
+    int *c = int_hv_put(&sp, 3).elm;
     ASSERT(sp.count == 3);
     int_hv_del(&sp, b);
     ASSERT(sp.count == 2);
@@ -145,7 +145,7 @@ static void test_stress_inserts_dels(void)
     int **ptrs = malloc(M * sizeof *ptrs);
     ASSERT(ptrs != NULL);
     for (int i = 0; i < M; i++)
-        ptrs[i] = &int_hv_put(&sp, i).elm->value;
+        ptrs[i] = int_hv_put(&sp, i).elm;
     ASSERT(sp.count == (size_t)M);
     
     for (int i = 0; i < M; i += 2)
@@ -174,7 +174,7 @@ static void test_smaller_stress_inserts_dels(void)
     
     for (int i = 0; i < M; i++)
     {
-        ptrs[i] = &int_hv_put(&sp, i).elm->value;
+        ptrs[i] = int_hv_put(&sp, i).elm;
         ASSERT(ptrs[i] != NULL);
     }
     ASSERT(sp.count == (size_t)M);
@@ -233,7 +233,7 @@ static void test_big_single_put_and_loop(void)
 {
     big_hv sp;
     big_hv_init(&sp);
-    Big *p = &big_hv_put(&sp, (Big){.i = 42}).elm->value;
+    Big *p = big_hv_put(&sp, (Big){.i = 42}).elm;
     ASSERT(p && p->i == 42);
     ASSERT(sp.count == 1);
     
@@ -252,7 +252,7 @@ static void test_big_multiple_puts(void)
     const int N = 100;
     for (int i = 0; i < N; i++)
     {
-        Big *p = &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        Big *p = big_hv_put(&sp, (Big){.i = i}).elm;
         ASSERT(p != NULL);
     }
     ASSERT(sp.count == (size_t)N);
@@ -277,9 +277,9 @@ static void test_big_pointer_stability(void)
 {
     big_hv sp;
     big_hv_init(&sp);
-    Big *p1 = &big_hv_put(&sp, (Big){.i = 10}).elm->value;
-    Big *p2 = &big_hv_put(&sp, (Big){.i = 20}).elm->value;
-    Big *p3 = &big_hv_put(&sp, (Big){.i = 30}).elm->value;
+    Big *p1 = big_hv_put(&sp, (Big){.i = 10}).elm;
+    Big *p2 = big_hv_put(&sp, (Big){.i = 20}).elm;
+    Big *p3 = big_hv_put(&sp, (Big){.i = 30}).elm;
     ASSERT(sp.count == 3);
     big_hv_del(&sp, p3);
     ASSERT(sp.count == 2);
@@ -292,9 +292,9 @@ static void test_big_del_and_iteration(void)
 {
     big_hv sp;
     big_hv_init(&sp);
-    Big *a = &big_hv_put(&sp, (Big){.i = 1}).elm->value;
-    Big *b = &big_hv_put(&sp, (Big){.i = 2}).elm->value;
-    Big *c = &big_hv_put(&sp, (Big){.i = 3}).elm->value;
+    Big *a = big_hv_put(&sp, (Big){.i = 1}).elm;
+    Big *b = big_hv_put(&sp, (Big){.i = 2}).elm;
+    Big *c = big_hv_put(&sp, (Big){.i = 3}).elm;
     ASSERT(sp.count == 3);
     big_hv_del(&sp, b);
     ASSERT(sp.count == 2);
@@ -334,7 +334,7 @@ static void test_big_stress_inserts_dels(void)
     
     for (int i = 0; i < M; i++)
     {
-        ptrs[i] = &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        ptrs[i] = big_hv_put(&sp, (Big){.i = i}).elm;
         ASSERT(ptrs[i] != NULL);
     }
     ASSERT(sp.count == (size_t)M);
@@ -369,7 +369,7 @@ static void test_int_iteration_equivalence_after_random_dels(void)
     
     srand(42);
     for (int i = 0; i < N; i++)
-        ptrs[i] = &int_hv_put(&sp, i).elm->value;
+        ptrs[i] = int_hv_put(&sp, i).elm;
     
     for (int i = 0; i < N; i++)
     {
@@ -425,7 +425,7 @@ static void test_big_iteration_equivalence_after_random_dels(void)
     
     srand(1337);
     for (int i = 0; i < N; i++)
-        ptrs[i] = &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        ptrs[i] = big_hv_put(&sp, (Big){.i = i}).elm;
     
     for (int i = 0; i < N; i++)
     {
@@ -475,7 +475,7 @@ static void test_against_dynamic_array(void)
     const int N = 71770;
     for (int i = 0; i < N; i++)
     {
-        int *ptr = &int_hv_put(&sp, i).elm->value;
+        int *ptr = int_hv_put(&sp, i).elm;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -536,7 +536,7 @@ static void test_big_against_dynamic_array(void)
     const int N = 50;
     for (int i = 0; i < N; i++)
     {
-        Big *ptr = &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        Big *ptr = big_hv_put(&sp, (Big){.i = i}).elm;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -595,7 +595,7 @@ static void test_insert_after_erase(void)
     const int N = 250;
     for (int i = 0; i < N; i++)
     {
-        int *ptr = &int_hv_put(&sp, i).elm->value;
+        int *ptr = int_hv_put(&sp, i).elm;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -631,7 +631,7 @@ static void test_insert_after_erase(void)
     const int M = 500;
     for (int i = N; i < N + M; i++)
     {
-        int *ptr = &int_hv_put(&sp, i).elm->value;
+        int *ptr = int_hv_put(&sp, i).elm;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -663,7 +663,7 @@ static void test_big_insert_after_erase(void)
     const int N = 500;
     for (int i = 0; i < N; i++)
     {
-        Big *ptr = &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        Big *ptr = big_hv_put(&sp, (Big){.i = i}).elm;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -699,7 +699,7 @@ static void test_big_insert_after_erase(void)
     const int M = 1000;
     for (int i = N; i < N + M; i++)
     {
-        Big *ptr = &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        Big *ptr = big_hv_put(&sp, (Big){.i = i}).elm;
         ASSERT(ptr != NULL);
         arrput(expected, i);
     }
@@ -732,7 +732,7 @@ void test_clear_bucket()
     int bucket_size = HIVE_GET_BUCKET_SIZE(&sp);
     for(int i = 0 ; i < bucket_size + bucket_size + bucket_size ; i++)
     {
-        arrput(to_delete, &big_hv_put(&sp, (Big){.i=i}).elm->value);
+        arrput(to_delete, big_hv_put(&sp, (Big){.i=i}).elm);
         arrput(copy, (Big){.i=i});
     }
     
@@ -824,7 +824,7 @@ static void test_int_erase_single_element(void)
 {
     int_hv sp;
     int_hv_init(&sp);
-    int *p = &int_hv_put(&sp, 42).elm->value;
+    int *p = int_hv_put(&sp, 42).elm;
     ASSERT(p != NULL);
     
     int_hv_iter it = int_hv_begin(&sp);
@@ -839,9 +839,9 @@ static void test_int_erase_first_element(void)
 {
     int_hv sp;
     int_hv_init(&sp);
-    &int_hv_put(&sp, 1).elm->value;
-    &int_hv_put(&sp, 2).elm->value;
-    &int_hv_put(&sp, 3).elm->value;
+    int_hv_put(&sp, 1).elm;
+    int_hv_put(&sp, 2).elm;
+    int_hv_put(&sp, 3).elm;
     
     int_hv_iter it = int_hv_begin(&sp);
     int elm = *int_hv_iter_elm(it);
@@ -877,9 +877,9 @@ static void test_int_erase_last_element_during_iteration(void)
 {
     int_hv sp;
     int_hv_init(&sp);
-    &int_hv_put(&sp, 1).elm->value;
-    &int_hv_put(&sp, 2).elm->value;
-    &int_hv_put(&sp, 3).elm->value;
+    int_hv_put(&sp, 1).elm;
+    int_hv_put(&sp, 2).elm;
+    int_hv_put(&sp, 3).elm;
     
     int_hv_iter it = int_hv_begin(&sp);
     int_hv_iter last = int_hv_end(&sp);
@@ -924,7 +924,7 @@ static void test_int_erase_every_other_element(void)
     int_hv_init(&sp);
     const int N = 10;
     for (int i = 0; i < N; i++)
-        &int_hv_put(&sp, i).elm->value;
+        int_hv_put(&sp, i).elm;
     
     bool remove = false;
     int_hv_iter it = int_hv_begin(&sp);
@@ -953,7 +953,7 @@ static void test_int_stress_iter_del(void)
     int_hv_init(&sp);
     const int M = 10000;
     for (int i = 0; i < M; i++)
-        &int_hv_put(&sp, i).elm->value;
+        int_hv_put(&sp, i).elm;
     
     int_hv_iter it = int_hv_begin(&sp);
     size_t expected = M;
@@ -984,7 +984,7 @@ static void test_big_erase_single_element(void)
 {
     big_hv sp;
     big_hv_init(&sp);
-    Big *p = &big_hv_put(&sp, (Big){.i = 42}).elm->value;
+    Big *p = big_hv_put(&sp, (Big){.i = 42}).elm;
     ASSERT(p != NULL);
     
     big_hv_iter it = big_hv_begin(&sp);
@@ -999,9 +999,9 @@ static void test_big_erase_first_element(void)
 {
     big_hv sp;
     big_hv_init(&sp);
-    &big_hv_put(&sp, (Big){.i = 1}).elm->value;
-    &big_hv_put(&sp, (Big){.i = 2}).elm->value;
-    &big_hv_put(&sp, (Big){.i = 3}).elm->value;
+    big_hv_put(&sp, (Big){.i = 1}).elm;
+    big_hv_put(&sp, (Big){.i = 2}).elm;
+    big_hv_put(&sp, (Big){.i = 3}).elm;
     
     big_hv_iter it = big_hv_begin(&sp);
     Big popped = *big_hv_iter_elm(it);
@@ -1038,9 +1038,9 @@ static void test_big_erase_last_element_during_iteration(void)
 {
     big_hv sp;
     big_hv_init(&sp);
-    &big_hv_put(&sp, (Big){.i = 1}).elm->value;
-    &big_hv_put(&sp, (Big){.i = 2}).elm->value;
-    &big_hv_put(&sp, (Big){.i = 3}).elm->value;
+    big_hv_put(&sp, (Big){.i = 1}).elm;
+    big_hv_put(&sp, (Big){.i = 2}).elm;
+    big_hv_put(&sp, (Big){.i = 3}).elm;
     
     big_hv_iter it = big_hv_begin(&sp);
     big_hv_iter last = big_hv_end(&sp);
@@ -1084,7 +1084,7 @@ static void test_big_erase_every_other_element(void)
     big_hv_init(&sp);
     const int N = 10;
     for (int i = 0; i < N; i++)
-        &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        big_hv_put(&sp, (Big){.i = i}).elm;
     
     bool remove = false;
     big_hv_iter it = big_hv_begin(&sp);
@@ -1113,7 +1113,7 @@ static void test_big_stress_iter_del(void)
     big_hv_init(&sp);
     const int M = 10000;
     for (int i = 0; i < M; i++)
-        &big_hv_put(&sp, (Big){.i = i}).elm->value;
+        big_hv_put(&sp, (Big){.i = i}).elm;
     
     big_hv_iter it = big_hv_begin(&sp);
     size_t expected = M;
@@ -1162,13 +1162,13 @@ static void test_int_clone_empty(void) {
 static void test_int_clone_single_element(void) {
     int_hv original;
     int_hv_init(&original);
-    int *orig_p = &int_hv_put(&original, 42).elm->value;
+    int *orig_p = int_hv_put(&original, 42).elm;
     
     int_hv clone = int_hv_clone(&original);
     ASSERT(clone.count == 1);
     
     // Verify pointer differs but value matches
-    int *clone_p = &int_hv_begin(&clone).elm->value;
+    int *clone_p = int_hv_begin(&clone).elm;
     ASSERT(clone_p != orig_p);
     ASSERT(*clone_p == 42);
     
@@ -1184,7 +1184,7 @@ static void test_int_clone_multiple_elements(void) {
     
     // Insert and track pointers
     for (int i = 0; i < N; ++i) {
-        original_ptrs[i] = &int_hv_put(&original, i).elm->value;
+        original_ptrs[i] = int_hv_put(&original, i).elm;
     }
     
     int_hv clone = int_hv_clone(&original);
@@ -1215,9 +1215,9 @@ static void test_int_clone_multiple_elements(void) {
 static void test_int_clone_with_holes(void) {
     int_hv original;
     int_hv_init(&original);
-    int *p1 = &int_hv_put(&original, 1).elm->value;
-    int *p2 = &int_hv_put(&original, 2).elm->value;
-    int *p3 = &int_hv_put(&original, 3).elm->value;
+    int *p1 = int_hv_put(&original, 1).elm;
+    int *p2 = int_hv_put(&original, 2).elm;
+    int *p3 = int_hv_put(&original, 3).elm;
     int_hv_del(&original, p2);
     
     int_hv clone = int_hv_clone(&original);
@@ -1255,7 +1255,7 @@ static void test_int_clone_stress(void) {
     
     // Insert and track all original pointers
     for (int i = 0; i < M; ++i) {
-        original_ptrs[i] = &int_hv_put(&original, i).elm->value;
+        original_ptrs[i] = int_hv_put(&original, i).elm;
     }
     
     int_hv clone = int_hv_clone(&original);
@@ -1292,13 +1292,13 @@ static void test_big_clone_empty(void) {
 static void test_big_clone_single_element(void) {
     big_hv original;
     big_hv_init(&original);
-    Big *orig_p = &big_hv_put(&original, (Big){.i = 42}).elm->value;
+    Big *orig_p = big_hv_put(&original, (Big){.i = 42}).elm;
     
     big_hv clone = big_hv_clone(&original);
     ASSERT(clone.count == 1);
     
     // Verify pointer differs but value matches
-    Big *clone_p = &big_hv_begin(&clone).elm->value;
+    Big *clone_p = big_hv_begin(&clone).elm;
     ASSERT(clone_p != orig_p);
     ASSERT(clone_p->i == 42);
     
@@ -1318,7 +1318,7 @@ static void test_big_clone_multiple_elements(void) {
     
     // Insert and track pointers
     for (int i = 0; i < N; ++i) {
-        original_ptrs[i] = &big_hv_put(&original, (Big){.i = i}).elm->value;
+        original_ptrs[i] = big_hv_put(&original, (Big){.i = i}).elm;
     }
     
     big_hv clone = big_hv_clone(&original);
@@ -1349,13 +1349,13 @@ static void test_big_clone_multiple_elements(void) {
 static void test_big_clone_independence_after_modification(void) {
     big_hv original;
     big_hv_init(&original);
-    &big_hv_put(&original, (Big){.i = 1}).elm->value;
-    &big_hv_put(&original, (Big){.i = 2}).elm->value;
+    big_hv_put(&original, (Big){.i = 1}).elm;
+    big_hv_put(&original, (Big){.i = 2}).elm;
     
     big_hv clone = big_hv_clone(&original);
     
     // Modify original after cloning
-    &big_hv_put(&original, (Big){.i = 3}).elm->value;
+    big_hv_put(&original, (Big){.i = 3}).elm;
     
     ASSERT(original.count == 3);
     ASSERT(clone.count == 2);
@@ -1376,9 +1376,9 @@ static void test_big_clone_independence_after_modification(void) {
 static void test_big_clone_with_holes(void) {
     big_hv original;
     big_hv_init(&original);
-    Big *p1 = &big_hv_put(&original, (Big){.i = 1}).elm->value;
-    Big *p2 = &big_hv_put(&original, (Big){.i = 2}).elm->value;
-    Big *p3 = &big_hv_put(&original, (Big){.i = 3}).elm->value;
+    Big *p1 = big_hv_put(&original, (Big){.i = 1}).elm;
+    Big *p2 = big_hv_put(&original, (Big){.i = 2}).elm;
+    Big *p3 = big_hv_put(&original, (Big){.i = 3}).elm;
     big_hv_del(&original, p2);
     int *p1i = &p1->i;
     int *p2i = &p2->i;
@@ -1413,7 +1413,7 @@ static void test_big_clone_with_holes(void) {
 static void test_big_clone_deep_copy(void) {
     big_hv original;
     big_hv_init(&original);
-    Big *orig_p = &big_hv_put(&original, (Big){.i = 42}).elm->value;
+    Big *orig_p = big_hv_put(&original, (Big){.i = 42}).elm;
     
     big_hv clone = big_hv_clone(&original);
     
@@ -1421,7 +1421,7 @@ static void test_big_clone_deep_copy(void) {
     orig_p->i = 100;
     
     // Verify clone remains unchanged
-    Big *clone_p = &big_hv_begin(&clone).elm->value;
+    Big *clone_p = big_hv_begin(&clone).elm;
     ASSERT(clone_p->i == 42);
     
     big_hv_deinit(&original);
@@ -1437,7 +1437,7 @@ static void test_big_clone_stress(void) {
     
     // Insert and track all original pointers
     for (int i = 0; i < M; ++i) {
-        original_ptrs[i] = &big_hv_put(&original, (Big){.i = i}).elm->value;
+        original_ptrs[i] = big_hv_put(&original, (Big){.i = i}).elm;
     }
     
     big_hv clone = big_hv_clone(&original);
@@ -1468,14 +1468,14 @@ static void test_big_clone_stress(void) {
 static void test_big_clone_after_original_deinit(void) {
     big_hv original;
     big_hv_init(&original);
-    &big_hv_put(&original, (Big){.i = 42}).elm->value;
+    big_hv_put(&original, (Big){.i = 42}).elm;
     
     big_hv clone = big_hv_clone(&original);
     big_hv_deinit(&original);  // Destroy original
     
     // Verify clone remains valid
     ASSERT(clone.count == 1);
-    Big *clone_p = &big_hv_begin(&clone).elm->value;
+    Big *clone_p = big_hv_begin(&clone).elm;
     ASSERT(clone_p->i == 42);
     
     big_hv_deinit(&clone);
@@ -1532,7 +1532,7 @@ static void test_hive(void) {
         if (arrlen(ptrs) == 0 || (rand() & 1)) {
             // PUT operation: insert new element
             Big new_el = random_big();
-            Big *hv_ptr = &big_hv_put(&pool, new_el).elm->value;
+            Big *hv_ptr = big_hv_put(&pool, new_el).elm;
             ASSERT(hv_ptr && "Failed to insert into hive");
             // Track value and pointer
             arrpush(vals, *hv_ptr);
@@ -1633,7 +1633,7 @@ void test71770()
             uint16_t first_empty_idx;
             uint16_t first_elm_idx;
             uint16_t count;
-            big_hv_entry_t elms[HIVE_GET_BUCKET_SIZE(&hv) + 1];
+            Big *elms[HIVE_GET_BUCKET_SIZE(&hv) + 1];
             big_hv_next_entry_t next_entries[HIVE_GET_BUCKET_SIZE(&hv) + 1];
         } bucket_data;
         

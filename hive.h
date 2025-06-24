@@ -14,8 +14,8 @@
 
 #endif
 
-#if !defined(HIVE_DECLARED)
-#define HIVE_DECLARED
+//#if !defined(HIVE_DECLARED)
+//#define HIVE_DECLARED
 
 #define HIVE_BUCKET_SIZE (UINT8_MAX - 1)
 
@@ -58,7 +58,6 @@
 
 #define hive_iter                  HIVE_CAT(HIVE_NAME, _iter)
 #define hive_bucket_t              HIVE_CAT(HIVE_NAME, _bucket_t)
-#define hive_entry_t               HIVE_CAT(HIVE_NAME, _entry_t)
 #define hive_next_entry_t          HIVE_CAT(HIVE_NAME, _next_entry_t)
 #define hive_init                  HIVE_CAT(HIVE_NAME, _init)
 #define hive_clone                 HIVE_CAT(HIVE_NAME, _clone)
@@ -108,7 +107,7 @@ do                                                                              
 } while(0)
 
 #define HIVE_ITER_ELM \
-((typeof(hive_bucket->elms[0].value)*const) &hive_elms_base[hive_index])
+((typeof(hive_bucket->elms[0])*const) &hive_elms_base[hive_index])
 
 #define HIVE_GET_ITER(itr) \
 *(itr) = (typeof(*(itr))){.bucket = hive_bucket, .next_entry = hive_next_entries_base + hive_index + 1, .elm = &hive_elms_base[hive_index]}
@@ -122,28 +121,14 @@ do {                                                        \
     hive_index = hive_itr.elm - hive_elms_base;             \
 } while(0)
 
-typedef struct hive_entry_t
-{
-    typeof(HIVE_TYPE) value;
-} hive_entry_t;
+#define hive_entry_t typeof(HIVE_TYPE)
 
 typedef struct hive_next_entry_t
 {
     uint8_t next_elm_index;
 } hive_next_entry_t;
 
-typedef struct hive_bucket_t
-{
-    uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
-    uint8_t first_empty_idx;
-    uint8_t first_elm_idx;
-    uint8_t count;
-    hive_entry_t elms[HIVE_BUCKET_SIZE + 1];
-    hive_next_entry_t next_entries[HIVE_BUCKET_SIZE + 1];
-    struct hive_bucket_t *next;
-    struct hive_bucket_t *prev;
-} hive_bucket_t;
-
+typedef struct hive_bucket_t hive_bucket_t;
 typedef struct HIVE_NAME
 {
     hive_bucket_t *buckets;
@@ -168,23 +153,36 @@ typedef struct hive_iter
 
 void hive_init(HIVE_NAME *_hv);
 HIVE_NAME hive_clone(const HIVE_NAME *const _hv);
-hive_iter hive_put(HIVE_NAME *hv, HIVE_TYPE _new_elm);
-void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms);
-hive_iter hive_del(HIVE_NAME *_hv, HIVE_TYPE *_elm);
-void hive_foreach(HIVE_NAME *_hv, void(*_f)(HIVE_TYPE*,void*), void *_arg);
+hive_iter hive_put(HIVE_NAME *hv, hive_entry_t _new_elm);
+void hive_put_all(HIVE_NAME *_hv, const hive_entry_t *_elms, size_t _nelms);
+hive_iter hive_del(HIVE_NAME *_hv, hive_entry_t *_elm);
+void hive_foreach(HIVE_NAME *_hv, void(*_f)(hive_entry_t*,void*), void *_arg);
 void hive_deinit(HIVE_NAME *_hv);
 
 hive_iter hive_begin(const HIVE_NAME *_hv);
 hive_iter hive_end(const HIVE_NAME *_hv);
 hive_iter hive_iter_next(hive_iter _it);
 void hive_iter_go_next(hive_iter *_it);
-HIVE_TYPE *hive_iter_elm(hive_iter _it);
+hive_entry_t *hive_iter_elm(hive_iter _it);
 hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it);
 bool hive_iter_eq(hive_iter _a, hive_iter _b);
 
-#endif
+//#endif
+
 // #define HIVE_IMPL
 #if defined(HIVE_IMPL)
+
+typedef struct hive_bucket_t
+{
+    uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
+    uint8_t first_empty_idx;
+    uint8_t first_elm_idx;
+    uint8_t count;
+    hive_entry_t elms[HIVE_BUCKET_SIZE + 1];
+    hive_next_entry_t next_entries[HIVE_BUCKET_SIZE + 1];
+    struct hive_bucket_t *next;
+    struct hive_bucket_t *prev;
+} hive_bucket_t;
 
 #define hive_push_not_full_bucket  HIVE_CAT(HIVE_NAME, _push_not_full_bucket)
 #define hive_foreach_updater       HIVE_CAT(HIVE_NAME, _foreach_updater)
@@ -315,7 +313,7 @@ hive_iter hive_put(HIVE_NAME *_hv, HIVE_TYPE _new_elm)
         hive_bucket_t *_bucket = _hv->not_full_buckets.array[_hv->not_full_buckets.count - 1];
         _hv->count += 1;
         HIVE_TYPE *_elm = hive_bucket_put(_hv, _bucket, _new_elm);
-        return hive_iter_to(_bucket, _elm - &_bucket->elms[0].value);
+        return hive_iter_to(_bucket, _elm - &_bucket->elms[0]);
     }
     
     hive_bucket_t *_new_bucket = (hive_bucket_t*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(hive_bucket_t), alignof(hive_bucket_t));
@@ -340,7 +338,7 @@ hive_iter hive_put(HIVE_NAME *_hv, HIVE_TYPE _new_elm)
     _hv->bucket_count += 1;
     _elm_added = hive_bucket_put(_hv, _new_bucket, _new_elm);
     _hv->count += 1;
-    return hive_iter_to(_new_bucket, _elm_added - &_new_bucket->elms[0].value);
+    return hive_iter_to(_new_bucket, _elm_added - &_new_bucket->elms[0]);
 }
 
 void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
@@ -522,7 +520,7 @@ void hive_foreach(HIVE_NAME *_hv, void(*_f)(HIVE_TYPE*,void*), void *_arg)
     uint8_t _index = _bucket->first_elm_idx;
     for( ; _bucket != _hv->end_sentinel ; hive_foreach_updater(&_index, &_bucket))
     {
-        _f(&_bucket->elms[_index].value, _arg);
+        _f(&_bucket->elms[_index], _arg);
     }
 }
 
@@ -579,7 +577,7 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
     
     assert(_bucket->next_entries[_empty_index].next_elm_index != _empty_index);
     
-    _bucket->elms[_empty_index].value = _new_elm;
+    _bucket->elms[_empty_index] = _new_elm;
     _bucket->next_entries[_empty_index].next_elm_index = _empty_index;
     _bucket->count += 1;
     
@@ -601,7 +599,7 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
         _bucket->not_full_idx = UINT16_MAX;
         _hv->not_full_buckets.count -= 1;
     }
-    return &_bucket->elms[_empty_index].value;
+    return &_bucket->elms[_empty_index];
 }
 
 bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
@@ -716,7 +714,7 @@ void hive_iter_go_next(hive_iter *_it)
 
 HIVE_TYPE *hive_iter_elm(hive_iter _it)
 {
-    return &_it.elm->value;
+    return _it.elm;
 }
 
 hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it)
@@ -793,6 +791,8 @@ void hive_free_mem(void *ctx, void *ptr, size_t size)
     free(ptr);
 }
 
+#endif
+
 #undef HIVE_TYPE
 #undef HIVE_NAME
 #undef HIVE_IMPL
@@ -834,4 +834,3 @@ void hive_free_mem(void *ctx, void *ptr, size_t size)
 #undef hive_free_mem
 
 #undef HIVE_DECLARED
-#endif
