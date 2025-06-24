@@ -123,6 +123,8 @@ do {                                                        \
 
 #define hive_entry_t typeof(HIVE_TYPE)
 
+#if !defined(HIVE_DECLARED)
+
 typedef struct hive_next_entry_t
 {
     uint8_t next_elm_index;
@@ -150,6 +152,8 @@ typedef struct hive_iter
     hive_next_entry_t *next_entry;
     hive_entry_t *elm;
 } hive_iter;
+
+#endif
 
 void hive_init(HIVE_NAME *_hv);
 HIVE_NAME hive_clone(const HIVE_NAME *const _hv);
