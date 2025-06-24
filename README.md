@@ -72,12 +72,12 @@ The best way to do it is to make a new header for your hive type. Inside it, def
 e.g.
 
 ```C
-// foo_hive.h
-#ifndef FOO_HIVE_H
-#define FOO_HIVE_H
+// int_hive.h
+#ifndef INT_HIVE_H
+#define INT_HIVE_H
 
-#define HIVE_TYPE Foo
-#define HIVE_NAME Foo_Hive
+#define HIVE_TYPE int
+#define HIVE_NAME Int_Hive
 #include "hive.h"
 
 #endif
@@ -86,7 +86,7 @@ e.g.
 And make a corresponding `.c` file for the implementation
 
 ```C
-// foo_hive.c
+// int_hive.c
 #define HIVE_IMPL
-#include "foo_hive.h"
+#include "int_hive.h"
 ```
