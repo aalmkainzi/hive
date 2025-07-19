@@ -493,7 +493,7 @@ hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_buck
 
 hive_iter hive_del(HIVE_NAME *_hv, HIVE_TYPE *_elm)
 {
-    hive_iter _ret;
+    hive_iter _ret = {0};
     for(hive_bucket_t *_bucket = _hv->buckets ; _bucket != _hv->end_sentinel ; _bucket = _bucket->next)
     {
         if(hive_bucket_is_elm_within(_bucket, _elm))
