@@ -53,70 +53,31 @@
 #define HIVE_CAT_(a,b) a##b
 #define HIVE_CAT(a,b) HIVE_CAT_(a,b)
 
-#define hive_iter                  HIVE_CAT(HIVE_NAME, _iter)
-#define hive_bucket_t              HIVE_CAT(HIVE_NAME, _bucket_t)
-#define hive_next_entry_t          HIVE_CAT(HIVE_NAME, _next_entry_t)
-#define hive_init                  HIVE_CAT(HIVE_NAME, _init)
-#define hive_clone                 HIVE_CAT(HIVE_NAME, _clone)
-#define hive_put                   HIVE_CAT(HIVE_NAME, _put)
-#define hive_put_all               HIVE_CAT(HIVE_NAME, _put_all)
-#define hive_del                   HIVE_CAT(HIVE_NAME, _del)
-#define hive_foreach               HIVE_CAT(HIVE_NAME, _foreach)
-#define hive_begin                 HIVE_CAT(HIVE_NAME, _begin)
-#define hive_end                   HIVE_CAT(HIVE_NAME, _end)
-#define hive_deinit                HIVE_CAT(HIVE_NAME, _deinit)
+#define hive_iter           HIVE_CAT(HIVE_NAME, _iter)
+#define hive_handle         HIVE_CAT(HIVE_NAME, _handle)
+#define hive_bucket_t       HIVE_CAT(HIVE_NAME, _bucket_t)
+#define hive_next_entry_t   HIVE_CAT(HIVE_NAME, _next_entry_t)
+#define hive_init           HIVE_CAT(HIVE_NAME, _init)
+#define hive_clone          HIVE_CAT(HIVE_NAME, _clone)
+#define hive_put            HIVE_CAT(HIVE_NAME, _put)
+#define hive_put_all        HIVE_CAT(HIVE_NAME, _put_all)
+#define hive_del            HIVE_CAT(HIVE_NAME, _del)
+#define hive_foreach        HIVE_CAT(HIVE_NAME, _foreach)
+#define hive_begin          HIVE_CAT(HIVE_NAME, _begin)
+#define hive_end            HIVE_CAT(HIVE_NAME, _end)
+#define hive_deinit         HIVE_CAT(HIVE_NAME, _deinit)
+                            
+#define hive_iter_next      HIVE_CAT(HIVE_NAME, _iter_next)
+#define hive_iter_elm       HIVE_CAT(HIVE_NAME, _iter_elm)
+#define hive_iter_del       HIVE_CAT(HIVE_NAME, _iter_del)
+#define hive_iter_eq        HIVE_CAT(HIVE_NAME, _iter_eq)
 
-#define hive_iter_next             HIVE_CAT(HIVE_NAME, _iter_next)
-#define hive_iter_go_next          HIVE_CAT(HIVE_NAME, _iter_go_next)
-#define hive_iter_elm              HIVE_CAT(HIVE_NAME, _iter_elm)
-#define hive_iter_del              HIVE_CAT(HIVE_NAME, _iter_del)
-#define hive_iter_eq               HIVE_CAT(HIVE_NAME, _iter_eq)
-#define hive_iter_to               HIVE_CAT(HIVE_NAME, _iter_to)
+#define hive_handle_elm     HIVE_CAT(HIVE_NAME, _handle_elm)
+#define hive_handle_del     HIVE_CAT(HIVE_NAME, _handle_del)
+#define hive_iter_to_handle HIVE_CAT(HIVE_NAME, _iter_to_handle)
 
 #define HIVE_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
-
-#define HIVE_GET_BUCKET_SIZE(hv) \
-(HIVE_ARR_LEN((hv)->buckets->elms) - 1)
-
-#define HIVE_FOREACH(hv, body)                                                                    \
-do                                                                                                \
-{                                                                                                 \
-    typeof(*hv) * const hive_hv = hv;                                                             \
-    const typeof(*hive_hv->buckets) *const hive_end_bucket = hive_hv->end_sentinel;               \
-    typeof(hive_hv->buckets) hive_bucket = hive_hv->buckets;                                      \
-    typeof(hive_bucket->next_entries[0].next_elm_index) hive_index = hive_bucket->first_elm_idx;  \
-    typeof(hive_bucket->next_entries[0]) *hive_next_entries_base = &hive_bucket->next_entries[0]; \
-    typeof(*hive_bucket->elms) *hive_elms_base = &hive_bucket->elms[0];                           \
-    while( hive_bucket != hive_end_bucket )                                                       \
-    {                                                                                             \
-        { body }                                                                                  \
-        \
-        (hive_index) = hive_next_entries_base[hive_index + 1].next_elm_index;                     \
-        if(HIVE_UNLIKELY(hive_index >= HIVE_GET_BUCKET_SIZE(hive_hv)))                            \
-        {                                                                                         \
-            (hive_bucket) = (hive_bucket)->next;                                                  \
-            (hive_index) = (hive_bucket)->first_elm_idx;                                          \
-            hive_next_entries_base = &hive_bucket->next_entries[0];                               \
-            hive_elms_base = &hive_bucket->elms[0];                                               \
-        }                                                                                         \
-    }                                                                                             \
-} while(0)
-
-#define HIVE_ITER_ELM \
-((typeof(hive_bucket->elms[0])*const) &hive_elms_base[hive_index])
-
-#define HIVE_GET_ITER(itr) \
-*(itr) = (typeof(*(itr))){.bucket = hive_bucket, .next_entry = hive_next_entries_base + hive_index + 1, .elm = &hive_elms_base[hive_index]}
-
-#define HIVE_SET_ITER(itr)                                  \
-do {                                                        \
-    const typeof(itr) hive_itr = itr;                       \
-    hive_bucket = hive_itr.bucket;                          \
-    hive_elms_base = &hive_bucket->elms[0];                 \
-    hive_next_entries_base = &hive_bucket->next_entries[0]; \
-    hive_index = hive_itr.elm - hive_elms_base;             \
-} while(0)
 
 #define hive_entry_t typeof(HIVE_TYPE)
 
@@ -150,6 +111,12 @@ typedef struct hive_iter
     hive_entry_t *elm;
 } hive_iter;
 
+typedef struct hive_handle
+{
+    hive_bucket_t *bucket;
+    hive_entry_t *elm;
+} hive_handle;
+
 #endif
 
 void hive_init(HIVE_NAME *_hv);
@@ -163,7 +130,6 @@ void hive_deinit(HIVE_NAME *_hv);
 hive_iter hive_begin(const HIVE_NAME *_hv);
 hive_iter hive_end(const HIVE_NAME *_hv);
 hive_iter hive_iter_next(hive_iter _it);
-void hive_iter_go_next(hive_iter *_it);
 hive_entry_t *hive_iter_elm(hive_iter _it);
 hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it);
 bool hive_iter_eq(hive_iter _a, hive_iter _b);
@@ -192,6 +158,8 @@ typedef struct hive_bucket_t
 #define hive_bucket_is_elm_within  HIVE_CAT(HIVE_NAME, _bucket_is_elm_within)
 #define hive_bucket_first_elm      HIVE_CAT(HIVE_NAME, _bucket_first_elm)
 #define hive_del_helper            HIVE_CAT(HIVE_NAME, _del_helper)
+
+#define hive_iter_to               HIVE_CAT(HIVE_NAME, _iter_to)
 
 #define hive_validate              HIVE_CAT(HIVE_NAME, _validate)
 
@@ -698,19 +666,6 @@ hive_iter hive_iter_next(hive_iter _it)
     return _it;
 }
 
-void hive_iter_go_next(hive_iter *_it)
-{
-    uint8_t _index = _it->next_entry->next_elm_index;
-    
-    if (HIVE_UNLIKELY(_index == HIVE_BUCKET_SIZE))
-    {
-        _it->bucket = _it->bucket->next;
-        _index = _it->bucket->first_elm_idx;
-    }
-    _it->elm = &_it->bucket->elms[_index];
-    _it->next_entry = &_it->bucket->next_entries[_index] + 1;
-}
-
 HIVE_TYPE *hive_iter_elm(hive_iter _it)
 {
     return _it.elm;
@@ -721,6 +676,23 @@ hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it)
     uint8_t _index = _it.elm - _it.bucket->elms;
     
     return hive_del_helper(_hv, _it.bucket->prev, _it.bucket, _index);
+}
+
+hive_handle hive_iter_to_handle(hive_iter _it)
+{
+    return (hive_handle){.bucket = _it.bucket, .elm = _it.elm};
+}
+
+hive_entry_t *hive_handle_elm(hive_handle _handle)
+{
+    return _handle.elm;
+}
+
+hive_iter hive_handle_del(HIVE_NAME *_hv, hive_handle _handle)
+{
+    uint8_t _index = _handle.elm - _handle.bucket->elms;
+    
+    return hive_del_helper(_hv, _handle.bucket->prev, _handle.bucket, _index);
 }
 
 bool hive_validate(const HIVE_NAME *_hive)
@@ -822,12 +794,15 @@ void hive_free_mem(void *ctx, void *ptr, size_t size)
 #undef hive_bucket_is_elm_within
 #undef hive_bucket_first_elm
 #undef hive_iter_next
-#undef hive_iter_go_next
 #undef hive_iter_elm
 #undef hive_iter_del
 #undef hive_iter_eq
 #undef hive_iter_is_end
 #undef hive_iter_to
+#undef hive_handle
+#undef hive_handle_elm
+#undef hive_handle_del
+#undef hive_iter_to_handle
 #undef hive_alloc_mem
 #undef hive_realloc_mem
 #undef hive_free_mem

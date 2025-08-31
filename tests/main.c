@@ -238,7 +238,12 @@ static void test_big_single_put_and_loop(void)
     ASSERT(sp.count == 1);
     
     struct Collector c = {NULL, 0, 0};
-    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &c););
+    
+    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp)) ; it = big_hv_iter_next(it) )
+    {
+        collect_big(it.elm, &c);
+    }
+    
     ASSERT(c.idx == 1);
     ASSERT(c.data[0] == 42);
     free(c.data);
@@ -300,7 +305,10 @@ static void test_big_del_and_iteration(void)
     ASSERT(sp.count == 2);
     
     struct Collector col = {NULL, 0, 0};
-    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &col););
+    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp))  ; it = big_hv_iter_next(it))
+{
+    collect_big(it.elm, &col);
+}
     ASSERT(col.idx == 2);
     
     qsort(col.data, col.idx, sizeof(int), compare_ints);
@@ -386,9 +394,10 @@ static void test_int_iteration_equivalence_after_random_dels(void)
     
     int_hv_foreach(&sp, collect_int, &col1);
     
-    HIVE_FOREACH(&sp,
-               collect_int(HIVE_ITER_ELM, &col2);
-    );
+    for(int_hv_iter it = int_hv_begin(&sp) ; !int_hv_iter_eq(it, int_hv_end(&sp)) ; it = int_hv_iter_next(it))
+    {
+        collect_int(it.elm, &col2);
+    }
     
     for (int_hv_iter it = int_hv_begin(&sp), end = int_hv_end(&sp); !int_hv_iter_eq(it, end);
          it = int_hv_iter_next(it))
@@ -441,7 +450,10 @@ static void test_big_iteration_equivalence_after_random_dels(void)
     struct Collector col3 = {NULL, 0, 0};
     
     big_hv_foreach(&sp, collect_big, &col1);
-    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &col2););
+    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp))  ; it = big_hv_iter_next(it))
+    {
+        collect_big(it.elm, &col2);
+    }
     for (big_hv_iter it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end);
          it = big_hv_iter_next(it))
          {
@@ -729,7 +741,7 @@ void test_clear_bucket()
     
     Big **to_delete = NULL;
     Big *copy = NULL;
-    int bucket_size = HIVE_GET_BUCKET_SIZE(&sp);
+    int bucket_size = 254;
     for(int i = 0 ; i < bucket_size + bucket_size + bucket_size ; i++)
     {
         arrput(to_delete, big_hv_put(&sp, (Big){.i=i}).elm);
@@ -748,18 +760,17 @@ void test_clear_bucket()
     printf("NB BUCKETS = %zu\n\n", sp.bucket_count);
     
     reset_loop:
-    HIVE_FOREACH(&sp,
-               {
-                   Big it = *HIVE_ITER_ELM;
-                   
-                   if(it.i == copy[0].i)
-                   {
-                       arrdel(copy, 0);
-                       if(arrlen(copy) == 0) goto out;
-                       goto reset_loop;
-                   }
-               }
-    );
+    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp)) ; it = big_hv_iter_next(it))
+    {
+        Big b = *(it.elm);
+        
+        if(b.i == copy[0].i)
+        {
+            arrdel(copy, 0);
+            if(arrlen(copy) == 0) goto out;
+            goto reset_loop;
+        }
+    }
     out:
     ASSERT(arrlen(copy) == 0);
     big_hv_deinit(&sp);
@@ -778,7 +789,10 @@ static void test_empty_iteration(void)
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
-    HIVE_FOREACH(&sp, collect_int(HIVE_ITER_ELM, &c_macro););
+    for(int_hv_iter it = int_hv_begin(&sp) ; !int_hv_iter_eq(it, int_hv_end(&sp))  ; it = int_hv_iter_next(it))
+    {
+        collect_int(it.elm, &c_macro);
+    }
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
@@ -805,7 +819,10 @@ static void test_big_empty_iteration(void)
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
-    HIVE_FOREACH(&sp, collect_big(HIVE_ITER_ELM, &c_macro););
+    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp))  ; it = big_hv_iter_next(it))
+{
+    collect_big(it.elm, &c_macro);
+}
     ASSERT(c_macro.idx == 0);
     
     struct Collector c_iter = {NULL, 0, 0};
@@ -1590,23 +1607,6 @@ static void test_hive(void) {
     arrfree(ptrs);
 }
 
-void test_macro_iter()
-{
-    big_hv sp;
-    big_hv_init(&sp);
-    const int M = 10000;
-    for (int i = 0; i < M; i++)
-        big_hv_put(&sp, (Big){.i = i});
-    
-    HIVE_FOREACH(&sp,
-        big_hv_iter it;
-        HIVE_GET_ITER(&it);
-        HIVE_SET_ITER(big_hv_iter_del(&sp, it));
-    );
-    
-    big_hv_deinit(&sp);
-}
-
 void test71770()
 {
     big_hv hv;
@@ -1633,8 +1633,8 @@ void test71770()
             uint16_t first_empty_idx;
             uint16_t first_elm_idx;
             uint16_t count;
-            Big *elms[HIVE_GET_BUCKET_SIZE(&hv) + 1];
-            big_hv_next_entry_t next_entries[HIVE_GET_BUCKET_SIZE(&hv) + 1];
+            Big *elms[254 + 1];
+            big_hv_next_entry_t next_entries[254 + 1];
         } bucket_data;
         
         bucket_data bd;
@@ -1671,10 +1671,10 @@ void test71770()
     big_hv_validate(&hv);
     
     unsigned int sum = 0;
-    HIVE_FOREACH(
-        &hv,
-        sum += HIVE_ITER_ELM->i;
-    );
+    for(big_hv_iter it = big_hv_begin(&hv) ; !big_hv_iter_eq(it, big_hv_end(&hv)) ; it = big_hv_iter_next(it))
+    {
+        sum += it.elm->i;
+    }
     
     printf("SUM = %u\n", sum);
 }
@@ -1734,7 +1734,6 @@ int main(void)
     test_big_clone_stress();
     test_big_clone_after_original_deinit();
     test_hive();
-    test_macro_iter();
     
     printf("ALL PASSED\n");
     return 0;
