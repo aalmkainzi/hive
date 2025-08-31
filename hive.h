@@ -135,7 +135,7 @@ hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it);
 bool hive_iter_eq(hive_iter _a, hive_iter _b);
 
 // #define HIVE_IMPL
-#if defined(HIVE_IMPL)
+#if defined(HIVE_IMPL) || defined(HIVE_IMPL_ALL)
 
 typedef struct hive_bucket_t
 {
