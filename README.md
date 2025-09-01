@@ -42,6 +42,12 @@ int main()
         printf("%d\n", *my_hive_iter_elm(it));
     }
     
+    // helper macro for iteration
+    HIVE_FOR_EACH(it, my_hive_begin(&ints), my_hive_end(&ints))
+    {
+        printf("%d\n", *my_hive_iter_elm(it));
+    }
+    
     my_hive_iter_del(&ints, thirty);
     
     my_hive_deinit(&ints);
