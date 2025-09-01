@@ -45,15 +45,11 @@ bool eq_big(Big a, Big b)
 #define HIVE_IMPL
 #define HIVE_TYPE Big
 #define HIVE_NAME bbig_sp
-#if __has_include("../../sp_other/hive.h")
+#if __has_include("../../hive_old/hive.h")
 #include "../../hive_old/hive.h"
 #else
 #include "hive.h"
 #endif
-
-#define BRACE_TYPE Big
-#define BRACE_NAME bbrace
-#include "../../brace/brace.h"
 
 #define HH_IMPL
 #include "../../hetrohive/hetrohive.h"
@@ -90,7 +86,7 @@ int main(int argc, char **argv)
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 500'000;
+    int end   = 100'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/res").append(compiler_name).append(".html");
@@ -106,7 +102,7 @@ int main(int argc, char **argv)
     constexpr bool bench_pop = false;
     constexpr bool bench_random = false;
     
-    int iterations = 25;
+    int iterations = 1;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -242,23 +238,25 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_put",
                     [&]{
-                        // big_sp slc = big_sp_clone(&sl);
+                        big_sp slc = big_sp_clone(&sl);
                         
                         for(int i = 0 ; i < sz/2 ; i++)
                         {
-                            big_sp_put(&sl, (Big){.i=i});
+                            big_sp_put(&slc, (Big){.i=i});
                         }
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
+                        for(auto it = big_sp_begin(&slc), end = big_sp_end(&slc) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
                             sum += big_sp_iter_elm(it)->i;
                         }
                         
                         printf("HV SUM AFTER PUT: %u\n", sum);
 #endif
-                        ankerl::nanobench::doNotOptimizeAway(sl);
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        
+                        big_sp_deinit(&slc);
                     }
                 );
             }
@@ -397,24 +395,25 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hh_put",
                     [&]{
-                        // big_sp slc = big_sp_clone(&sl);
+                        hetrohive slc = sl;//hh_clone(&sl);
                         
                         for(int i = 0 ; i < sz/2 ; i++)
                         {
                             Big elm = {.i=i};
-                            hh_put(&sl, &elm, 1);
+                            hh_put(&slc, &elm, 1);
                         }
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = hh_begin(&sl), end = hh_end(&sl) ; !hh_iter_eq(it,end) ; it = hh_iter_next(it))
+                        for(auto it = hh_begin(&slc), end = hh_end(&slc) ; !hh_iter_eq(it,end) ; it = hh_iter_next(it))
                         {
                             sum += ((Big*)hh_iter_elm(it))->i;
                         }
                         
                         printf("HH SUM AFTER PUT: %u\n", sum);
 #endif
-                        ankerl::nanobench::doNotOptimizeAway(sl);
+                        hh_deinit(&slc);
+                        ankerl::nanobench::doNotOptimizeAway(slc);
                     }
                 );
             }
@@ -692,22 +691,22 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony::insert", 
                 [&]{
-                    // plf::colony<Big> icol = plf::colony<Big>(i_colony);
+                    plf::colony<Big> icol = plf::colony<Big>(i_colony);
                     
                     for (int i = 0 ; i < sz/2 ; i++)
                     {
-                        i_colony.insert((Big){.i=i});
+                        icol.insert((Big){.i=i});
                     }
 #if !defined(NDEBUG)
                     unsigned int sum = 0;
-                    for(auto it : i_colony)
+                    for(auto it : icol)
                     {
                         sum += it.i;
                     }
                     
                     printf("PLF SUM AFTER INS %u\n", sum);
 #endif
-                    ankerl::nanobench::doNotOptimizeAway(i_colony);
+                    ankerl::nanobench::doNotOptimizeAway(icol);
                 }
                 );
             }

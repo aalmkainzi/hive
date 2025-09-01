@@ -155,14 +155,15 @@ typedef struct hive_next_entry_t
 
 typedef struct hive_bucket_t
 {
+    struct hive_bucket_t *next;
+    struct hive_bucket_t *prev;
+    
     uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
     uint8_t first_empty_idx;
     uint8_t first_elm_idx;
     uint8_t count;
     hive_entry_t elms[HIVE_BUCKET_SIZE + 1];
     hive_next_entry_t next_entries[HIVE_BUCKET_SIZE + 1];
-    struct hive_bucket_t *next;
-    struct hive_bucket_t *prev;
 } hive_bucket_t;
 
 #define hive_push_not_full_bucket  HIVE_CAT(HIVE_NAME, _push_not_full_bucket)
@@ -527,12 +528,10 @@ void hive_bucket_init(hive_bucket_t *_bucket)
     _bucket->not_full_idx = UINT16_MAX;
     _bucket->count = 0;
     
-    uint8_t _i;
-    for(_i = 0 ; _i < HIVE_BUCKET_SIZE ; _i++)
+    for(uint8_t _i = 0 ; _i <= HIVE_BUCKET_SIZE ; _i++)
     {
         _bucket->next_entries[_i].next_elm_index = HIVE_BUCKET_SIZE;
     }
-    _bucket->next_entries[HIVE_BUCKET_SIZE].next_elm_index = HIVE_BUCKET_SIZE;
     
     _bucket->first_empty_idx = 0;
 }
