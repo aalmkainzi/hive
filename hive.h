@@ -22,14 +22,14 @@
 #define HIVE_FREE    hive_free_mem
 #define HIVE_REALLOC hive_realloc_mem
 
-#else
-
-#if !defined(HIVE_FREE) || !defined(HIVE_REALLOC)
-#error "If you define HIVE_ALLOC you must also define HIVE_FREE and HIVE_REALLOC"
 #elif !defined(HIVE_IMPL)
-#warning "Only define allocator macros when you also define HIVE_IMPL"
+#warning "Only define allocator macros when you also define HIVE_IMPL. This header will #undef your macros"
 #endif
 
+#if defined(HIVE_ALLOC)   && (!defined(HIVE_FREE)  || !defined(HIVE_REALLOC)) || \
+    defined(HIVE_FREE)    && (!defined(HIVE_ALLOC) || !defined(HIVE_REALLOC)) || \
+    defined(HIVE_REALLOC) && (!defined(HIVE_ALLOC) || !defined(HIVE_FREE)   )
+#error "If one allocation macro is defined, the other two must be defined."
 #endif
 
 #if !defined(HIVE_ALLOC_CTX)
@@ -785,6 +785,7 @@ void hive_free_mem(void *ctx, void *ptr, size_t size)
 #undef HIVE_IMPL
 #undef HIVE_ALLOC
 #undef HIVE_FREE
+#undef HIVE_REALLOC
 #undef HIVE_ALLOC_CTX
 
 #undef hive_iter
