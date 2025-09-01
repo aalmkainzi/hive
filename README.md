@@ -50,21 +50,6 @@ int main()
 
 ## API
 ```C
-void             HIVE_NAME_init(HIVE_NAME *_hv);
-HIVE_NAME        HIVE_NAME_clone(const HIVE_NAME *const _hv);
-HIVE_NAME_iter   HIVE_NAME_put(HIVE_NAME *hv, HIVE_TYPE _new_elm);
-void             HIVE_NAME_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms);
-HIVE_NAME_iter   HIVE_NAME_del(HIVE_NAME *_hv, HIVE_TYPE *_elm);
-void             HIVE_NAME_deinit(HIVE_NAME *_hv);
-
-HIVE_NAME_iter   HIVE_NAME_begin(const HIVE_NAME *_hv);
-HIVE_NAME_iter   HIVE_NAME_end(const HIVE_NAME *_hv);
-HIVE_NAME_iter   HIVE_NAME_iter_next(HIVE_NAME_iter _it);
-void             HIVE_NAME_iter_go_next(HIVE_NAME_iter *_it);
-HIVE_TYPE *      HIVE_NAME_iter_elm(HIVE_NAME_iter _it);
-HIVE_NAME_iter   HIVE_NAME_iter_del(HIVE_NAME *_hv, HIVE_NAME_iter _it);
-bool             HIVE_NAME_iter_eq(HIVE_NAME_iter _a, HIVE_NAME_iter _b);
-
 void       <HIVE_NAME>_init(<HIVE_NAME> *_hv);
 HIVE_NAME  <HIVE_NAME>_clone(const <HIVE_NAME> *const _hv);
 hive_iter  <HIVE_NAME>_put(<HIVE_NAME> *hv, HIVE_TYPE _new_elm);
