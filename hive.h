@@ -66,7 +66,7 @@
 #define hive_begin          HIVE_CAT(HIVE_NAME, _begin)
 #define hive_end            HIVE_CAT(HIVE_NAME, _end)
 #define hive_deinit         HIVE_CAT(HIVE_NAME, _deinit)
-                            
+
 #define hive_iter_next      HIVE_CAT(HIVE_NAME, _iter_next)
 #define hive_iter_elm       HIVE_CAT(HIVE_NAME, _iter_elm)
 #define hive_iter_del       HIVE_CAT(HIVE_NAME, _iter_del)
@@ -83,20 +83,14 @@ sizeof(arr) / sizeof(arr[0])
 
 #if !defined(HIVE_DECLARED)
 
-typedef struct hive_next_entry_t
-{
-    uint8_t next_elm_index;
-} hive_next_entry_t;
-
-typedef struct hive_bucket_t hive_bucket_t;
 typedef struct HIVE_NAME
 {
-    hive_bucket_t *buckets;
-    hive_bucket_t *tail;
-    hive_bucket_t *end_sentinel; // tail->next == end_sentinel
+    struct hive_bucket_t *buckets;
+    struct hive_bucket_t *tail;
+    struct hive_bucket_t *end_sentinel; // tail->next == end_sentinel
     struct
     {
-        hive_bucket_t **array;
+        struct hive_bucket_t **array;
         uint16_t count;
         uint16_t cap;
     } not_full_buckets;
@@ -106,14 +100,14 @@ typedef struct HIVE_NAME
 
 typedef struct hive_iter
 {
-    hive_bucket_t *bucket;
-    hive_next_entry_t *next_entry;
+    struct hive_bucket_t *bucket;
+    struct hive_next_entry_t *next_entry;
     hive_entry_t *elm;
 } hive_iter;
 
 typedef struct hive_handle
 {
-    hive_bucket_t *bucket;
+    struct hive_bucket_t *bucket;
     hive_entry_t *elm;
 } hive_handle;
 
@@ -136,6 +130,11 @@ bool hive_iter_eq(hive_iter _a, hive_iter _b);
 
 // #define HIVE_IMPL
 #if defined(HIVE_IMPL) || defined(HIVE_IMPL_ALL)
+
+typedef struct hive_next_entry_t
+{
+    uint8_t next_elm_index;
+} hive_next_entry_t;
 
 typedef struct hive_bucket_t
 {
