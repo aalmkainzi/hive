@@ -83,6 +83,23 @@ sizeof(arr) / sizeof(arr[0])
 
 #if !defined(HIVE_DECLARED)
 
+#define HIVE_FOREACH_NEXT(it) \
+((it).next_entry->next_elm_index == HIVE_BUCKET_SIZE ? \
+(typeof((it))){ \
+    .bucket = (it).bucket->next, \
+    .next_entry = &(it).bucket->next->next_entries[(it).bucket->next->first_elm_idx] + 1, \
+    .elm = &(it).bucket->next->elms[(it).bucket->next->first_elm_idx] \
+} : \
+(typeof((it))){ \
+    .bucket = (it).bucket, \
+    .next_entry = &(it).bucket->next_entries[(it).next_entry->next_elm_index] + 1, \
+    .elm = &(it).bucket->elms[(it).next_entry->next_elm_index] \
+} \
+)
+
+#define HIVE_FOR_EACH(name, from_it, to_it) \
+for(typeof(from_it) name = (from_it) ; name.elm != (to_it).elm ; name = HIVE_FOREACH_NEXT(name))
+
 typedef struct HIVE_NAME
 {
     struct hive_bucket_t *buckets;
@@ -111,7 +128,7 @@ typedef struct hive_handle
     hive_entry_t *elm;
 } hive_handle;
 
-#endif
+#endif // HIVE_DECLARED
 
 void hive_init(HIVE_NAME *_hv);
 HIVE_NAME hive_clone(const HIVE_NAME *const _hv);
@@ -769,7 +786,6 @@ void hive_free_mem(void *ctx, void *ptr, size_t size)
 #undef HIVE_ALLOC
 #undef HIVE_FREE
 #undef HIVE_ALLOC_CTX
-#undef HIVE_BUCKET_SIZE
 
 #undef hive_iter
 #undef hive_bucket_t
