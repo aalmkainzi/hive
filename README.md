@@ -61,7 +61,7 @@ void             <HIVE_NAME>_deinit(<HIVE_NAME> *_hv);
 <HIVE_NAME>_iter <HIVE_NAME>_begin(const <HIVE_NAME> *_hv);
 <HIVE_NAME>_iter <HIVE_NAME>_end(const <HIVE_NAME> *_hv);
 <HIVE_NAME>_iter <HIVE_NAME>_iter_next(<HIVE_NAME>_iter _it);
-HIVE_TYPE *      <HIVE_NAME>_iter_elm(<HIVE_NAME>_iter _it);
+HIVE_TYPE*       <HIVE_NAME>_iter_elm(<HIVE_NAME>_iter _it);
 <HIVE_NAME>_iter <HIVE_NAME>_iter_del(<HIVE_NAME> *_hv, <HIVE_NAME>_iter _it);
 bool             <HIVE_NAME>_iter_eq(<HIVE_NAME>_iter _a, <HIVE_NAME>_iter _b);
 ```
