@@ -37,7 +37,7 @@ int main()
     my_hive_put(&ints, 40);
     my_hive_put(&ints, 50);
     
-    for(my_hive_iter it = my_hive_begin(&ints) ; !my_hive_iter_eq(it, my_hive_end(&ints)) ; my_hive_iter_go_next(&it))
+    for(my_hive_iter it = my_hive_begin(&ints) ; !my_hive_iter_eq(it, my_hive_end(&ints)) ; it = my_hive_iter_next(it))
     {
         printf("%d\n", *my_hive_iter_elm(it));
     }
@@ -64,29 +64,59 @@ void             HIVE_NAME_iter_go_next(HIVE_NAME_iter *_it);
 HIVE_TYPE *      HIVE_NAME_iter_elm(HIVE_NAME_iter _it);
 HIVE_NAME_iter   HIVE_NAME_iter_del(HIVE_NAME *_hv, HIVE_NAME_iter _it);
 bool             HIVE_NAME_iter_eq(HIVE_NAME_iter _a, HIVE_NAME_iter _b);
+
+void       <HIVE_NAME>_init(<HIVE_NAME> *_hv);
+HIVE_NAME  <HIVE_NAME>_clone(const <HIVE_NAME> *const _hv);
+hive_iter  <HIVE_NAME>_put(<HIVE_NAME> *hv, HIVE_TYPE _new_elm);
+void       <HIVE_NAME>_put_all(<HIVE_NAME> *_hv, const HIVE_TYPE *_elms, size_t _nelms);
+hive_iter  <HIVE_NAME>_del(<HIVE_NAME> *_hv, HIVE_TYPE *_elm);
+void       <HIVE_NAME>_foreach(<HIVE_NAME> *_hv, void(*_f)(hive_entry_t*,void*), void *_arg);
+void       <HIVE_NAME>_deinit(<HIVE_NAME> *_hv);
+
+hive_iter  <HIVE_NAME>_begin(const <HIVE_NAME> *_hv);
+hive_iter  <HIVE_NAME>_end(const <HIVE_NAME> *_hv);
+hive_iter  <HIVE_NAME>_iter_next(hive_iter _it);
+HIVE_TYPE *<HIVE_NAME>_iter_elm(hive_iter _it);
+hive_iter  <HIVE_NAME>_iter_del(<HIVE_NAME> *_hv, <HIVE_NAME>_iter _it);
+bool       <HIVE_NAME>_iter_eq(hive_iter _a, HIVE_NAME_iter _b);
 ```
 
 ## How to include
-You can do it like in the example, but that means you have to recompile `hive` each time.
-The best way to do it is to make a new header for your hive type. Inside it, define `HIVE_TYPE` and `HIVE_NAME` and include the `"hive.h"` header
-e.g.
+You can do it like in the example for simple use cases.
+
+But if you want your hive to be declared in a header file and implemented in a corresponding c file, you can do:
 
 ```C
-// int_hive.h
-#ifndef INT_HIVE_H
-#define INT_HIVE_H
+// ab.h
+#ifndef MY_OBJ_H
+#define MY_OBJ_H
 
-#define HIVE_TYPE int
-#define HIVE_NAME Int_Hive
+typedef struct A
+{
+    int i;
+} A;
+
+typedef struct B
+{
+    int j;
+} B;
+
+#define HIVE_TYPE A
+#define HIVE_NAME AHive
+#include "hive.h"
+
+#define HIVE_TYPE B
+#define HIVE_NAME BHive
 #include "hive.h"
 
 #endif
 ```
 
-And make a corresponding `.c` file for the implementation
+Now make a corresponding `.c` file for the implementation
 
 ```C
 // int_hive.c
-#define HIVE_IMPL
+#define HIVE_IMPL_ALL
 #include "int_hive.h"
 ```
+If you included `"hive.h"` without defining `HIVE_IMPL`
