@@ -787,6 +787,9 @@ void hive_free_mem(void *ctx, void *ptr, size_t size)
 #undef HIVE_REALLOC
 #undef HIVE_ALLOC_CTX
 
+#undef HIVE_CAT_
+#undef HIVE_CAT
+
 #undef hive_iter
 #undef hive_bucket_t
 #undef hive_entry_t
