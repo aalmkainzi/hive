@@ -9,7 +9,6 @@ To list some:
 - I use fixed bucket sizes, while `plf::colony` doubles the bucket size each time a new bucket is created.
 - My `hive` doesn't have a reverse iterator.
 - In the "skip field" I don't store the offset index. Instead I store the absolute index the next element is in.
-- I don't cache "skip blocks", this has shown to make my `hive`'s erasure speed to be a bit slower than `plf::colony`. Because now I must loop to find the previous element (I will probably implement skip block caching).
 
 ## Benchmark
 
@@ -111,3 +110,4 @@ Now make a corresponding `.c` file for the implementation
 #include "int_hive.h"
 ```
 If you included `"hive.h"` without defining `HIVE_IMPL`
+
