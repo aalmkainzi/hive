@@ -590,6 +590,7 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
     
     assert(_bucket->next_entries[_empty_index].next_elm_index != _empty_index);
     
+    // TODO set prev elm to go to this one (need reverse iterator)
     _bucket->elms[_empty_index] = _new_elm;
     _bucket->next_entries[_empty_index].next_elm_index = _empty_index;
     _bucket->count += 1;
@@ -613,6 +614,9 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     assert(_bucket->next_entries[_index].next_elm_index == _index);
     assert(_bucket->count != 0);
     
+    // TODO if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
+    // if prev and next are acutal elms, just change this elm's next_entry
+    // if prev is actual elm but next is hole, set this elm's next_entry to skip the entire hole
     uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
     _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << _index % 64);
     
