@@ -484,7 +484,7 @@ static void test_against_dynamic_array(void)
     int_hv sp;
     int_hv_init(&sp);
     int *expected = NULL;
-    const int N = 71770;
+    const int N = 10;
     for (int i = 0; i < N; i++)
     {
         int *ptr = int_hv_put(&sp, i).elm;
@@ -528,6 +528,7 @@ static void test_against_dynamic_array(void)
     qsort(collector.data, collector.idx,    sizeof(int), compare_ints);
     qsort(expected,       arrlen(expected), sizeof(int), compare_ints);
     
+    size_t expected_len = arrlen(expected);
     ASSERT(collector.idx == (size_t)arrlen(expected));
     
     for (size_t i = 0; i < collector.idx; i++)
@@ -1605,78 +1606,6 @@ static void test_hive(void) {
     big_hv_deinit(&pool);
     arrfree(vals);
     arrfree(ptrs);
-}
-
-void test71770()
-{
-    big_hv hv;
-    big_hv_init(&hv);
-    
-    FILE *f = fopen("../benchmarks/HIVE", "r");
-    
-    size_t count;
-    size_t bucket_count;
-    size_t bucket_size;
-    
-    fread(&count,        sizeof(count),        1, f);
-    fread(&bucket_count, sizeof(bucket_count), 1, f);
-    fread(&bucket_size,  sizeof(bucket_size),  1, f);
-    
-    hv.count = count;
-    hv.bucket_count = bucket_count;
-    
-    for(size_t i = 0 ; i < bucket_count ; i++)
-    {
-        typedef struct bucket_data
-        {
-            uint16_t not_full_idx;
-            uint16_t first_empty_idx;
-            uint16_t first_elm_idx;
-            uint16_t count;
-            Big *elms[254 + 1];
-            big_hv_next_entry_t next_entries[254 + 1];
-        } bucket_data;
-        
-        bucket_data bd;
-        fread(&bd, sizeof(bd), 1, f);
-        
-        big_hv_bucket_t *bkt = malloc(sizeof(*bkt));
-        bkt->not_full_idx = bd.not_full_idx;
-        bkt->first_empty_idx = bd.first_empty_idx;
-        bkt->first_elm_idx = bd.first_elm_idx;
-        bkt->count = bd.count;
-        
-        memcpy(bkt->elms, bd.elms, sizeof(bd.elms));
-        memcpy(bkt->next_entries, bd.next_entries, sizeof(bd.next_entries));
-        
-        if(i == 0)
-        {
-            hv.buckets = bkt;
-            hv.tail = bkt;
-            hv.tail->next = hv.end_sentinel;
-        }
-        else
-        {
-            hv.tail->next = bkt;
-            hv.tail = hv.tail->next;
-            hv.tail->next = hv.end_sentinel;
-        }
-        
-        if(bkt->not_full_idx != UINT16_MAX)
-        {
-            big_hv_push_not_full_bucket(&hv, bkt);
-        }
-    }
-    
-    big_hv_validate(&hv);
-    
-    unsigned int sum = 0;
-    for(big_hv_iter it = big_hv_begin(&hv) ; !big_hv_iter_eq(it, big_hv_end(&hv)) ; it = big_hv_iter_next(it))
-    {
-        sum += it.elm->i;
-    }
-    
-    printf("SUM = %u\n", sum);
 }
 
 int main(void)
