@@ -105,9 +105,9 @@ typedef struct B
 Now make a corresponding `.c` file for the implementation
 
 ```C
-// int_hive.c
+// ab.c
 #define HIVE_IMPL_ALL
-#include "int_hive.h"
+#include "ab.h"
 ```
-If you included `"hive.h"` without defining `HIVE_IMPL`
+
 
