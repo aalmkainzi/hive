@@ -4,14 +4,14 @@
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 
-#define ASSERT(expr)                                                                                               \
-do                                                                                                                 \
-{                                                                                                                  \
-    if (!(expr))                                                                                                   \
-    {                                                                                                              \
-        fprintf(stderr, "ASSERT FAILED: %s\n  at %s:%d in %s()\n", #expr, __FILE__, __LINE__, __func__);           \
-        exit(1);                                                                                                   \
-    }                                                                                                              \
+#define ASSERT(expr)                                                                                     \
+do                                                                                                       \
+{                                                                                                        \
+    if (!(expr))                                                                                         \
+    {                                                                                                    \
+        fprintf(stderr, "ASSERT FAILED: %s\n  at %s:%d in %s()\n", #expr, __FILE__, __LINE__, __func__); \
+        exit(1);                                                                                         \
+    }                                                                                                    \
 } while (0)
 
 static int compare_ints(const void *a, const void *b)
