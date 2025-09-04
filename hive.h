@@ -595,7 +595,6 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
     
     assert(_bucket->next_entries[_empty_index].next_elm_index != _empty_index);
     
-    // TODO set prev elm to go to this one (need reverse iterator)
     _bucket->elms[_empty_index] = _new_elm;
     _bucket->next_entries[_empty_index].next_elm_index = _empty_index;
     _bucket->prev_entries[_empty_index].next_elm_index = _empty_index;
@@ -612,6 +611,7 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
         _bucket->not_full_idx = UINT16_MAX;
         _hv->not_full_buckets.count -= 1;
     }
+    
     return &_bucket->elms[_empty_index];
 }
 
@@ -636,6 +636,8 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
             _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
     }
     // ? [Y] N
+    // TODO: there's probably a bug here....?
+    // TODO have to go the prev entry and make it skip the hole correctly. same for next_entry when using prev iterator
     else
     {
         if(_index != 0)
@@ -644,11 +646,11 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
             _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
     }
     
-    // Y [Y] ?
+    // Y [Y] Y
     // or
-    // [Y] ?
-    // actually, maybe we can always do this. no need for if statement
-    if(_index == 0 || _bucket->prev_entries[_index - 1].next_elm_index == _index - 1)
+    // [Y] Y
+    // actually, maybe we can always do this. no need for if statement.
+    // if(_index == 0 || _bucket->prev_entries[_index - 1].next_elm_index == _index - 1)
     {
         _bucket->next_entries[_index].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
     }
