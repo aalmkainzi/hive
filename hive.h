@@ -181,7 +181,7 @@ typedef struct hive_bucket_t
     struct hive_bucket_t *next;
     struct hive_bucket_t *prev;
     
-    uint64_t empty_bitset[4];
+    uint64_t empty_bitset[4]; // 1 = empty
     
     uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
     uint8_t first_elm_idx;
@@ -588,13 +588,20 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
     
     uint8_t _empty_index = hive_bucket_set_first_empty(_bucket);
     
+    if(_bucket->next_entries[_empty_index + 1].next_elm_index != _empty_index + 1)
+    {
+        _bucket->next_entries[_empty_index + 1].next_elm_index = _bucket->next_entries[_empty_index].next_elm_index;
+    }
+    
     assert(_bucket->next_entries[_empty_index].next_elm_index != _empty_index);
     
     // TODO set prev elm to go to this one (need reverse iterator)
     _bucket->elms[_empty_index] = _new_elm;
     _bucket->next_entries[_empty_index].next_elm_index = _empty_index;
+    _bucket->prev_entries[_empty_index].next_elm_index = _empty_index;
     _bucket->count += 1;
     
+    // TODO try removing `first_elm_idx` and instead use the bitset. might be faster, needs benchmarking.
     if(_empty_index < _bucket->first_elm_idx)
     {
         _bucket->first_elm_idx = _empty_index;
@@ -618,7 +625,33 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     // if prev and next are acutal elms, just change this elm's next_entry
     // if prev is actual elm but next is hole, set this elm's next_entry to skip the entire hole
     uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
-    _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << _index % 64);
+    _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
+    
+    // ? [Y] Y
+    if(_bucket->next_entries[_index + 1].next_elm_index == _index + 1)
+    {
+        if(_index != 0)
+            _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
+        else
+            _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
+    }
+    // ? [Y] N
+    else
+    {
+        if(_index != 0)
+            _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
+        else
+            _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
+    }
+    
+    // Y [Y] ?
+    // or
+    // [Y] ?
+    // actually, maybe we can always do this. no need for if statement
+    if(_index == 0 || _bucket->prev_entries[_index - 1].next_elm_index == _index - 1)
+    {
+        _bucket->next_entries[_index].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
+    }
     
     if(HIVE_UNLIKELY(_index == _bucket->first_elm_idx))
     {
