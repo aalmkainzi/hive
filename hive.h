@@ -627,33 +627,15 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
     _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
     
-    // ? [Y] Y
-    if(_bucket->next_entries[_index + 1].next_elm_index == _index + 1)
-    {
-        if(_index != 0)
-            _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
-        else
-            _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
-    }
-    // ? [Y] N
-    // TODO: there's probably a bug here....?
-    // TODO have to go the prev entry and make it skip the hole correctly. same for next_entry when using prev iterator
+    if(_index != 0)
+        _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
     else
-    {
-        if(_index != 0)
-            _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
-        else
-            _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
-    }
+        _bucket->prev_entries[_index].next_elm_index = HIVE_BUCKET_SIZE;
     
-    // Y [Y] Y
-    // or
-    // [Y] Y
-    // actually, maybe we can always do this. no need for if statement.
-    // if(_index == 0 || _bucket->prev_entries[_index - 1].next_elm_index == _index - 1)
-    {
-        _bucket->next_entries[_index].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
-    }
+    _bucket->next_entries[_index].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
+    
+    // TODO go the beginning of prev hole and set its skip to skip the new hole
+    // same for end of next hole
     
     if(HIVE_UNLIKELY(_index == _bucket->first_elm_idx))
     {
