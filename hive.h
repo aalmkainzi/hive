@@ -637,6 +637,11 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     // TODO go the beginning of prev hole and set its skip to skip the new hole
     // same for end of next hole
     
+    if(_bucket->prev_entries[_index].next_elm_index != HIVE_BUCKET_SIZE)
+        _bucket->next_entries[_bucket->prev_entries[_index].next_elm_index + 1].next_elm_index = _bucket->next_entries[_index].next_elm_index;
+    // if(_bucket->next_entries[_index].next_elm_index != 0)
+    _bucket->prev_entries[_bucket->next_entries[_index].next_elm_index - 1].next_elm_index = _bucket->prev_entries[_index].next_elm_index;
+    
     if(HIVE_UNLIKELY(_index == _bucket->first_elm_idx))
     {
         _bucket->first_elm_idx = _next_elm;
