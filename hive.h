@@ -208,11 +208,11 @@ typedef struct hive_bucket_t
 #ifdef HIVE_TEST
     #define hive_checked_put            HIVE_CAT(HIVE_NAME, _checked_put)
     #define hive_checked_del            HIVE_CAT(HIVE_NAME, _checked_del)
-    #define hive_iter_checked_del       HIVE_CAT(HIVE_NAME, _iter_checked_del)
+    #define hive_checked_iter_del       HIVE_CAT(HIVE_NAME, _iter_checked_del)
 
     hive_iter hive_checked_put(HIVE_NAME *_hive, HIVE_TYPE elm);
     hive_iter hive_checked_del(HIVE_NAME *_hive, HIVE_TYPE *elm);
-    hive_iter hive_iter_checked_del(HIVE_NAME *_hive, hive_iter it);
+    hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter it);
 #endif
 
 void hive_foreach_updater(uint8_t *_index, hive_bucket_t **_bucket);
@@ -613,8 +613,7 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
         {
             _next_elm_idx = _bucket->first_elm_idx;
         }
-        if(_next_elm_idx != HIVE_END_SENTINEL_INDEX)
-            _bucket->prev_entries[_next_elm_idx - 1].next_elm_index = _empty_index;
+        _bucket->prev_entries[_next_elm_idx - 1].next_elm_index = _empty_index;
     }
     
     _bucket->elms[_empty_index] = _new_elm;
@@ -646,20 +645,16 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     // TODO if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
     // if prev and next are acutal elms, just change this elm's next_entry
     // if prev is actual elm but next is hole, set this elm's next_entry to skip the entire hole
-    uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
     _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
     
-    _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
+    uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
+    uint8_t _prev_elm = _bucket->prev_entries[_index - 1].next_elm_index;
+    
+    _bucket->next_entries[_prev_elm + 1].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
+    _bucket->prev_entries[_next_elm - 1].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
     
     _bucket->next_entries[_index].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
-    
-    // TODO go the beginning of prev hole and set its skip to skip the new hole
-    // same for end of next hole
-    
-    if(_bucket->prev_entries[_index].next_elm_index != 0)
-        _bucket->next_entries[_bucket->prev_entries[_index].next_elm_index + 1].next_elm_index = _bucket->next_entries[_index].next_elm_index;
-    // if(_bucket->next_entries[_index].next_elm_index != 0)
-    _bucket->prev_entries[_bucket->next_entries[_index].next_elm_index - 1].next_elm_index = _bucket->prev_entries[_index].next_elm_index;
+    _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
     
     if(HIVE_UNLIKELY(_index == _bucket->first_elm_idx))
     {
@@ -837,10 +832,10 @@ hive_iter hive_handle_del(HIVE_NAME *_hv, hive_handle _handle)
 
 #ifdef HIVE_TEST
 
-hive_iter hive_checked_put(HIVE_NAME *_hive, HIVE_TYPE elm)
+hive_iter hive_checked_put(HIVE_NAME *_hive, HIVE_TYPE _elm)
 {
     if(_hive->not_full_buckets.count == 0)
-        return hive_put(_hive, elm);
+        return hive_put(_hive, _elm);
     
     hive_bucket_t *_bucket = _hive->not_full_buckets.array[_hive->not_full_buckets.count - 1];
     
@@ -862,12 +857,13 @@ hive_iter hive_checked_put(HIVE_NAME *_hive, HIVE_TYPE elm)
     uint64_t _old_bitset[4];
     memcpy(_old_bitset, _bucket->empty_bitset, sizeof(_old_bitset));
     
-    hive_iter _ret = hive_put(_hive, elm);
+    hive_iter _ret = hive_put(_hive, _elm);
     
     assert(_old_count == _bucket->count - 1);
     if(_will_fill)
     {
         assert(_old_not_full_count == _hive->not_full_buckets.count + 1);
+        assert(_bucket->not_full_idx == UINT16_MAX);
     }
     
     for(uint8_t i = 0 ; i < _index ; i++)
@@ -906,17 +902,70 @@ hive_iter hive_checked_put(HIVE_NAME *_hive, HIVE_TYPE elm)
         assert(_bucket->prev_entries[i].next_elm_index == _old_prevs[i].next_elm_index);
     }
     
+    HIVE_FREE_N(_old_elms, HIVE_BUCKET_SIZE + 2);
     return _ret;
 }
 
-hive_iter hive_checked_del(HIVE_NAME *_hive, HIVE_TYPE *elm)
+hive_iter hive_checked_del(HIVE_NAME *_hive, HIVE_TYPE *_elm)
 {
-    
+    hive_bucket_t *_bucket = _hive->buckets;
+    while(_bucket != _hive->end_sentinel)
+    {
+        if(hive_bucket_is_elm_within(_bucket, _elm))
+        {
+            uint8_t _index = _elm - _bucket->elms;
+            hive_iter _it = {.bucket = _bucket, .elm = _elm, .next_entry = &_bucket->next_entries[_index]};
+            return hive_checked_iter_del(_hive, _it);
+        }
+        _bucket = _bucket->next;
+    }
+    assert(0);
+    return (hive_iter){0};
 }
 
-hive_iter hive_iter_checked_del(HIVE_NAME *_hive, hive_iter it)
+hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 {
+    hive_bucket_t *_bucket = _it.bucket;
     
+    if(_bucket->count == 1)
+    {
+        return hive_iter_del(_hive, _it);
+    }
+    
+    uint16_t _old_not_full_count = _hive->not_full_buckets.count;
+    uint8_t _old_count = _bucket->count;
+    bool _will_unfill = (_bucket->count == HIVE_BUCKET_SIZE);
+    
+    uint8_t _index = _it.elm - _bucket->elms;
+    
+    hive_next_entry_t _old_nexts[HIVE_BUCKET_SIZE + 2];
+    memcpy(_old_nexts, _bucket->next_entries, sizeof(_old_nexts));
+    
+    hive_next_entry_t _old_prevs[HIVE_BUCKET_SIZE + 2];
+    memcpy(_old_prevs, _bucket->prev_entries, sizeof(_old_prevs));
+    
+    HIVE_TYPE *_old_elms = HIVE_ALLOC_N(HIVE_TYPE, HIVE_BUCKET_SIZE + 2);
+    memcpy(_old_elms, _bucket->elms, sizeof(_bucket->elms));
+    
+    uint64_t _old_bitset[4];
+    memcpy(_old_bitset, _bucket->empty_bitset, sizeof(_old_bitset));
+    
+    hive_iter _ret = hive_iter_del(_hive, _it);
+    
+    assert(_bucket->count == _old_count - 1);
+    
+    if(_will_unfill)
+    {
+        assert(_bucket->not_full_idx != UINT16_MAX);
+        assert(_old_not_full_count == _hive->not_full_buckets.count - 1);
+    }
+    
+    assert(_bucket->next_entries[_index].next_elm_index != _index);
+    assert(_bucket->prev_entries[_index].next_elm_index != _index);
+    
+    HIVE_FREE_N(_old_elms, HIVE_BUCKET_SIZE + 2);
+    
+    return _ret;
 }
 
 #endif
