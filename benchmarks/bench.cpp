@@ -70,14 +70,6 @@ constexpr std::string_view compiler_name =
 "gcc";
 #endif
 
-unsigned int hv_sum(big_sp sl)
-{
-    unsigned int sum = 0;
-    HIVE_FOREACH(&sl,
-                 sum += HIVE_ITER_ELM->i;);
-    return sum;
-}
-
 int main(int argc, char **argv)
 {
     ankerl::nanobench::Bench bench;
@@ -85,9 +77,9 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 25'000;
-    int end   = 100'000;
-    int interval = 25'000;
+    int begin = 10'000;
+    int end   = 150'000;
+    int interval = 10'000;
     
     std::string html_file_name = std::string("results/html/res").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/res").append(compiler_name).append(".json");
@@ -97,12 +89,12 @@ int main(int argc, char **argv)
     constexpr bool bench_plf_colony  = true;
     constexpr bool bench_hetrohive = false;
     
-    constexpr bool bench_iter = true;
-    constexpr bool bench_put = false;
+    constexpr bool bench_iter = false;
+    constexpr bool bench_put = true;
     constexpr bool bench_pop = false;
     constexpr bool bench_random = false;
     
-    int iterations = 1;
+    int iterations = 25;
     
     for(int sz = begin ; sz <= end ; sz += interval)
     {
@@ -127,7 +119,7 @@ int main(int argc, char **argv)
             int i = 0;
             for(auto it = big_sp_begin(&sl) ; !big_sp_iter_eq(it, big_sp_end(&sl)) ; it = big_sp_iter_next(it))
             {
-                ptrs[i++] = it.elm;
+                ptrs[i++] = it.ptr;
             }
             
             rng.seed(42);
@@ -168,7 +160,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                int val = it.elm->i;
+                                int val = it.ptr->i;
                                 it = big_sp_iter_del(&sl, it);
                                 if(big_sp_iter_eq(it, big_sp_end(&sl)))
                                     iter_set = false;
@@ -179,7 +171,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
-                            sum += big_sp_iter_elm(it)->i;
+                            sum += it.ptr->i;
                         }
                         
                         printf("HV SUM AFTER RND: %u\n", sum);
@@ -194,11 +186,11 @@ int main(int argc, char **argv)
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_macro", 
                     [&]{
                         volatile unsigned int sum = 0;
-                        constexpr int HIVE_BUCKET_SIZE = 254;
+                        // constexpr int HIVE_BUCKET_SIZE = 254;
                         
                         HIVE_FOR_EACH(it, big_sp_begin(&sl), big_sp_end(&sl))
                         {
-                            sum += it.elm->i;
+                            sum += it.ptr->i;
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
@@ -212,7 +204,7 @@ int main(int argc, char **argv)
                         
                         for(big_sp_iter it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
-                            sum += big_sp_iter_elm(it)->i;
+                            sum += it.ptr->i;
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
@@ -226,9 +218,28 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_del",
                     [&]{
-                        big_sp_iter_del(&sl, big_sp_begin(&sl));
+                        bool remove = true;
+                        big_sp clone = big_sp_clone(&sl);
+                        for(big_sp_iter it = big_sp_begin(&clone) ; !big_sp_iter_eq(it, big_sp_end(&clone)) ; )
+                        {
+                            if(remove)
+                                it = big_sp_iter_del(&clone, it);
+                            else
+                                it = big_sp_iter_next(it);
+                            remove = !remove;
+                        }
                         
-                        ankerl::nanobench::doNotOptimizeAway(sl);
+#ifndef NDEBUG
+                        unsigned int sum = 0;
+                        HIVE_FOR_EACH(it, big_sp_begin(&clone), big_sp_end(&clone))
+                        {
+                            sum += it.ptr->i;
+                        }
+                        printf("hive_del_sum = %u\n", sum);
+#endif
+                        
+                        big_sp_deinit(&clone);
+                        ankerl::nanobench::doNotOptimizeAway(clone);
                     }
                 );
             }
@@ -249,7 +260,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = big_sp_begin(&slc), end = big_sp_end(&slc) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
-                            sum += big_sp_iter_elm(it)->i;
+                            sum += it.ptr->i;
                         }
                         
                         printf("HV SUM AFTER PUT: %u\n", sum);
@@ -438,10 +449,10 @@ int main(int argc, char **argv)
             
             int i = 0;
             
-            HIVE_FOREACH(&sl,
+            HIVE_FOR_EACH_(it, bbig_sp_begin(&sl), bbig_sp_end(&sl))
             {
-                ptrs[i++] = HIVE_ITER_ELM;
-            });
+                ptrs[i++] = it.elm;
+            }
             
             rng.seed(42);
             std::vector<Big*> to_pop;
@@ -492,7 +503,7 @@ int main(int argc, char **argv)
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
-                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl) ; !bbig_sp_iter_eq(it,end) ; bbig_sp_iter_go_next(&it))
+                        for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl) ; !bbig_sp_iter_eq(it,end) ; it = bbig_sp_iter_next(it))
                         {
                             sum += bbig_sp_iter_elm(it)->i;
                         }
@@ -511,7 +522,7 @@ int main(int argc, char **argv)
                     volatile unsigned int sum = 0;
                     
                     const bbig_sp_bucket_t *const end = sl.end_sentinel;
-                    for(bbig_sp_iter it = bbig_sp_begin(&sl) ; it.bucket != end ; bbig_sp_iter_go_next(&it))
+                    for(bbig_sp_iter it = bbig_sp_begin(&sl) ; it.bucket != end ; it = bbig_sp_iter_next(it))
                     {
                         sum += bbig_sp_iter_elm(it)->i;
                     }
@@ -525,8 +536,11 @@ int main(int argc, char **argv)
                     volatile unsigned int sum = 0;
                     
                     const bbig_sp_bucket_t *const end = sl.end_sentinel;
-                    HIVE_FOREACH(&sl,
-                               sum += HIVE_ITER_ELM->i;);
+                    
+                    HIVE_FOR_EACH_(it, bbig_sp_begin(&sl), bbig_sp_end(&sl))
+                    {
+                        sum += it.elm->i;
+                    }
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
                     printf("old_hive_macro = %u\n", sum);
@@ -546,14 +560,15 @@ int main(int argc, char **argv)
                             bbig_sp_put(&slc, (Big){.i=i});
                         }
                         
-//                         unsigned int sum = 0;
-//                         for(auto it = bbig_sp_begin(&slc) ; !bbig_sp_iter_is_end(it) ; bbig_sp_iter_go_next(&it))
-//                         {
-//                             sum += bbig_sp_iter_elm(it)->i;
-//                         }
-//                         
-//                         printf("SP SUM AFTER PUT: %u\n", sum);
-//                         ankerl::nanobench::doNotOptimizeAway(slc);
+#ifndef NDEBUG
+                        unsigned int sum = 0;
+                        for(auto it = bbig_sp_begin(&slc) ; !bbig_sp_iter_eq(it, bbig_sp_end(&slc)) ; it = bbig_sp_iter_next(it))
+                        {
+                            sum += bbig_sp_iter_elm(it)->i;
+                        }
+#endif
+                        printf("SP SUM AFTER PUT: %u\n", sum);
+                        ankerl::nanobench::doNotOptimizeAway(slc);
                         bbig_sp_deinit(&slc);
                     }
                 );
@@ -564,9 +579,28 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_del",
                     [&]{
-                        bbig_sp_iter_del(&sl, bbig_sp_begin(&sl));
+                        bool remove = true;
+                        bbig_sp clone = bbig_sp_clone(&sl);
+                        for(bbig_sp_iter it = bbig_sp_begin(&clone) ; !bbig_sp_iter_eq(it, bbig_sp_end(&clone)) ; )
+                        {
+                            if(remove)
+                                it = bbig_sp_iter_del(&clone, it);
+                            else
+                                it = bbig_sp_iter_next(it);
+                            remove = !remove;
+                        }
                         
-                        ankerl::nanobench::doNotOptimizeAway(sl);
+#ifndef NDEBUG
+                        unsigned int sum = 0;
+                        HIVE_FOR_EACH_(it, bbig_sp_begin(&clone), bbig_sp_end(&clone))
+                        {
+                            sum += it.elm->i;
+                        }
+                        printf("old_del_sum = %u\n", sum);
+#endif
+                        
+                        bbig_sp_deinit(&clone);
+                        ankerl::nanobench::doNotOptimizeAway(clone);
                     }
                 );
             }
@@ -679,6 +713,15 @@ int main(int argc, char **argv)
                             it++;
                         remove = !remove;
                     }
+                    
+#ifndef NDEBUG
+                    unsigned int sum = 0;
+                    for(auto it : icol)
+                    {
+                        sum += it.i;
+                    }
+                    printf("plf_del_sum=%u\n", sum);
+#endif
                     
                     ankerl::nanobench::doNotOptimizeAway(icol);
                 }
