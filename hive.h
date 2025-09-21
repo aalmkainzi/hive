@@ -61,6 +61,7 @@
 #define hive_init           HIVE_CAT(HIVE_NAME, _init)
 #define hive_clone          HIVE_CAT(HIVE_NAME, _clone)
 #define hive_put            HIVE_CAT(HIVE_NAME, _put)
+#define hive_put_empty      HIVE_CAT(HIVE_NAME, _put_empty)
 #define hive_put_all        HIVE_CAT(HIVE_NAME, _put_all)
 #define hive_del            HIVE_CAT(HIVE_NAME, _del)
 #define hive_foreach        HIVE_CAT(HIVE_NAME, _foreach)
@@ -191,6 +192,7 @@ static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
 void hive_init(HIVE_NAME *_hv);
 HIVE_NAME hive_clone(const HIVE_NAME *_hv);
 hive_iter hive_put(HIVE_NAME *hv, hive_entry_t _new_elm);
+hive_iter hive_put_empty(HIVE_NAME *_hv);
 void hive_put_all(HIVE_NAME *_hv, const hive_entry_t *_elms, size_t _nelms);
 hive_iter hive_del(HIVE_NAME *_hv, hive_entry_t *_elm);
 void hive_foreach(HIVE_NAME *_hv, void(*_f)(hive_entry_t*,void*), void *_arg);
@@ -233,7 +235,7 @@ typedef struct hive_bucket_t
 #define hive_foreach_updater        HIVE_CAT(HIVE_NAME, _foreach_updater)
 
 #define hive_bucket_init            HIVE_CAT(HIVE_NAME, _bucket_init)
-#define hive_bucket_put             HIVE_CAT(HIVE_NAME, _bucket_put)
+#define hive_bucket_reserve         HIVE_CAT(HIVE_NAME, _bucket_reserve)
 #define hive_bucket_del             HIVE_CAT(HIVE_NAME, _bucket_del)
 #define hive_bucket_is_elm_within   HIVE_CAT(HIVE_NAME, _bucket_is_elm_within)
 #define hive_bucket_first_elm       HIVE_CAT(HIVE_NAME, _bucket_first_elm)
@@ -255,7 +257,7 @@ typedef struct hive_bucket_t
 void hive_foreach_updater(uint8_t *_index, hive_bucket_t **_bucket);
 void hive_bucket_init(hive_bucket_t *_bucket);
 void hive_push_not_full_bucket(HIVE_NAME *_hv, hive_bucket_t *_bucket);
-HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _new_elm);
+HIVE_TYPE *hive_bucket_reserve(HIVE_NAME *_hv, hive_bucket_t *_bucket);
 bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index);
 hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_bucket_t *_bucket, uint8_t _index);
 bool hive_bucket_is_elm_within(const hive_bucket_t *_bucket, const HIVE_TYPE *_elm);
@@ -300,6 +302,7 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
     hive_init(&_ret);
     _ret.count = _hv->count;
     _ret.bucket_count = _hv->bucket_count;
+    _ret.not_full_buckets.count = _hv->not_full_buckets.count;
     
     if(_hv->not_full_buckets.count > _ret.not_full_buckets.cap)
     {
@@ -359,13 +362,20 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
 
 hive_iter hive_put(HIVE_NAME *_hv, HIVE_TYPE _new_elm)
 {
+    hive_iter _it = hive_put_empty(_hv);
+    *_it.ptr = _new_elm;
+    return _it;
+}
+
+hive_iter hive_put_empty(HIVE_NAME *_hv)
+{
     HIVE_TYPE *_elm_added = NULL;
     
     if(_hv->not_full_buckets.count > 0)
     {
         hive_bucket_t *_bucket = _hv->not_full_buckets.array[_hv->not_full_buckets.count - 1];
         _hv->count += 1;
-        HIVE_TYPE *_elm = hive_bucket_put(_hv, _bucket, _new_elm);
+        HIVE_TYPE *_elm = hive_bucket_reserve(_hv, _bucket);
         return hive_get_iter_from_index(_bucket, _elm - &_bucket->elms[0]);
     }
     
@@ -389,7 +399,7 @@ hive_iter hive_put(HIVE_NAME *_hv, HIVE_TYPE _new_elm)
     
     _hv->end_sentinel->prev = _new_bucket;
     _hv->bucket_count += 1;
-    _elm_added = hive_bucket_put(_hv, _new_bucket, _new_elm);
+    _elm_added = hive_bucket_reserve(_hv, _new_bucket);
     _hv->count += 1;
     return hive_get_iter_from_index(_new_bucket, _elm_added - &_new_bucket->elms[0]);
 }
@@ -640,7 +650,7 @@ void hive_push_not_full_bucket(HIVE_NAME *_hv, hive_bucket_t *_bucket)
     _hv->not_full_buckets.count += 1;
 }
 
-HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _new_elm)
+HIVE_TYPE *hive_bucket_reserve(HIVE_NAME *_hv, hive_bucket_t *_bucket)
 {
     assert(_bucket->count < HIVE_BUCKET_SIZE);
     
@@ -655,7 +665,6 @@ HIVE_TYPE *hive_bucket_put(HIVE_NAME *_hv, hive_bucket_t *_bucket, HIVE_TYPE _ne
         _bucket->prev_entries[_next_elm_idx - 1].next_elm_index = _empty_index;
     }
     
-    _bucket->elms[_empty_index] = _new_elm;
     _bucket->next_entries[_empty_index].next_elm_index = _empty_index;
     _bucket->prev_entries[_empty_index].next_elm_index = _empty_index;
     _bucket->count += 1;
@@ -1018,7 +1027,7 @@ hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 #undef hive_end
 #undef hive_deinit
 #undef hive_bucket_init
-#undef hive_bucket_put
+#undef hive_bucket_reserve
 #undef hive_bucket_del
 #undef hive_bucket_is_elm_within
 #undef hive_bucket_first_elm

@@ -13,31 +13,30 @@
 
 typedef struct Big
 {
-    char _m[256 - 4];
     int i;
+    char _m[256 - 4];
 
     bool operator==(const Big& other) const {
         return this->i == other.i;
     }
+    
+    operator int() const
+    {
+        return i;
+    }
 } Big;
 
-uint64_t hash_big(Big b)
-{
-    return b.i;
-}
-
-bool eq_big(Big a, Big b)
-{
-    return a.i == b.i;
-}
+#ifndef TYPE
+#define TYPE Big
+#endif
 
 #define HIVE_IMPL
-#define HIVE_TYPE Big
+#define HIVE_TYPE TYPE
 #define HIVE_NAME big_sp
 #include "hive.h"
 
 #define HIVE_IMPL
-#define HIVE_TYPE Big
+#define HIVE_TYPE TYPE
 #define HIVE_NAME bbig_sp
 #if __has_include("../../hive_old/hive.h")
 #include "../../hive_old/hive.h"
@@ -47,11 +46,6 @@ bool eq_big(Big a, Big b)
 
 #define HH_IMPL
 #include "../../hetrohive/hetrohive.h"
-
-void add_sum(Big *big, void *arg)
-{
-    *(unsigned int*)arg += big->i;
-}
 
 #define ANKERL_NANOBENCH_IMPLEMENT
 #include "nanobench.h"
@@ -72,21 +66,22 @@ int main(int argc, char **argv)
     bench.output(&outFile);
     
     int begin = 25'000;
-    int end   = 350'000;
+    int end   = 550'000;
     int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/res").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/res").append(compiler_name).append(".json");
     
     constexpr bool bench_hive = true;
-    constexpr bool bench_small_hive = false;
-    constexpr bool bench_plf_colony  = false;
+    constexpr bool bench_small_hive = true;
+    constexpr bool bench_plf_colony  = true;
     constexpr bool bench_hetrohive = false;
     
     constexpr bool bench_iter = false;
     constexpr bool bench_put = false;
-    constexpr bool bench_pop = true;
+    constexpr bool bench_pop = false;
     constexpr bool bench_random = false;
+    constexpr bool bench_clone = true;
     
     int iterations = 25;
     
@@ -103,10 +98,10 @@ int main(int argc, char **argv)
             
             srand(69420);
             big_sp sl; big_sp_init(&sl);
-            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
-            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            TYPE **ptrs = (TYPE**) malloc(sz * sizeof(ptrs[0]));
+            TYPE *bigs = (TYPE*) malloc(sz * sizeof(bigs[0]));
             for (int i = 0; i < sz; i++)
-                bigs[i] = (Big){.i = i};
+                bigs[i] = (TYPE){i};
             
             big_sp_put_all(&sl, bigs, sz);
             
@@ -117,11 +112,11 @@ int main(int argc, char **argv)
             }
             
             rng.seed(42);
-            std::vector<Big *> to_pop;
+            std::vector<TYPE*> to_pop;
             to_pop.reserve(sz / 2);
             std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
             
-            for (Big *p : to_pop) {
+            for (TYPE *p : to_pop) {
                 big_sp_del(&sl, p);
             }
             
@@ -143,7 +138,7 @@ int main(int argc, char **argv)
                         {
                             if(random <55 || sl.count == 0 || !iter_set)
                             {
-                                big_sp_iter tmp = big_sp_put(&sl, (Big){.i=i});
+                                big_sp_iter tmp = big_sp_put(&sl, (TYPE){i});
                                 
                                 random = rand() % 100;
                                 if(random < 5 || !iter_set)
@@ -154,7 +149,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                int val = it.ptr->i;
+                                TYPE val = it.ptr[0];
                                 it = big_sp_iter_del(&sl, it);
                                 if(big_sp_iter_eq(it, big_sp_end(&sl)))
                                     iter_set = false;
@@ -165,7 +160,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
-                            sum += it.ptr->i;
+                            sum += *it.ptr;
                         }
                         
                         printf("HV SUM AFTER RND: %u\n", sum);
@@ -184,7 +179,7 @@ int main(int argc, char **argv)
                         
                         HIVE_FOR_EACH(it, big_sp_begin(&sl), big_sp_end(&sl))
                         {
-                            sum += it.ptr->i;
+                            sum += *it.ptr;
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
@@ -198,7 +193,7 @@ int main(int argc, char **argv)
                         
                         for(big_sp_iter it = big_sp_begin(&sl), end = big_sp_end(&sl) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
-                            sum += it.ptr->i;
+                            sum += *it.ptr;
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
@@ -227,7 +222,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         HIVE_FOR_EACH(it, big_sp_begin(&clone), big_sp_end(&clone))
                         {
-                            sum += it.ptr->i;
+                            sum += *it.ptr;
                         }
                         printf("hive_del_sum = %u\n", sum);
 #endif
@@ -247,14 +242,15 @@ int main(int argc, char **argv)
                         
                         for(int i = 0 ; i < sz/2 ; i++)
                         {
-                            big_sp_put(&slc, (Big){.i=i});
+                            auto it = big_sp_put_empty(&slc);
+                            *it.ptr = (TYPE){i};
                         }
                         
 #if !defined(NDEBUG)
                         unsigned int sum = 0;
                         for(auto it = big_sp_begin(&slc), end = big_sp_end(&slc) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
                         {
-                            sum += it.ptr->i;
+                            sum += it.ptr[0];
                         }
                         
                         printf("HV SUM AFTER PUT: %u\n", sum);
@@ -264,6 +260,30 @@ int main(int argc, char **argv)
                         big_sp_deinit(&slc);
                     }
                 );
+            }
+            
+            if(bench_clone)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("hive_clone",
+                    [&]{
+                        big_sp slc = big_sp_clone(&sl);
+    
+#if !defined(NDEBUG)
+                        unsigned int sum = 0;
+                        for(auto it = big_sp_begin(&slc), end = big_sp_end(&slc) ; !big_sp_iter_eq(it,end) ; it = big_sp_iter_next(it))
+                        {
+                            sum += it.ptr[0];
+                        }
+                        
+                        printf("HV SUM AFTER CLONE: %u\n", sum);
+#endif
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        
+                        big_sp_deinit(&slc);
+                    }
+                );
+            
             }
             
             big_sp_deinit(&sl);
@@ -277,27 +297,27 @@ int main(int argc, char **argv)
             
             srand(69420);
             hetrohive sl; hh_init(&sl, 2);
-            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
-            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            TYPE **ptrs = (TYPE**) malloc(sz * sizeof(ptrs[0]));
+            TYPE *bigs = (TYPE*) malloc(sz * sizeof(bigs[0]));
             for (int i = 0; i < sz; i++)
-                bigs[i] = (Big){.i = i};
+                bigs[i] = (TYPE){i};
             
-            hh_register_type(&sl, 1, sizeof(Big));
+            hh_register_type(&sl, 1, sizeof(TYPE));
             hh_put_all(&sl, bigs, sz, 1);
             
             int i = 0;
             
             for(auto it = hh_begin(&sl); !hh_iter_eq(it, hh_end(&sl)) ; it = hh_iter_next(it))
             {
-                ptrs[i++] = (Big*) hh_iter_elm(it);
+                ptrs[i++] = (TYPE*) hh_iter_elm(it);
             }
             
             rng.seed(42);
-            std::vector<Big *> to_pop;
+            std::vector<TYPE *> to_pop;
             to_pop.reserve(sz / 2);
             std::sample(ptrs, ptrs + sz, std::back_inserter(to_pop), sz / 2, rng);
             
-            for (Big *p : to_pop) {
+            for (TYPE *p : to_pop) {
                 hh_del(&sl, p);
             }
             
@@ -319,7 +339,7 @@ int main(int argc, char **argv)
                         {
                             if(random <55 || sl.count == 0 || !iter_set)
                             {
-                                Big elm = {.i = i};
+                                TYPE elm = {i};
                                 hh_iter tmp = hh_put(&sl, &elm, 1);
                                 
                                 random = rand() % 100;
@@ -331,7 +351,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                int val = ((Big*)hh_iter_elm(it))->i;
+                                int val = *((TYPE*)hh_iter_elm(it));
                                 it = hh_iter_del(&sl, it);
                                 if(hh_iter_eq(it, hh_end(&sl)))
                                     iter_set = false;
@@ -342,7 +362,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = hh_begin(&sl), end = hh_end(&sl) ; !hh_iter_eq(it,end) ; it = hh_iter_next(it))
                         {
-                            sum += ((Big*)hh_iter_elm(it))->i;
+                            sum += *((TYPE*)hh_iter_elm(it));
                         }
                         
                         printf("HH SUM AFTER RND: %u\n", sum);
@@ -360,7 +380,7 @@ int main(int argc, char **argv)
                         
                         for(hh_iter it = hh_begin(&sl), end = hh_end(&sl) ; !hh_iter_eq(it,end) ; it = hh_iter_next(it))
                         {
-                            sum += ((Big*)hh_iter_elm(it))->i;
+                            sum += *((TYPE*)hh_iter_elm(it));
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
@@ -374,7 +394,7 @@ int main(int argc, char **argv)
                         
                         for(hh_typed_iter it = hh_typed_begin(&sl, 1), end = hh_typed_end(&sl, 1) ; !hh_typed_iter_eq(it,end) ; it = hh_typed_iter_next(it))
                         {
-                            sum += ((Big*)hh_typed_iter_elm(it))->i;
+                            sum += *((TYPE*)hh_typed_iter_elm(it));
                         }
                         
                         ankerl::nanobench::doNotOptimizeAway(sum);
@@ -404,7 +424,7 @@ int main(int argc, char **argv)
                         
                         for(int i = 0 ; i < sz/2 ; i++)
                         {
-                            Big elm = {.i=i};
+                            TYPE elm = {i};
                             hh_put(&slc, &elm, 1);
                         }
                         
@@ -412,7 +432,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = hh_begin(&slc), end = hh_end(&slc) ; !hh_iter_eq(it,end) ; it = hh_iter_next(it))
                         {
-                            sum += ((Big*)hh_iter_elm(it))->i;
+                            sum += *((TYPE*)hh_iter_elm(it));
                         }
                         
                         printf("HH SUM AFTER PUT: %u\n", sum);
@@ -434,10 +454,10 @@ int main(int argc, char **argv)
             
             srand(69420);
             bbig_sp sl; bbig_sp_init(&sl);
-            Big **ptrs = (Big**) malloc(sz * sizeof(ptrs[0]));
-            Big *bigs = (Big*) malloc(sz * sizeof(bigs[0]));
+            TYPE **ptrs = (TYPE**) malloc(sz * sizeof(ptrs[0]));
+            TYPE *bigs =  (TYPE*) malloc(sz * sizeof(bigs[0]));
             for (int i = 0; i < sz; i++)
-                bigs[i] = (Big){.i = i};
+                bigs[i] = (TYPE){i};
             
             bbig_sp_put_all(&sl, bigs, sz);
             
@@ -449,14 +469,14 @@ int main(int argc, char **argv)
             }
             
             rng.seed(42);
-            std::vector<Big*> to_pop;
+            std::vector<TYPE*> to_pop;
             to_pop.reserve(sz / 2);
             std::sample(ptrs, ptrs + sz,
                         std::back_inserter(to_pop),
                         sz / 2,
                         rng);
             
-            for (Big* p : to_pop) {
+            for (TYPE* p : to_pop) {
                 bbig_sp_del(&sl, p);
             }
             
@@ -477,7 +497,7 @@ int main(int argc, char **argv)
                         {
                             if(random <55 || sl.count == 0 || !iter_set)
                             {
-                                bbig_sp_iter tmp = bbig_sp_put(&sl, (Big){.i=i});
+                                bbig_sp_iter tmp = bbig_sp_put(&sl, (TYPE){i});
                                 
                                 random = rand() % 100;
                                 if(random < 5 || !iter_set)
@@ -488,7 +508,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                int val = it.elm->i;
+                                int val = it.elm[0];
                                 it = bbig_sp_iter_del(&sl, it);
                                 if(bbig_sp_iter_eq(it, bbig_sp_end(&sl)))
                                     iter_set = false;
@@ -499,7 +519,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = bbig_sp_begin(&sl), end = bbig_sp_end(&sl) ; !bbig_sp_iter_eq(it,end) ; it = bbig_sp_iter_next(it))
                         {
-                            sum += bbig_sp_iter_elm(it)->i;
+                            sum += bbig_sp_iter_elm(it)[0];
                         }
                         
                         printf("HV SUM AFTER RND: %u\n", sum);
@@ -518,7 +538,7 @@ int main(int argc, char **argv)
                     const bbig_sp_bucket_t *const end = sl.end_sentinel;
                     for(bbig_sp_iter it = bbig_sp_begin(&sl) ; it.bucket != end ; it = bbig_sp_iter_next(it))
                     {
-                        sum += bbig_sp_iter_elm(it)->i;
+                        sum += bbig_sp_iter_elm(it)[0];
                     }
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
@@ -533,7 +553,7 @@ int main(int argc, char **argv)
                     
                     HIVE_FOR_EACH_(it, bbig_sp_begin(&sl), bbig_sp_end(&sl))
                     {
-                        sum += it.elm->i;
+                        sum += it.elm[0];
                     }
                     
                     ankerl::nanobench::doNotOptimizeAway(sum);
@@ -551,14 +571,15 @@ int main(int argc, char **argv)
                         
                         for(int i = 0 ; i < sz/2 ; i++)
                         {
-                            bbig_sp_put(&slc, (Big){.i=i});
+                            auto it = bbig_sp_put_empty(&slc);
+                            *it.elm = (TYPE){i};
                         }
                         
 #ifndef NDEBUG
                         unsigned int sum = 0;
                         for(auto it = bbig_sp_begin(&slc) ; !bbig_sp_iter_eq(it, bbig_sp_end(&slc)) ; it = bbig_sp_iter_next(it))
                         {
-                            sum += bbig_sp_iter_elm(it)->i;
+                            sum += bbig_sp_iter_elm(it)[0];
                         }
 #endif
                         printf("SP SUM AFTER PUT: %u\n", sum);
@@ -567,7 +588,26 @@ int main(int argc, char **argv)
                     }
                 );
             }
-            
+            if(bench_clone)
+            {
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("bhive_clone",
+                    [&]{
+                        bbig_sp slc = bbig_sp_clone(&sl);
+                        
+#ifndef NDEBUG
+                        unsigned int sum = 0;
+                        for(auto it = bbig_sp_begin(&slc) ; !bbig_sp_iter_eq(it, bbig_sp_end(&slc)) ; it = bbig_sp_iter_next(it))
+                        {
+                            sum += bbig_sp_iter_elm(it)[0];
+                        }
+#endif
+                        printf("SP SUM AFTER CLONE: %u\n", sum);
+                        ankerl::nanobench::doNotOptimizeAway(slc);
+                        bbig_sp_deinit(&slc);
+                    }
+                );
+            }
             if(bench_pop)
             {
                 rng2.seed(41);
@@ -588,7 +628,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         HIVE_FOR_EACH_(it, bbig_sp_begin(&clone), bbig_sp_end(&clone))
                         {
-                            sum += it.elm->i;
+                            sum += it.elm[0];
                         }
                         printf("old_del_sum = %u\n", sum);
 #endif
@@ -609,13 +649,13 @@ int main(int argc, char **argv)
         {
             // PLF SETUP
             srand(69420);
-            plf::colony<Big> i_colony;
+            plf::colony<TYPE> i_colony;
             
             std::vector<decltype(i_colony.begin())> elms;
             elms.reserve(sz);
             for (int i = 0; i < sz; ++i)
             {
-                elms.push_back(i_colony.insert((Big){.i = i}));
+                elms.push_back(i_colony.insert((TYPE){i}));
             }
             
             rng.seed(42);
@@ -647,7 +687,7 @@ int main(int argc, char **argv)
                         {
                             if(random < 55 || i_colony.size() == 0 || !set_iter)
                             {
-                                auto tmp = i_colony.insert((Big){.i=i});
+                                auto tmp = i_colony.insert((TYPE){i});
                                 random = rand() % 100;
                                 if(random < 5 || !set_iter)
                                 {
@@ -667,7 +707,7 @@ int main(int argc, char **argv)
                         unsigned int sum = 0;
                         for(auto it = i_colony.begin() ; it != i_colony.end() ; it++)
                         {
-                            sum += it->i;
+                            sum += *it;
                         }
                         
                         printf("PLF SUM AFTER RND: %u\n", sum);
@@ -683,7 +723,7 @@ int main(int argc, char **argv)
                         
                         for (const auto& value : i_colony)
                         {
-                            sum += value.i;
+                            sum += (int)value;
                         }
                         ankerl::nanobench::doNotOptimizeAway(sum);
                         printf("plfsum = %u\n", sum);
@@ -697,9 +737,9 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony::erase", 
                 [&]{
-                    plf::colony<Big> icol = plf::colony<Big>(i_colony);
+                    plf::colony<TYPE> icol = plf::colony<TYPE>(i_colony);
                     bool remove = true;
-                    for (plf::colony<Big>::iterator it = icol.begin() ; it != icol.end() ; )
+                    for (plf::colony<TYPE>::iterator it = icol.begin() ; it != icol.end() ; )
                     {
                         if(remove)
                             it = icol.erase(it);
@@ -712,7 +752,7 @@ int main(int argc, char **argv)
                     unsigned int sum = 0;
                     for(auto it : icol)
                     {
-                        sum += it.i;
+                        sum += it;
                     }
                     printf("plf_del_sum=%u\n", sum);
 #endif
@@ -728,17 +768,38 @@ int main(int argc, char **argv)
                 rng2.seed(41);
                 bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony::insert", 
                 [&]{
-                    plf::colony<Big> icol = plf::colony<Big>(i_colony);
+                    plf::colony<TYPE> icol = plf::colony<TYPE>(i_colony);
                     
                     for (int i = 0 ; i < sz/2 ; i++)
                     {
-                        icol.insert((Big){.i=i});
+                        icol.insert((TYPE){i});
                     }
 #if !defined(NDEBUG)
                     unsigned int sum = 0;
                     for(auto it : icol)
                     {
-                        sum += it.i;
+                        sum += it;
+                    }
+                    
+                    printf("PLF SUM AFTER INS %u\n", sum);
+#endif
+                    ankerl::nanobench::doNotOptimizeAway(icol);
+                }
+                );
+            }
+            if(bench_clone)
+            {
+                // std::cout << "SZ: " << sz << std::endl;
+                rng2.seed(41);
+                bench.unit("elms").batch(sz).complexityN(sz).minEpochIterations(iterations).run("plf::colony::insert", 
+                [&]{
+                    plf::colony<TYPE> icol = plf::colony<TYPE>(i_colony);
+                    
+#if !defined(NDEBUG)
+                    unsigned int sum = 0;
+                    for(auto it : icol)
+                    {
+                        sum += it;
                     }
                     
                     printf("PLF SUM AFTER INS %u\n", sum);
