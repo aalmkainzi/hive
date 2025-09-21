@@ -31,12 +31,6 @@ bool eq_big(Big a, Big b)
     return a.i == b.i;
 }
 
-#define NAME big_set
-#define KEY_TY Big
-#define HASH_FN hash_big
-#define CMPR_FN eq_big
-#include "verstable.h"
-
 #define HIVE_IMPL
 #define HIVE_TYPE Big
 #define HIVE_NAME big_sp
@@ -77,21 +71,21 @@ int main(int argc, char **argv)
     std::ofstream outFile(std::string("results/txt/hive_and_plf_colony_").append(compiler_name).append(std::string_view(".txt")));
     bench.output(&outFile);
     
-    int begin = 10'000;
-    int end   = 150'000;
-    int interval = 10'000;
+    int begin = 25'000;
+    int end   = 350'000;
+    int interval = 25'000;
     
     std::string html_file_name = std::string("results/html/res").append(compiler_name).append(".html");
     std::string json_file_name = std::string("results/json/res").append(compiler_name).append(".json");
     
     constexpr bool bench_hive = true;
-    constexpr bool bench_small_hive = true;
-    constexpr bool bench_plf_colony  = true;
+    constexpr bool bench_small_hive = false;
+    constexpr bool bench_plf_colony  = false;
     constexpr bool bench_hetrohive = false;
     
     constexpr bool bench_iter = false;
-    constexpr bool bench_put = true;
-    constexpr bool bench_pop = false;
+    constexpr bool bench_put = false;
+    constexpr bool bench_pop = true;
     constexpr bool bench_random = false;
     
     int iterations = 25;
