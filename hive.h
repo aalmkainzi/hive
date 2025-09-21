@@ -200,10 +200,16 @@ typedef struct hive_bucket_t
     struct hive_bucket_t *next;
     struct hive_bucket_t *prev;
     
-    uint64_t empty_bitset[4]; // 1 = empty
-    
     uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
     uint8_t count;
+    uint8_t first_elm_idx;
+    
+
+    uint8_t holes[HIVE_BUCKET_SIZE + 2][2]; // each index stores the hole it belongs to (e.g at `[5]={2, 16}`, and same for all indexes from 2 to 16). if not hole then {255,255}
+    // no. this requires looping if we delete an elm...
+    // maybe... only reference the beginning of your hole
+    // and have another array for beginning of holes that contains length of each hole (or 0 if not hole)
+
     hive_entry_t elms[HIVE_BUCKET_SIZE + 2];
     hive_next_entry_t next_entries[HIVE_BUCKET_SIZE + 2];
     hive_next_entry_t prev_entries[HIVE_BUCKET_SIZE + 2];
@@ -307,7 +313,7 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
             _ret.not_full_buckets.array[(*_dst_bucket)->not_full_idx] = *_dst_bucket;
         }
         
-        memcpy((*_dst_bucket)->empty_bitset, _src_bucket->empty_bitset, sizeof(_src_bucket->empty_bitset));
+        (*_dst_bucket)->first_elm_idx = _src_bucket->first_elm_idx;
         
         (*_dst_bucket)->next = NULL;
         _dst_prev = (*_dst_bucket);
@@ -325,7 +331,7 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
                 _ret.not_full_buckets.array[(*_dst_bucket)->not_full_idx] = *_dst_bucket;
             }
             
-            memcpy((*_dst_bucket)->empty_bitset, _src_bucket->empty_bitset, sizeof(_src_bucket->empty_bitset));
+            (*_dst_bucket)->first_elm_idx = _src_bucket->first_elm_idx;
             
             _dst_prev->next = *_dst_bucket;
             _dst_prev = (*_dst_bucket);
@@ -401,7 +407,7 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
             _bucket->prev_entries[_j].next_elm_index = _j;
         }
         
-        memset(_bucket->empty_bitset, 0, sizeof(_bucket->empty_bitset));
+        _bucket->first_elm_idx = 1;
         _bucket->count = HIVE_BUCKET_SIZE;
         _hv->bucket_count += 1;
         _hv->count += HIVE_BUCKET_SIZE;
@@ -430,10 +436,7 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
         _remaining_bucket->next_entries[HIVE_END_SENTINEL_INDEX].next_elm_index = HIVE_END_SENTINEL_INDEX;
         _remaining_bucket->prev_entries[HIVE_END_SENTINEL_INDEX].next_elm_index = HIVE_END_SENTINEL_INDEX;
         
-        for(int i = 1 ; i < _remaining + 1 ; i++)
-        {
-            _remaining_bucket->empty_bitset[i / 64] &= ~((uint64_t)1 << (i % 64));
-        }
+        _remaining_bucket->first_elm_idx = 1;
         
         _remaining_bucket->count = _remaining;
         
@@ -599,12 +602,7 @@ void hive_bucket_init(hive_bucket_t *_bucket)
         _bucket->prev_entries[_i].next_elm_index = 0;
     }
     
-    // first and last bits 0, bits in middle 1
-    // for begin and end sentinels
-    _bucket->empty_bitset[0] = UINT64_MAX - 1;
-    for(int i = 1 ; i <= 2 ; i++)
-        _bucket->empty_bitset[i] = UINT64_MAX;
-    _bucket->empty_bitset[3] = UINT64_MAX & ~((uint64_t)1 << 63);
+    _bucket->first_elm_idx = HIVE_END_SENTINEL_INDEX;
 }
 
 void hive_push_not_full_bucket(HIVE_NAME *_hv, hive_bucket_t *_bucket)
@@ -659,11 +657,6 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     assert(_bucket->next_entries[_index].next_elm_index == _index);
     assert(_bucket->count != 0);
     
-    // TODO if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
-    // if prev and next are acutal elms, just change this elm's next_entry
-    // if prev is actual elm but next is hole, set this elm's next_entry to skip the entire hole
-    _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
-    
     uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
     uint8_t _prev_elm = _bucket->prev_entries[_index - 1].next_elm_index;
     
@@ -694,36 +687,17 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
 
 uint8_t hive_bucket_first_elm(const hive_bucket_t *_bucket)
 {
-    // TODO this needs a total rework.
-    // notes:
-    // the first bit of empty_bitset[0] is always 0, but its not a real elm
-    // the last bit of empty_bitset[3] is always 0, but its not a real elm
-    // so, we should return the index of the first 0 bit, not including the first bit of empty_bitset[0]
-    return hive_bitset_first_elm(_bucket->empty_bitset);
+    return _bucket->first_elm_idx;
 }
 
 uint8_t hive_bucket_first_empty(const hive_bucket_t *_bucket)
 {
-    if(_bucket->empty_bitset[0] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[0]);
-    }
-    else if(_bucket->empty_bitset[1] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[1]) + 64;
-    }
-    else if(_bucket->empty_bitset[2] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[2]) + 128;
-    }
-    else if(_bucket->empty_bitset[3] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[3]) + 192;
-    }
-    assert(0);
-    return 0;
+    return _bucket->first_empty_idx;
 }
 
+// IDEA: don't do bitset nor first_empty_idx, instead:
+// keep an array of ranges describing the holes
+// when inserting, just choose the first elm of the first hole and shrink it by 1
 uint8_t hive_bucket_set_first_empty(hive_bucket_t *_bucket)
 {
     if(_bucket->empty_bitset[0] != 0)
