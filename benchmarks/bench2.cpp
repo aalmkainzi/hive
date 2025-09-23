@@ -63,6 +63,28 @@ enum BenchType {
 
 constexpr BenchType bench_type = PUT;
 
+void hive_print_sum(big_sp *sp)
+{
+#if !defined(NDEBUG)
+    unsigned int sum = 0;
+    HIVE_FOR_EACH(it, big_sp_begin(sp), big_sp_end(sp))
+    {
+        sum += *it.ptr;
+    }
+#endif
+}
+
+void bhive_print_sum(bbig_sp *sp)
+{
+#if !defined(NDEBUG)
+    unsigned int sum = 0;
+    HIVE_FOR_EACH_(it, bbig_sp_begin(sp), bbig_sp_end(sp))
+    {
+        sum += *it.elm;
+    }
+#endif
+}
+
 static void BM_hive(benchmark::State& state)
 {
     const int N = state.range(0);
@@ -89,61 +111,68 @@ static void BM_hive(benchmark::State& state)
     }
     
     for(auto _ : state)
-    switch(bench_type)
     {
-        case ITER:
+        switch(bench_type)
         {
-            unsigned int sum = 0;
-            for(big_sp_iter it = big_sp_begin(&sp),
-                            end = big_sp_end(&sp) ;
+            case ITER:
+            {
+                unsigned int sum = 0;
+                for(big_sp_iter it = big_sp_begin(&sp),
+                    end = big_sp_end(&sp) ;
                 !big_sp_iter_eq(it, end) ;
                 it = big_sp_iter_next(it))
-            {
-                sum += *it.ptr;
-            }
-            benchmark::DoNotOptimize(sum);
-        }
-            break;
-        case PUT:
-        {
-            state.PauseTiming();
-            big_sp clone = big_sp_clone(&sp);
-            state.ResumeTiming();
-            for(int i = 0 ; i < N / 2 ; i++)
-            {
-                auto it = big_sp_put_empty(&clone);
-                *it.ptr = i;
-            }
-            benchmark::DoNotOptimize(clone);
-            state.PauseTiming();
-            big_sp_deinit(&clone);
-            state.ResumeTiming();
-        }
-            break;
-        case POP:
-        {
-            state.PauseTiming();
-            big_sp clone = big_sp_clone(&sp);
-            state.ResumeTiming();
-            bool remove = true;
-            for(big_sp_iter it = big_sp_begin(&sp) ; !big_sp_iter_eq(it, big_sp_end(&sp)) ; )
-            {
-                if(remove)
                 {
-                    it = big_sp_iter_del(&sp, it);
+                    sum += *it.ptr;
                 }
-                else
-                {
-                    it = big_sp_iter_next(it);
-                }
+                hive_print_sum(&sp);
+                benchmark::DoNotOptimize(sum);
             }
-            benchmark::DoNotOptimize(clone);
-            state.PauseTiming();
-            big_sp_deinit(&clone);
-            state.ResumeTiming();
-        }
             break;
+            case PUT:
+            {
+                state.PauseTiming();
+                big_sp clone = big_sp_clone(&sp);
+                state.ResumeTiming();
+                for(int i = 0 ; i < N / 2 ; i++)
+                {
+                    auto it = big_sp_put_empty(&clone);
+                    *it.ptr = i;
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                hive_print_sum(&clone);
+                big_sp_deinit(&clone);
+                state.ResumeTiming();
+            }
+            break;
+            case POP:
+            {
+                state.PauseTiming();
+                big_sp clone = big_sp_clone(&sp);
+                state.ResumeTiming();
+                bool remove = true;
+                for(big_sp_iter it = big_sp_begin(&sp) ; !big_sp_iter_eq(it, big_sp_end(&sp)) ; )
+                {
+                    if(remove)
+                    {
+                        it = big_sp_iter_del(&sp, it);
+                    }
+                    else
+                    {
+                        it = big_sp_iter_next(it);
+                    }
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                hive_print_sum(&clone);
+                big_sp_deinit(&clone);
+                state.ResumeTiming();
+            }
+            break;
+        }
     }
+    big_sp_deinit(&sp);
+    free(ptrs);
 }
 
 static void BM_bhive(benchmark::State& state)
@@ -171,143 +200,168 @@ static void BM_bhive(benchmark::State& state)
     }
     
     for(auto _ : state)
-    switch(bench_type)
     {
-        case ITER:
+        switch(bench_type)
         {
-            unsigned int sum = 0;
-            for(bbig_sp_iter it = bbig_sp_begin(&sp),
-                            end = bbig_sp_end(&sp) ;
+            case ITER:
+            {
+                unsigned int sum = 0;
+                for(bbig_sp_iter it = bbig_sp_begin(&sp),
+                    end = bbig_sp_end(&sp) ;
                 !bbig_sp_iter_eq(it, end) ;
                 it = bbig_sp_iter_next(it))
-            {
-                sum += *it.elm;
-            }
-            benchmark::DoNotOptimize(sum);
-        }
-            break;
-        case PUT:
-        {
-            state.PauseTiming();
-            bbig_sp clone = bbig_sp_clone(&sp);
-            state.ResumeTiming();
-            for(int i = 0 ; i < N / 2 ; i++)
-            {
-                auto it = bbig_sp_put(&clone, TYPE{i});
-            }
-            benchmark::DoNotOptimize(clone);
-            state.PauseTiming();
-            bbig_sp_deinit(&clone);
-            state.ResumeTiming();
-        }
-            break;
-        case POP:
-        {
-            state.PauseTiming();
-            bbig_sp clone = bbig_sp_clone(&sp);
-            state.ResumeTiming();
-            bool remove = true;
-            for(bbig_sp_iter it = bbig_sp_begin(&sp) ; !bbig_sp_iter_eq(it, bbig_sp_end(&sp)) ; )
-            {
-                if(remove)
                 {
-                    it = bbig_sp_iter_del(&sp, it);
+                    sum += *it.elm;
                 }
-                else
-                {
-                    it = bbig_sp_iter_next(it);
-                }
+                bhive_print_sum(&sp);
+                benchmark::DoNotOptimize(sum);
             }
-            benchmark::DoNotOptimize(clone);
-            state.PauseTiming();
-            bbig_sp_deinit(&clone);
-            state.ResumeTiming();
-        }
             break;
+            case PUT:
+            {
+                state.PauseTiming();
+                bbig_sp clone = bbig_sp_clone(&sp);
+                state.ResumeTiming();
+                for(int i = 0 ; i < N / 2 ; i++)
+                {
+                    auto it = bbig_sp_put(&clone, TYPE{i});
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                bhive_print_sum(&clone);
+                bbig_sp_deinit(&clone);
+                state.ResumeTiming();
+            }
+            break;
+            case POP:
+            {
+                state.PauseTiming();
+                bbig_sp clone = bbig_sp_clone(&sp);
+                state.ResumeTiming();
+                bool remove = true;
+                for(bbig_sp_iter it = bbig_sp_begin(&sp) ; !bbig_sp_iter_eq(it, bbig_sp_end(&sp)) ; )
+                {
+                    if(remove)
+                    {
+                        it = bbig_sp_iter_del(&sp, it);
+                    }
+                    else
+                    {
+                        it = bbig_sp_iter_next(it);
+                    }
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                bhive_print_sum(&clone);
+                bbig_sp_deinit(&clone);
+                state.ResumeTiming();
+            }
+            break;
+        }
     }
+    
+    bbig_sp_deinit(&sp);
+    free(ptrs);
+}
+
+void plf_print_sum(plf::colony<TYPE> *plf)
+{
+#if !defined(NDEBUG)
+    unsigned int sum = 0;
+    for(auto it : *plf)
+    {
+        sum += it;
+    }
+    
+    printf("PLF SUM = %u\n", sum);
+#endif
 }
 
 static void BM_plf(benchmark::State& state)
 {
     const int N = state.range(0);
     std::mt19937 rng(42);
+    plf::colony<TYPE> col;
     
-    TYPE **ptrs = (TYPE**) malloc(N * sizeof(ptrs[0]));
-    
-    big_sp sp;
-    big_sp_init(&sp);
+    decltype(col.begin()) *ptrs = (decltype(col.begin())*) malloc(N * sizeof(ptrs[0]));
     
     for(int i = 0 ; i < N ; i++)
     {
-        auto it = big_sp_put_empty(&sp);
-        *it.ptr = i;
-        ptrs[i] = it.ptr;
+        auto it = col.insert(TYPE{i});
+        ptrs[i] = it;
     }
     
-    std::vector<TYPE*> to_pop;
+    std::vector<decltype(col.begin())> to_pop;
     to_pop.reserve(N / 2);
     std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
     
-    for (TYPE *p : to_pop) {
-        big_sp_del(&sp, p);
+    for (auto p : to_pop) {
+        col.erase(p);
     }
     
     for(auto _ : state)
-    switch(bench_type)
     {
-        case ITER:
+        switch(bench_type)
         {
-            unsigned int sum = 0;
-            for(big_sp_iter it = big_sp_begin(&sp),
-                            end = big_sp_end(&sp) ;
-                !big_sp_iter_eq(it, end) ;
-                it = big_sp_iter_next(it))
+            case ITER:
             {
-                sum += *it.ptr;
-            }
-            benchmark::DoNotOptimize(sum);
-        }
-            break;
-        case PUT:
-        {
-            state.PauseTiming();
-            big_sp clone = big_sp_clone(&sp);
-            state.ResumeTiming();
-            for(int i = 0 ; i < N / 2 ; i++)
-            {
-                auto it = big_sp_put_empty(&clone);
-                *it.ptr = i;
-            }
-            benchmark::DoNotOptimize(clone);
-            state.PauseTiming();
-            big_sp_deinit(&clone);
-            state.ResumeTiming();
-        }
-            break;
-        case POP:
-        {
-            state.PauseTiming();
-            big_sp clone = big_sp_clone(&sp);
-            state.ResumeTiming();
-            bool remove = true;
-            for(big_sp_iter it = big_sp_begin(&sp) ; !big_sp_iter_eq(it, big_sp_end(&sp)) ; )
-            {
-                if(remove)
+                unsigned int sum = 0;
+                for(auto it : col)
                 {
-                    it = big_sp_iter_del(&sp, it);
+                    sum += it;
                 }
-                else
-                {
-                    it = big_sp_iter_next(it);
-                }
+#if !defined(NDEBUG)
+                plf_print_sum(&col);
+#endif
+                benchmark::DoNotOptimize(sum);
             }
-            benchmark::DoNotOptimize(clone);
-            state.PauseTiming();
-            big_sp_deinit(&clone);
-            state.ResumeTiming();
-        }
             break;
+            case PUT:
+            {
+                state.PauseTiming();
+                plf::colony<TYPE> *clone = new plf::colony<TYPE>(col);
+                state.ResumeTiming();
+                for(int i = 0 ; i < N / 2 ; i++)
+                {
+                    auto it = clone->insert(TYPE{i});
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                plf_print_sum(clone);
+                delete clone;
+                state.ResumeTiming();
+            }
+            break;
+            case POP:
+            {
+                state.PauseTiming();
+                plf::colony<TYPE> *clone = new plf::colony<TYPE>(col);
+                state.ResumeTiming();
+                bool remove = true;
+                for(auto it = clone->begin() ; it != clone->end() ; )
+                {
+                    if(remove)
+                    {
+                        it = clone->erase(it);
+                    }
+                    else
+                    {
+                        it++;
+                    }
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                plf_print_sum(clone);
+                delete clone;
+                state.ResumeTiming();
+            }
+            break;
+        }
     }
 }
+
+BENCHMARK(BM_hive) ->Arg(1000)->Arg(10000)->Arg(100000)->Arg(500000);
+BENCHMARK(BM_bhive)->Arg(1000)->Arg(10000)->Arg(100000)->Arg(500000);
+BENCHMARK(BM_plf)  ->Arg(1000)->Arg(10000)->Arg(100000)->Arg(500000);
 
 BENCHMARK_MAIN();
