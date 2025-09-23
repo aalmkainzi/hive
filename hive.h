@@ -8,6 +8,10 @@
 #include <time.h>
 #include <assert.h>
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
 #if !defined(HIVE_TYPE) || !defined(HIVE_NAME)
 
 #error "HIVE_TYPE and HIVE_NAME must be defined"
@@ -169,8 +173,16 @@ static inline uint8_t hive_bitset_first_elm(const uint64_t (*_bitset)[4])
     
     const uint64_t _invs[] = {_inv0, _inv1, _inv2, _inv3};
     
+#ifdef _MSC_VER
+    unsigned long _inv_idx;
+    _BitScanForward(&_inv_idx, _mask);
+    unsigned long _one_index;
+    _BitScanForward64(&_one_index, _invs[_inv_idx]);
+    return _one_index + (64 * _inv_idx);
+#else
     const uint8_t _inv_idx = __builtin_ctz(_mask);
     return __builtin_ctzll(_invs[_inv_idx]) + (64 * _inv_idx);
+#endif
 }
 
 static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
@@ -181,8 +193,15 @@ static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
         (((*_bitset)[2] != 0) << 2) |
         (((*_bitset)[3] != 0) << 3);
     
+#ifdef _MSC_VER
+    unsigned long _idx;
+    _BitScanForward(&_idx, _mask);
+    unsigned long _bit_idx;
+    _BitScanForward64(&_bit_idx, (*_bitset)[_idx]);
+#else
     const uint8_t _idx = __builtin_ctz(_mask);
     const uint8_t _bit_idx = __builtin_ctzll((*_bitset)[_idx]);
+#endif
     (*_bitset)[_idx] &= (*_bitset)[_idx] - 1;
     return _bit_idx + (64 * _idx);
 }
@@ -239,7 +258,6 @@ typedef struct hive_bucket_t
 #define hive_bucket_del             HIVE_CAT(HIVE_NAME, _bucket_del)
 #define hive_bucket_is_elm_within   HIVE_CAT(HIVE_NAME, _bucket_is_elm_within)
 #define hive_bucket_first_elm       HIVE_CAT(HIVE_NAME, _bucket_first_elm)
-#define hive_bucket_first_empty     HIVE_CAT(HIVE_NAME, _bucket_first_empty)
 #define hive_del_helper             HIVE_CAT(HIVE_NAME, _del_helper)
 
 #define hive_get_iter_from_index    HIVE_CAT(HIVE_NAME, _iter_to)
@@ -262,7 +280,6 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index);
 hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_bucket_t *_bucket, uint8_t _index);
 bool hive_bucket_is_elm_within(const hive_bucket_t *_bucket, const HIVE_TYPE *_elm);
 uint8_t hive_bucket_first_elm(const hive_bucket_t *_bucket);
-uint8_t hive_bucket_first_empty(const hive_bucket_t *_bucket);
 hive_iter hive_get_iter_from_index(hive_bucket_t *_bucket, uint8_t _index);
 
 void *hive_alloc_mem(void *_ctx, size_t _size, size_t _alignment);
@@ -721,34 +738,7 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
 
 uint8_t hive_bucket_first_elm(const hive_bucket_t *_bucket)
 {
-    // TODO this needs a total rework.
-    // notes:
-    // the first bit of empty_bitset[0] is always 0, but its not a real elm
-    // the last bit of empty_bitset[3] is always 0, but its not a real elm
-    // so, we should return the index of the first 0 bit, not including the first bit of empty_bitset[0]
     return hive_bitset_first_elm(&_bucket->empty_bitset);
-}
-
-uint8_t hive_bucket_first_empty(const hive_bucket_t *_bucket)
-{
-    if(_bucket->empty_bitset[0] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[0]);
-    }
-    else if(_bucket->empty_bitset[1] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[1]) + 64;
-    }
-    else if(_bucket->empty_bitset[2] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[2]) + 128;
-    }
-    else if(_bucket->empty_bitset[3] != 0)
-    {
-        return __builtin_ctzll(_bucket->empty_bitset[3]) + 192;
-    }
-    assert(0);
-    return 0;
 }
 
 bool hive_bucket_is_elm_within(const hive_bucket_t *_bucket, const HIVE_TYPE *_elm)
