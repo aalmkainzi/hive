@@ -3,7 +3,7 @@
 #include <iterator>
 #include <random>
 #include "plf_colony.h"
-#include "benchmark/benchmark.h"
+#include "benchmark/include/benchmark/benchmark.h"
 
 #if !defined(NO_PRINT)
 #define printf(...) printf(__VA_ARGS__)
@@ -12,19 +12,13 @@
 #endif
 
 #ifndef TYPE
-#define TYPE int
+#define TYPE Big
 #endif
-
-enum BenchOp {
-    PUT, POP, ITER
-};
-
-constexpr BenchOp bench_op = ITER;
 
 typedef struct Big
 {
     int i;
-    char _m[64 - sizeof(int)];
+    char _m[256 - 4];
 
     bool operator==(const Big& other) const {
         return this->i == other.i;
@@ -63,59 +57,31 @@ constexpr std::string_view compiler_name =
 "gcc";
 #endif
 
+enum BenchType {
+    PUT, POP, ITER
+};
+
+constexpr BenchType bench_type = PUT;
+
 void hive_print_sum(big_sp *sp)
 {
 #if !defined(NDEBUG)
-    static size_t printed[4] = {UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
-    for(size_t i : printed)
-    {
-        if(sp->count == i) return;
-    }
-    int i;
-    for(i = 0 ; i < 4 ; i++)
-    {
-        if(printed[i] == UINT64_MAX)
-        {
-            break;
-        }
-    }
-    assert(i != 4);
-    printed[i] = sp->count;
-    
     unsigned int sum = 0;
     HIVE_FOR_EACH(it, big_sp_begin(sp), big_sp_end(sp))
     {
         sum += *it.ptr;
     }
-    printf("HIVE SUM: %u\n", sum);
 #endif
 }
 
 void bhive_print_sum(bbig_sp *sp)
 {
 #if !defined(NDEBUG)
-    static size_t printed[4] = {UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
-    for(size_t i : printed)
-    {
-        if(sp->count == i) return;
-    }
-    int i;
-    for(i = 0 ; i < 4 ; i++)
-    {
-        if(printed[i] == UINT64_MAX)
-        {
-            break;
-        }
-    }
-    assert(i != 4);
-    printed[i] = sp->count;
-    
     unsigned int sum = 0;
     HIVE_FOR_EACH_(it, bbig_sp_begin(sp), bbig_sp_end(sp))
     {
-        sum += *it.ptr;
+        sum += *it.elm;
     }
-    printf("BHIVE SUM: %u\n", sum);
 #endif
 }
 
@@ -146,7 +112,7 @@ static void BM_hive(benchmark::State& state)
     
     for(auto _ : state)
     {
-        switch(bench_op)
+        switch(bench_type)
         {
             case ITER:
             {
@@ -185,17 +151,16 @@ static void BM_hive(benchmark::State& state)
                 big_sp clone = big_sp_clone(&sp);
                 state.ResumeTiming();
                 bool remove = true;
-                for(big_sp_iter it = big_sp_begin(&clone) ; !big_sp_iter_eq(it, big_sp_end(&clone)) ; )
+                for(big_sp_iter it = big_sp_begin(&sp) ; !big_sp_iter_eq(it, big_sp_end(&sp)) ; )
                 {
                     if(remove)
                     {
-                        it = big_sp_iter_del(&clone, it);
+                        it = big_sp_iter_del(&sp, it);
                     }
                     else
                     {
                         it = big_sp_iter_next(it);
                     }
-                    remove = !remove;
                 }
                 benchmark::DoNotOptimize(clone);
                 state.PauseTiming();
@@ -223,7 +188,7 @@ static void BM_bhive(benchmark::State& state)
     for(int i = 0 ; i < N ; i++)
     {
         auto it = bbig_sp_put(&sp, TYPE{i});
-        ptrs[i] = it.ptr;
+        ptrs[i] = it.elm;
     }
     
     std::vector<TYPE*> to_pop;
@@ -236,7 +201,7 @@ static void BM_bhive(benchmark::State& state)
     
     for(auto _ : state)
     {
-        switch(bench_op)
+        switch(bench_type)
         {
             case ITER:
             {
@@ -246,7 +211,7 @@ static void BM_bhive(benchmark::State& state)
                 !bbig_sp_iter_eq(it, end) ;
                 it = bbig_sp_iter_next(it))
                 {
-                    sum += *it.ptr;
+                    sum += *it.elm;
                 }
                 bhive_print_sum(&sp);
                 benchmark::DoNotOptimize(sum);
@@ -274,17 +239,16 @@ static void BM_bhive(benchmark::State& state)
                 bbig_sp clone = bbig_sp_clone(&sp);
                 state.ResumeTiming();
                 bool remove = true;
-                for(bbig_sp_iter it = bbig_sp_begin(&clone) ; !bbig_sp_iter_eq(it, bbig_sp_end(&clone)) ; )
+                for(bbig_sp_iter it = bbig_sp_begin(&sp) ; !bbig_sp_iter_eq(it, bbig_sp_end(&sp)) ; )
                 {
                     if(remove)
                     {
-                        it = bbig_sp_iter_del(&clone, it);
+                        it = bbig_sp_iter_del(&sp, it);
                     }
                     else
                     {
                         it = bbig_sp_iter_next(it);
                     }
-                    remove = !remove;
                 }
                 benchmark::DoNotOptimize(clone);
                 state.PauseTiming();
@@ -303,21 +267,6 @@ static void BM_bhive(benchmark::State& state)
 void plf_print_sum(plf::colony<TYPE> *plf)
 {
 #if !defined(NDEBUG)
-    static size_t printed[4] = {UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
-    for(size_t i : printed)
-    {
-        if(plf->size() == i) return;
-    }
-    int i;
-    for(i = 0 ; i < 4 ; i++)
-    {
-        if(printed[i] == UINT64_MAX)
-        {
-            break;
-        }
-    }
-    printed[i] = plf->size();
-    
     unsigned int sum = 0;
     for(auto it : *plf)
     {
@@ -352,7 +301,7 @@ static void BM_plf(benchmark::State& state)
     
     for(auto _ : state)
     {
-        switch(bench_op)
+        switch(bench_type)
         {
             case ITER:
             {
@@ -399,7 +348,6 @@ static void BM_plf(benchmark::State& state)
                     {
                         it++;
                     }
-                    remove = !remove;
                 }
                 benchmark::DoNotOptimize(clone);
                 state.PauseTiming();
@@ -410,12 +358,10 @@ static void BM_plf(benchmark::State& state)
             break;
         }
     }
-    
-    free(ptrs);
 }
 
-BENCHMARK(BM_hive) ->DenseRange(100000, 500000, 100000);
-BENCHMARK(BM_bhive)->DenseRange(100000, 500000, 100000);
-BENCHMARK(BM_plf)  ->DenseRange(100000, 500000, 100000);
+BENCHMARK(BM_hive) ->Arg(1000)->Arg(10000)->Arg(100000)->Arg(500000);
+BENCHMARK(BM_bhive)->Arg(1000)->Arg(10000)->Arg(100000)->Arg(500000);
+BENCHMARK(BM_plf)  ->Arg(1000)->Arg(10000)->Arg(100000)->Arg(500000);
 
 BENCHMARK_MAIN();

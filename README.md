@@ -109,5 +109,3 @@ Now make a corresponding `.c` file for the implementation
 #define HIVE_IMPL_ALL
 #include "ab.h"
 ```
-
-
