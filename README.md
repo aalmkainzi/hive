@@ -12,8 +12,8 @@ To list some:
 
 ## Benchmark
 
-From my (very limited) benchmarking, it seems my `hive` has slightly faster iteration speed, slightly slower insertion, and noticeably slower deletion.
-I won't post any benchmark results because I'm afraid they might not be too accurate.
+From my (very limited) benchmarking, it seems my `hive` has slightly faster iteration and insertion, and slower deletion.
+I won't post any benchmark results because I'm afraid they might not be too accurate. You can find the benchmark I used in `benchmarks/bench.cpp`
 
 ## Example
 
@@ -38,13 +38,13 @@ int main()
     
     for(my_hive_iter it = my_hive_begin(&ints) ; !my_hive_iter_eq(it, my_hive_end(&ints)) ; it = my_hive_iter_next(it))
     {
-        printf("%d\n", *my_hive_iter_elm(it));
+        printf("%d\n", *it.ptr);
     }
     
-    // helper macro for iteration
+    // convenience macro for iteration
     HIVE_FOR_EACH(it, my_hive_begin(&ints), my_hive_end(&ints))
     {
-        printf("%d\n", *my_hive_iter_elm(it));
+        printf("%d\n", *it.ptr);
     }
     
     my_hive_iter_del(&ints, thirty);
@@ -58,28 +58,36 @@ int main()
 void             <HIVE_NAME>_init(<HIVE_NAME> *_hv);
 <HIVE_NAME>      <HIVE_NAME>_clone(const <HIVE_NAME> *const _hv);
 <HIVE_NAME>_iter <HIVE_NAME>_put(<HIVE_NAME> *hv, <HIVE_TYPE> _new_elm);
+<HIVE_NAME>_iter <HIVE_NAME>_put_uninit(<HIVE_NAME> *hv);
 void             <HIVE_NAME>_put_all(<HIVE_NAME> *_hv, const <HIVE_TYPE> *_elms, size_t _nelms);
 <HIVE_NAME>_iter <HIVE_NAME>_del(<HIVE_NAME> *_hv, <HIVE_TYPE> *_elm);
-void             <HIVE_NAME>_foreach(<HIVE_NAME> *_hv, void(*_f)(<HIVE_TYPE>*,void*), void *_arg);
 void             <HIVE_NAME>_deinit(<HIVE_NAME> *_hv);
 
 <HIVE_NAME>_iter <HIVE_NAME>_begin(const <HIVE_NAME> *_hv);
 <HIVE_NAME>_iter <HIVE_NAME>_end(const <HIVE_NAME> *_hv);
 <HIVE_NAME>_iter <HIVE_NAME>_iter_next(<HIVE_NAME>_iter _it);
-<HIVE_TYPE>*     <HIVE_NAME>_iter_elm(<HIVE_NAME>_iter _it);
 <HIVE_NAME>_iter <HIVE_NAME>_iter_del(<HIVE_NAME> *_hv, <HIVE_NAME>_iter _it);
 bool             <HIVE_NAME>_iter_eq(<HIVE_NAME>_iter _a, <HIVE_NAME>_iter _b);
+<HIVE_NAME>_iter <HIVE_NAME>_ptr_to_iter(<HIVE_NAME> *_hive, <HIVE_TYPE> *_ptr); // O(bucket_count)
+
+<HIVE_NAME>_handle <HIVE_NAME>_iter_to_handle(<HIVE_NAME>_iter _it);
+<HIVE_NAME>_iter   <HIVE_NAME>_handle_del(<HIVE_NAME> *_hive, <HIVE_NAME>_handle _handle);
+<HIVE_NAME>_handle <HIVE_NAME>_ptr_to_handle(<HIVE_NAME> *_hive, <HIVE_TYPE> *_ptr); // O(bucket_count)
+<HIVE_NAME>_iter   <HIVE_NAME>_handle_to_iter(<HIVE_NAME>_handle _handle);
 ```
+
+## Iterators and Handles
+The only difference is that `_handle` is smaller, but can't be used for iteration.
 
 ## How to include
 You can do it like in the example for simple use cases.
 
-But if you want your hive to be declared in a header file and implemented in a corresponding c file, you can do:
+But if you want the container to be declared in a header file and implemented in a corresponding c file, you can do:
 
 ```C
 // ab.h
-#ifndef MY_OBJ_H
-#define MY_OBJ_H
+#ifndef AB_H
+#define AB_H
 
 typedef struct A
 {
