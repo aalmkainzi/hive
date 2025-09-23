@@ -61,7 +61,7 @@
 #define hive_init           HIVE_CAT(HIVE_NAME, _init)
 #define hive_clone          HIVE_CAT(HIVE_NAME, _clone)
 #define hive_put            HIVE_CAT(HIVE_NAME, _put)
-#define hive_put_empty      HIVE_CAT(HIVE_NAME, _put_empty)
+#define hive_put_uninit     HIVE_CAT(HIVE_NAME, _put_uninit)
 #define hive_put_all        HIVE_CAT(HIVE_NAME, _put_all)
 #define hive_del            HIVE_CAT(HIVE_NAME, _del)
 #define hive_foreach        HIVE_CAT(HIVE_NAME, _foreach)
@@ -192,7 +192,7 @@ static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
 void hive_init(HIVE_NAME *_hv);
 HIVE_NAME hive_clone(const HIVE_NAME *_hv);
 hive_iter hive_put(HIVE_NAME *hv, hive_entry_t _new_elm);
-hive_iter hive_put_empty(HIVE_NAME *_hv);
+hive_iter hive_put_uninit(HIVE_NAME *_hv);
 void hive_put_all(HIVE_NAME *_hv, const hive_entry_t *_elms, size_t _nelms);
 hive_iter hive_del(HIVE_NAME *_hv, hive_entry_t *_elm);
 void hive_foreach(HIVE_NAME *_hv, void(*_f)(hive_entry_t*,void*), void *_arg);
@@ -362,12 +362,12 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
 
 hive_iter hive_put(HIVE_NAME *_hv, HIVE_TYPE _new_elm)
 {
-    hive_iter _it = hive_put_empty(_hv);
+    hive_iter _it = hive_put_uninit(_hv);
     *_it.ptr = _new_elm;
     return _it;
 }
 
-hive_iter hive_put_empty(HIVE_NAME *_hv)
+hive_iter hive_put_uninit(HIVE_NAME *_hv)
 {
     HIVE_TYPE *_elm_added = NULL;
     
