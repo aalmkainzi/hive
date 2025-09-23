@@ -12,14 +12,14 @@
 #endif
 
 #ifndef TYPE
-#define TYPE int
+#define TYPE Big
 #endif
 
 enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = ITER;
+constexpr BenchOp bench_op = POP;
 
 typedef struct Big
 {
@@ -111,7 +111,7 @@ void bhive_print_sum(bbig_sp *sp)
     printed[i] = sp->count;
     
     unsigned int sum = 0;
-    HIVE_FOR_EACH_(it, bbig_sp_begin(sp), bbig_sp_end(sp))
+    HIVE_FOR_EACH(it, bbig_sp_begin(sp), bbig_sp_end(sp))
     {
         sum += *it.ptr;
     }
@@ -131,7 +131,7 @@ static void BM_hive(benchmark::State& state)
     
     for(int i = 0 ; i < N ; i++)
     {
-        auto it = big_sp_put_empty(&sp);
+        auto it = big_sp_put_uninit(&sp);
         *it.ptr = i;
         ptrs[i] = it.ptr;
     }
@@ -169,7 +169,7 @@ static void BM_hive(benchmark::State& state)
                 state.ResumeTiming();
                 for(int i = 0 ; i < N / 2 ; i++)
                 {
-                    auto it = big_sp_put_empty(&clone);
+                    auto it = big_sp_put_uninit(&clone);
                     *it.ptr = i;
                 }
                 benchmark::DoNotOptimize(clone);
