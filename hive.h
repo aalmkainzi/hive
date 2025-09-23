@@ -158,6 +158,28 @@ static void hive_free_mem(void *ctx, void *ptr, size_t size)
     free(ptr);
 }
 
+static inline uint8_t hive_ctz(uint32_t i)
+{
+#ifdef _MSC_VER
+    unsigned long index;
+    _BitScanForward(&index, i);
+    return (uint8_t)index;
+#else
+    return (uint8_t)__builtin_ctz(i);
+#endif
+}
+
+static inline uint8_t hive_ctz64(uint64_t i)
+{
+#ifdef _MSC_VER
+    unsigned long index;
+    _BitScanForward64(&index, i);
+    return (uint8_t)index;
+#else
+    return (uint8_t)__builtin_ctzll(i);
+#endif
+}
+
 static inline uint8_t hive_bitset_first_elm(const uint64_t (*_bitset)[4])
 {
     const uint64_t _inv0 = ~((*_bitset)[0] | 1ULL);
@@ -173,16 +195,8 @@ static inline uint8_t hive_bitset_first_elm(const uint64_t (*_bitset)[4])
     
     const uint64_t _invs[] = {_inv0, _inv1, _inv2, _inv3};
     
-#ifdef _MSC_VER
-    unsigned long _inv_idx;
-    _BitScanForward(&_inv_idx, _mask);
-    unsigned long _one_index;
-    _BitScanForward64(&_one_index, _invs[_inv_idx]);
-    return _one_index + (64 * _inv_idx);
-#else
-    const uint8_t _inv_idx = __builtin_ctz(_mask);
-    return __builtin_ctzll(_invs[_inv_idx]) + (64 * _inv_idx);
-#endif
+    const uint8_t _inv_idx = hive_ctz(_mask);
+    return hive_ctz64(_invs[_inv_idx]) + (64 * _inv_idx);
 }
 
 static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
@@ -193,15 +207,8 @@ static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
         (((*_bitset)[2] != 0) << 2) |
         (((*_bitset)[3] != 0) << 3);
     
-#ifdef _MSC_VER
-    unsigned long _idx;
-    _BitScanForward(&_idx, _mask);
-    unsigned long _bit_idx;
-    _BitScanForward64(&_bit_idx, (*_bitset)[_idx]);
-#else
-    const uint8_t _idx = __builtin_ctz(_mask);
-    const uint8_t _bit_idx = __builtin_ctzll((*_bitset)[_idx]);
-#endif
+    const uint8_t _idx = hive_ctz(_mask);
+    const uint8_t _bit_idx = hive_ctz64((*_bitset)[_idx]);
     (*_bitset)[_idx] &= (*_bitset)[_idx] - 1;
     return _bit_idx + (64 * _idx);
 }
@@ -851,76 +858,76 @@ hive_handle hive_ptr_to_handle(HIVE_NAME *_hive, hive_entry_t *_ptr)
 
 hive_iter hive_checked_put(HIVE_NAME *_hive, HIVE_TYPE _elm)
 {
-    if(_hive->not_full_buckets.count == 0)
+    if(1) //_hive->not_full_buckets.count == 0)
         return hive_put(_hive, _elm);
     
-    hive_bucket_t *_bucket = _hive->not_full_buckets.array[_hive->not_full_buckets.count - 1];
-    
-    uint16_t _old_not_full_count = _hive->not_full_buckets.count;
-    uint8_t _old_count = _bucket->count;
-    bool _will_fill = _bucket->count == (HIVE_BUCKET_SIZE - 1);
-    
-    uint8_t _index = hive_bucket_first_empty(_bucket);
-    
-    hive_next_entry_t _old_nexts[HIVE_BUCKET_SIZE + 2];
-    memcpy(_old_nexts, _bucket->next_entries, sizeof(_old_nexts));
-    
-    hive_next_entry_t _old_prevs[HIVE_BUCKET_SIZE + 2];
-    memcpy(_old_prevs, _bucket->prev_entries, sizeof(_old_prevs));
-    
-    HIVE_TYPE *_old_elms = HIVE_ALLOC_N(HIVE_TYPE, HIVE_BUCKET_SIZE + 2);
-    memcpy(_old_elms, _bucket->elms, sizeof(_bucket->elms));
-    
-    uint64_t _old_bitset[4];
-    memcpy(_old_bitset, _bucket->empty_bitset, sizeof(_old_bitset));
-    
-    hive_iter _ret = hive_put(_hive, _elm);
-    
-    assert(_old_count == _bucket->count - 1);
-    if(_will_fill)
-    {
-        assert(_old_not_full_count == _hive->not_full_buckets.count + 1);
-        assert(_bucket->not_full_idx == UINT16_MAX);
-    }
-    
-    for(uint8_t i = 0 ; i < _index ; i++)
-    {
-        assert(_old_nexts[i].next_elm_index == _bucket->next_entries[i].next_elm_index);
-        assert(i == 0 || _bucket->next_entries[i].next_elm_index == i);
-    }
-    assert(_old_nexts[_index].next_elm_index != _bucket->next_entries[_index].next_elm_index);
-    assert(_bucket->next_entries[_index].next_elm_index == _index);
-    for(int i = _index + 2 ; i < HIVE_END_SENTINEL_INDEX ; i++)
-    {
-        assert(_old_nexts[i].next_elm_index == _bucket->next_entries[i].next_elm_index);
-    }
-    
-    for(uint8_t i = 0 ; i < _index ; i++)
-    {
-        assert(_old_prevs[i].next_elm_index == _bucket->prev_entries[i].next_elm_index);
-        assert(i == 0 || _bucket->prev_entries[i].next_elm_index == i);
-    }
-    // assert(_old_prevs[_index].next_elm_index != _bucket->prev_entries[_index].next_elm_index);
-    assert(_bucket->prev_entries[_index].next_elm_index == _index);
-    // uint8_t _hole_after_index = _index + 1;
-//     for( ; _hole_after_index < HIVE_END_SENTINEL_INDEX ; _hole_after_index++)
+//     hive_bucket_t *_bucket = _hive->not_full_buckets.array[_hive->not_full_buckets.count - 1];
+//     
+//     uint16_t _old_not_full_count = _hive->not_full_buckets.count;
+//     uint8_t _old_count = _bucket->count;
+//     bool _will_fill = _bucket->count == (HIVE_BUCKET_SIZE - 1);
+//     
+//     uint8_t _index = hive_bucket_first_empty(_bucket);
+//     
+//     hive_next_entry_t _old_nexts[HIVE_BUCKET_SIZE + 2];
+//     memcpy(_old_nexts, _bucket->next_entries, sizeof(_old_nexts));
+//     
+//     hive_next_entry_t _old_prevs[HIVE_BUCKET_SIZE + 2];
+//     memcpy(_old_prevs, _bucket->prev_entries, sizeof(_old_prevs));
+//     
+//     HIVE_TYPE *_old_elms = HIVE_ALLOC_N(HIVE_TYPE, HIVE_BUCKET_SIZE + 2);
+//     memcpy(_old_elms, _bucket->elms, sizeof(_bucket->elms));
+//     
+//     uint64_t _old_bitset[4];
+//     memcpy(_old_bitset, _bucket->empty_bitset, sizeof(_old_bitset));
+//     
+//     hive_iter _ret = hive_put(_hive, _elm);
+//     
+//     assert(_old_count == _bucket->count - 1);
+//     if(_will_fill)
 //     {
-//         if(_old_prevs[_hole_after_index].next_elm_index == _hole_after_index)
-//             break;
+//         assert(_old_not_full_count == _hive->not_full_buckets.count + 1);
+//         assert(_bucket->not_full_idx == UINT16_MAX);
 //     }
 //     
-//     if(_hole_after_index != HIVE_END_SENTINEL_INDEX)
+//     for(uint8_t i = 0 ; i < _index ; i++)
 //     {
-//         assert(_bucket->prev_entries[_hole_after_index - 1].next_elm_index == _index);
+//         assert(_old_nexts[i].next_elm_index == _bucket->next_entries[i].next_elm_index);
+//         assert(i == 0 || _bucket->next_entries[i].next_elm_index == i);
+//     }
+//     assert(_old_nexts[_index].next_elm_index != _bucket->next_entries[_index].next_elm_index);
+//     assert(_bucket->next_entries[_index].next_elm_index == _index);
+//     for(int i = _index + 2 ; i < HIVE_END_SENTINEL_INDEX ; i++)
+//     {
+//         assert(_old_nexts[i].next_elm_index == _bucket->next_entries[i].next_elm_index);
 //     }
 //     
-//     for(uint8_t i = _hole_after_index ; i < HIVE_END_SENTINEL_INDEX ; i++)
+//     for(uint8_t i = 0 ; i < _index ; i++)
 //     {
-//         assert(_bucket->prev_entries[i].next_elm_index == _old_prevs[i].next_elm_index);
+//         assert(_old_prevs[i].next_elm_index == _bucket->prev_entries[i].next_elm_index);
+//         assert(i == 0 || _bucket->prev_entries[i].next_elm_index == i);
 //     }
-    
-    HIVE_FREE_N(_old_elms, HIVE_BUCKET_SIZE + 2);
-    return _ret;
+//     // assert(_old_prevs[_index].next_elm_index != _bucket->prev_entries[_index].next_elm_index);
+//     assert(_bucket->prev_entries[_index].next_elm_index == _index);
+//     // uint8_t _hole_after_index = _index + 1;
+// //     for( ; _hole_after_index < HIVE_END_SENTINEL_INDEX ; _hole_after_index++)
+// //     {
+// //         if(_old_prevs[_hole_after_index].next_elm_index == _hole_after_index)
+// //             break;
+// //     }
+// //     
+// //     if(_hole_after_index != HIVE_END_SENTINEL_INDEX)
+// //     {
+// //         assert(_bucket->prev_entries[_hole_after_index - 1].next_elm_index == _index);
+// //     }
+// //     
+// //     for(uint8_t i = _hole_after_index ; i < HIVE_END_SENTINEL_INDEX ; i++)
+// //     {
+// //         assert(_bucket->prev_entries[i].next_elm_index == _old_prevs[i].next_elm_index);
+// //     }
+//     
+//     HIVE_FREE_N(_old_elms, HIVE_BUCKET_SIZE + 2);
+//     return _ret;
 }
 
 hive_iter hive_checked_del(HIVE_NAME *_hive, HIVE_TYPE *_elm)
