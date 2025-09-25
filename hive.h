@@ -497,9 +497,14 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
     bool _first_set = false;
     hive_bucket_t *_bucket = NULL;
     hive_bucket_t *_prev = NULL;
+    
+    // TODO rework this. make one allocation for all buckets needed.
+    // and push that allocation
+    hive_bucket_t **_new_buckets = HIVE_ALLOC_N(hive_bucket_t*, _buckets_to_fill + (_remaining != 0));
+    hive_push_allocation(_hv, _new_buckets);
     for(size_t _i = 0 ; _i < _buckets_to_fill ; _i++)
     {
-        _bucket = (hive_bucket_t*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(hive_bucket_t), alignof(hive_bucket_t));
+        _bucket = _new_buckets[_i];
         if(!_first_set)
         {
             _first = _bucket;
@@ -622,7 +627,7 @@ hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_buck
             _ret = hive_get_iter_from_index(_bucket->next, _first_elm);
         }
         
-        HIVE_FREE(HIVE_ALLOC_CTX, _bucket, sizeof(*_bucket));
+        hive_push_to_buckets_reserve(_hv, &_bucket, 1);
         _hv->bucket_count -= 1;
     }
     else
