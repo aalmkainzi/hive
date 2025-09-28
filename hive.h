@@ -87,18 +87,26 @@
 #define HIVE_ARR_LEN(arr) \
 sizeof(arr) / sizeof(arr[0])
 
-#define hive_entry_t typeof(HIVE_TYPE)
+#if defined(_MSC_VER) && defined(__cplusplus)
+    #define HIVE_TYPEOF decltype
+    #define HIVE_LITERAL(t, ...) t{__VA_ARGS__}
+#else
+    #define HIVE_TYPEOF typeof
+    #define HIVE_LITERAL(t, ...) (t){__VA_ARGS__}
+#endif
+
+#define hive_entry_t HIVE_TYPEOF(HIVE_LITERAL(HIVE_TYPE))
 
 #if !defined(HIVE_DECLARED)
 
 #define HIVE__FOR_EACH_NEXT(it) \
 ((it).next_entry->next_elm_index == HIVE_END_SENTINEL_INDEX ? \
-(typeof((it))){ \
+(HIVE_TYPEOF((it))){ \
     .bucket = (it).bucket->next, \
     .next_entry = &(it).bucket->next->next_entries[hive_bitset_first_elm(&(it).bucket->next->empty_bitset)] + 1, \
     .ptr = &(it).bucket->next->elms[hive_bitset_first_elm(&(it).bucket->next->empty_bitset)] \
 } : \
-(typeof((it))){ \
+(HIVE_TYPEOF((it))){ \
     .bucket = (it).bucket, \
     .next_entry = &(it).bucket->next_entries[(it).next_entry->next_elm_index] + 1, \
     .ptr = &(it).bucket->elms[(it).next_entry->next_elm_index] \
@@ -106,7 +114,7 @@ sizeof(arr) / sizeof(arr[0])
 )
 
 #define HIVE_FOR_EACH(name, from_it, to_it) \
-for(typeof(from_it) name = (from_it) ; name.ptr != (to_it).ptr ; name = HIVE__FOR_EACH_NEXT(name))
+for(HIVE_TYPEOF(from_it) name = (from_it) ; name.ptr != (to_it).ptr ; name = HIVE__FOR_EACH_NEXT(name))
 
 typedef struct hive_allocation_t
 {
@@ -321,10 +329,10 @@ void *hive_realloc_mem(void *_ctx, void *_ptr, size_t _old_size, size_t _new_siz
 void hive_free_mem(void *_ctx, void *_ptr, size_t _size);
 
 #define HIVE_ALLOC_N(type, count) \
-(typeof(type)*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(type) * (count), alignof(type))
+(type*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(type) * (count), alignof(type))
 
 #define HIVE_REALLOC_N(ptr, old_count, new_count) \
-(typeof(ptr)) HIVE_REALLOC(HIVE_ALLOC_CTX, (void*)(ptr), sizeof((ptr)[0]) * (old_count), sizeof((ptr)[0]) * (new_count), alignof(typeof((ptr)[0])))
+(HIVE_TYPEOF(ptr)) HIVE_REALLOC(HIVE_ALLOC_CTX, (void*)(ptr), sizeof((ptr)[0]) * (old_count), sizeof((ptr)[0]) * (new_count), alignof(HIVE_TYPEOF((ptr)[0])))
 
 #define HIVE_FREE_N(ptr, count) \
 HIVE_FREE(HIVE_ALLOC_CTX, (void*)(ptr), sizeof(ptr[0]) * (count))
@@ -336,13 +344,13 @@ void hive_init(HIVE_NAME *_hv)
     _end_sentinel->prev_entries = HIVE_ALLOC_N(hive_next_entry_t, HIVE_BUCKET_SIZE + 2);
     _end_sentinel->elms = HIVE_ALLOC_N(hive_entry_t, HIVE_BUCKET_SIZE + 2);
     hive_bucket_init(_end_sentinel);
-    (*_hv) = (HIVE_NAME){
-        .buckets      = _end_sentinel,
-        .tail         = _end_sentinel,
-        .end_sentinel = _end_sentinel,
-        .count        = 0,
-        .bucket_count = 0,
-    };
+    
+    _hv->buckets      = _end_sentinel,
+    _hv->tail         = _end_sentinel,
+    _hv->end_sentinel = _end_sentinel,
+    _hv->count        = 0,
+    _hv->bucket_count = 0,
+    
     _hv->not_full_buckets.cap = 16;
     _hv->not_full_buckets.count = 0;
     _hv->not_full_buckets.array = HIVE_ALLOC_N(hive_bucket_t*, _hv->not_full_buckets.cap);
@@ -365,10 +373,13 @@ void hive_init(HIVE_NAME *_hv)
 
 hive_bucket_t *hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
 {
+    typedef hive_next_entry_t _next_entries_array[HIVE_BUCKET_SIZE + 2];
+    typedef hive_entry_t _elms_array[HIVE_BUCKET_SIZE + 2];
+    
     hive_bucket_t *_new_buckets = HIVE_ALLOC_N(hive_bucket_t, _nb);
-    hive_next_entry_t (*_new_nexts)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(hive_next_entry_t[HIVE_BUCKET_SIZE + 2], _nb);
-    hive_next_entry_t (*_new_prevs)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(hive_next_entry_t[HIVE_BUCKET_SIZE + 2], _nb);
-    hive_entry_t (*_new_elms)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(hive_entry_t[HIVE_BUCKET_SIZE + 2], _nb);
+    hive_next_entry_t (*_new_nexts)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(_next_entries_array, _nb);
+    hive_next_entry_t (*_new_prevs)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(_next_entries_array, _nb);
+    hive_entry_t (*_new_elms)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(_elms_array, _nb);
     
     hive_push_allocation(_hv, _new_buckets, sizeof(hive_bucket_t) * _nb);
     hive_push_allocation(_hv, _new_nexts, sizeof(hive_next_entry_t[HIVE_BUCKET_SIZE + 2]) * _nb);
@@ -574,6 +585,9 @@ hive_iter hive_put_uninit(HIVE_NAME *_hv)
 
 void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
 {
+    typedef hive_next_entry_t _next_entries_array[HIVE_BUCKET_SIZE + 2];
+    typedef hive_entry_t _elms_array[HIVE_BUCKET_SIZE + 2];
+    
     size_t _buckets_to_fill = _nelms / HIVE_BUCKET_SIZE;
     ptrdiff_t _remaining = _nelms - (_buckets_to_fill * HIVE_BUCKET_SIZE);
     
@@ -586,9 +600,9 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
     // and push that allocation
     size_t _nb_allocated = _buckets_to_fill + (_remaining != 0);
     hive_bucket_t *_new_buckets = HIVE_ALLOC_N(hive_bucket_t, _nb_allocated);
-    hive_next_entry_t (*_new_nexts)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(hive_next_entry_t[HIVE_BUCKET_SIZE + 2], _nb_allocated);
-    hive_next_entry_t (*_new_prevs)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(hive_next_entry_t[HIVE_BUCKET_SIZE + 2], _nb_allocated);
-    hive_entry_t (*_new_elms)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(hive_entry_t[HIVE_BUCKET_SIZE + 2], _nb_allocated);
+    hive_next_entry_t (*_new_nexts)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(_next_entries_array, _nb_allocated);
+    hive_next_entry_t (*_new_prevs)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(_next_entries_array, _nb_allocated);
+    hive_entry_t (*_new_elms)[HIVE_BUCKET_SIZE + 2] = HIVE_ALLOC_N(_elms_array, _nb_allocated);
     for(size_t i = 0 ; i < _nb_allocated ; i++)
     {
         _new_buckets[i].next_entries = _new_nexts[i];
@@ -796,7 +810,7 @@ void hive_deinit(HIVE_NAME *_hv)
     HIVE_FREE_N(_hv->bucket_reserve.array, _hv->bucket_reserve.cap);
     HIVE_FREE_N(_hv->not_full_buckets.array, _hv->not_full_buckets.cap);
     
-    *_hv = (HIVE_NAME){0};
+    *_hv = HIVE_LITERAL(HIVE_NAME);
 }
 
 void hive_bucket_init(hive_bucket_t *_bucket)
@@ -982,12 +996,15 @@ hive_iter hive_ptr_to_iter(HIVE_NAME *_hive, hive_entry_t *_ptr)
         _bucket = _bucket->next;
     }
     
-    return (hive_iter){0};
+    return HIVE_LITERAL(hive_iter);
 }
 
 hive_handle hive_iter_to_handle(hive_iter _it)
 {
-    return (hive_handle){.bucket = _it.bucket, .ptr = _it.ptr};
+    hive_handle _ret;
+    _ret.bucket = _it.bucket;
+    _ret.ptr = _it.ptr;
+    return _ret;
 }
 
 hive_iter hive_handle_to_iter(hive_handle _handle)
@@ -1010,13 +1027,16 @@ hive_handle hive_ptr_to_handle(HIVE_NAME *_hive, hive_entry_t *_ptr)
     {
         if(hive_bucket_is_elm_within(_bucket, _ptr))
         {
-            return (hive_handle){.bucket = _bucket, .ptr = _ptr};
+            hive_handle _ret;
+            _ret.ptr = _ptr;
+            _ret.bucket = _bucket;
+            return _ret;
         }
         
         _bucket = _bucket->next;
     }
     
-    return (hive_handle){0};
+    return HIVE_LITERAL(hive_handle);
 }
 
 #ifdef HIVE_TEST
@@ -1168,6 +1188,13 @@ hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 #undef HIVE_FREE
 #undef HIVE_REALLOC
 #undef HIVE_ALLOC_CTX
+#undef HIVE_ALLOC_N
+#undef HIVE_REALL_N
+#undef HIVE_FREE_N
+#undef HIVE_TYPEOF
+#undef HIVE_LITERAL
+#undef HIVE_LIKELY
+#undef HIVE_UNLIKELY
 
 #undef HIVE_CAT_
 #undef HIVE_CAT
