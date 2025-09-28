@@ -15,6 +15,11 @@
 #define TYPE Big
 #endif
 
+#define BEGIN 100'000
+#define END   1'500'000
+#define STEP  100'000
+#define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
+
 enum BenchOp {
     PUT, POP, ITER
 };
@@ -24,7 +29,7 @@ constexpr BenchOp bench_op = POP;
 typedef struct Big
 {
     int i;
-    char _m[256 - sizeof(int)];
+    char _m[64 - sizeof(int)];
 
     bool operator==(const Big& other) const {
         return this->i == other.i;
@@ -66,20 +71,27 @@ constexpr std::string_view compiler_name =
 void hive_print_sum(big_sp *sp)
 {
 #if !defined(NDEBUG)
-    static size_t printed[4] = {UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
+    static bool inited = false;
+    static size_t printed[ITERS];
+    if(!inited)
+    {
+        for(int i = 0 ; i < ITERS ; i++)
+            printed[i] = UINT64_MAX;
+        inited = true;
+    }
     for(size_t i : printed)
     {
         if(sp->count == i) return;
     }
     int i;
-    for(i = 0 ; i < 4 ; i++)
+    for(i = 0 ; i < ITERS ; i++)
     {
         if(printed[i] == UINT64_MAX)
         {
             break;
         }
     }
-    assert(i != 4);
+    assert(i != ITERS);
     printed[i] = sp->count;
     
     unsigned int sum = 0;
@@ -94,20 +106,27 @@ void hive_print_sum(big_sp *sp)
 void bhive_print_sum(bbig_sp *sp)
 {
 #if !defined(NDEBUG)
-    static size_t printed[4] = {UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
+    static bool inited = false;
+    static size_t printed[ITERS];
+    if(!inited)
+    {
+        for(int i = 0 ; i < ITERS ; i++)
+            printed[i] = UINT64_MAX;
+        inited = true;
+    }
     for(size_t i : printed)
     {
         if(sp->count == i) return;
     }
     int i;
-    for(i = 0 ; i < 4 ; i++)
+    for(i = 0 ; i < ITERS ; i++)
     {
         if(printed[i] == UINT64_MAX)
         {
             break;
         }
     }
-    assert(i != 4);
+    assert(i != ITERS);
     printed[i] = sp->count;
     
     unsigned int sum = 0;
@@ -303,13 +322,20 @@ static void BM_bhive(benchmark::State& state)
 void plf_print_sum(plf::colony<TYPE> *plf)
 {
 #if !defined(NDEBUG)
-    static size_t printed[4] = {UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX};
+    static bool inited = false;
+    static size_t printed[ITERS];
+    if(!inited)
+    {
+        for(int i = 0 ; i < ITERS ; i++)
+            printed[i] = UINT64_MAX;
+        inited = true;
+    }
     for(size_t i : printed)
     {
         if(plf->size() == i) return;
     }
     int i;
-    for(i = 0 ; i < 4 ; i++)
+    for(i = 0 ; i < ITERS ; i++)
     {
         if(printed[i] == UINT64_MAX)
         {
@@ -414,8 +440,8 @@ static void BM_plf(benchmark::State& state)
     free(ptrs);
 }
 
-BENCHMARK(BM_hive) ->DenseRange(250000, 1000000, 250000);
-BENCHMARK(BM_bhive)->DenseRange(250000, 1000000, 250000);
-BENCHMARK(BM_plf)  ->DenseRange(250000, 1000000, 250000);
+BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP);
+BENCHMARK(BM_bhive)->DenseRange(BEGIN, END, STEP);
+BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP);
 
 BENCHMARK_MAIN();
