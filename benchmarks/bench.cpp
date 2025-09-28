@@ -19,7 +19,7 @@ enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = PUT;
+constexpr BenchOp bench_op = POP;
 
 typedef struct Big
 {
@@ -414,8 +414,8 @@ static void BM_plf(benchmark::State& state)
     free(ptrs);
 }
 
-BENCHMARK(BM_hive) ->DenseRange(100000, 500000, 100000);
-BENCHMARK(BM_bhive)->DenseRange(100000, 500000, 100000);
-BENCHMARK(BM_plf)  ->DenseRange(100000, 500000, 100000);
+BENCHMARK(BM_hive) ->DenseRange(250000, 1000000, 250000);
+BENCHMARK(BM_bhive)->DenseRange(250000, 1000000, 250000);
+BENCHMARK(BM_plf)  ->DenseRange(250000, 1000000, 250000);
 
 BENCHMARK_MAIN();

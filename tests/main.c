@@ -1142,8 +1142,14 @@ static void test_big_stress_iter_del(void)
     big_hv_deinit(&sp);
 }
 
-static int compare_pointers(const void *a, const void *b) {
-    return (size_t)*(void**)a - (size_t)*(void**)b;
+static int compare_pointers(const void *a, const void *b)
+{
+    const void *pa = *(const void * const *)a;
+    const void *pb = *(const void * const *)b;
+    
+    if (pa < pb) return -1;
+    if (pa > pb) return 1;
+    return 0;
 }
 
 static int compare_int_ptrs(const void *a, const void *b)

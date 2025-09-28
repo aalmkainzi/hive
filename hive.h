@@ -362,11 +362,14 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
     
     if(_hv->not_full_buckets.count > _ret.not_full_buckets.cap)
     {
-        _ret.not_full_buckets.array = HIVE_REALLOC_N(_ret.not_full_buckets.array, _ret.not_full_buckets.cap, _hv->not_full_buckets.count + 1);
-        _ret.not_full_buckets.cap = _hv->not_full_buckets.count + 1;
+        _ret.not_full_buckets.array = HIVE_REALLOC_N(_ret.not_full_buckets.array, _ret.not_full_buckets.cap, _hv->not_full_buckets.count);
+        _ret.not_full_buckets.cap = _hv->not_full_buckets.count;
     }
     _ret.not_full_buckets.count = _hv->not_full_buckets.count;
     
+    hive_bucket_t *_new_buckets = HIVE_ALLOC_N(hive_bucket_t, _hv->bucket_count);
+    hive_push_allocation(&_ret, _new_buckets, sizeof(hive_bucket_t) * _hv->bucket_count);
+    hive_push_to_buckets_reserve(&_ret, _new_buckets, _hv->bucket_count);
     if(_hv->bucket_count > 0)
     {
         hive_bucket_t *_src_bucket = _hv->buckets;
@@ -374,7 +377,7 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
         hive_bucket_t **_dst_bucket = &_ret.buckets;
         hive_bucket_t *_dst_prev = NULL;
         
-        *_dst_bucket = (hive_bucket_t*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(hive_bucket_t), alignof(hive_bucket_t));
+        *_dst_bucket = _ret.bucket_reserve.array[--_ret.bucket_reserve.count];
         memcpy(*_dst_bucket, _src_bucket, sizeof(hive_bucket_t));
         (*_dst_bucket)->prev = NULL;
         
@@ -392,7 +395,7 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
         
         while(_src_bucket != _hv->end_sentinel)
         {
-            *_dst_bucket = (hive_bucket_t*) HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(hive_bucket_t), alignof(hive_bucket_t));
+            *_dst_bucket = _ret.bucket_reserve.array[--_ret.bucket_reserve.count];
             memcpy(*_dst_bucket, _src_bucket, sizeof(hive_bucket_t));
             (*_dst_bucket)->next = NULL;
             (*_dst_bucket)->prev = _dst_prev;
@@ -701,8 +704,12 @@ void hive_deinit(HIVE_NAME *_hv)
 {
     for(size_t i = 0 ; i < _hv->allocations.count ; i++)
     {
-        HIVE_FREE_N(_hv->allocations.array[i].ptr, _hv->allocations.array[i].size);
+        HIVE_FREE(HIVE_ALLOC_CTX, _hv->allocations.array[i].ptr, _hv->allocations.array[i].size);
     }
+    HIVE_FREE_N(_hv->allocations.array, _hv->allocations.cap);
+    HIVE_FREE_N(_hv->bucket_reserve.array, _hv->bucket_reserve.cap);
+    HIVE_FREE_N(_hv->not_full_buckets.array, _hv->not_full_buckets.cap);
+    
     *_hv = (HIVE_NAME){0};
 }
 
