@@ -15,16 +15,16 @@
 #define TYPE Big
 #endif
 
-#define BEGIN 250'000
-#define END   1'000'000
-#define STEP  250'000
+#define BEGIN 100'000
+#define END   500'000
+#define STEP  100'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
 enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = ITER;
+constexpr BenchOp bench_op = PUT;
 
 typedef struct Big
 {
@@ -278,7 +278,8 @@ static void BM_bhive(benchmark::State& state)
                 state.ResumeTiming();
                 for(int i = 0 ; i < N / 2 ; i++)
                 {
-                    auto it = bbig_sp_put(&clone, TYPE{i});
+                    auto it = bbig_sp_put_uninit(&clone);
+                    *it.ptr = TYPE{i};
                 }
                 benchmark::DoNotOptimize(clone);
                 state.PauseTiming();
