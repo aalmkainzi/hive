@@ -15,16 +15,16 @@
 #define TYPE Big
 #endif
 
-#define BEGIN 50'000
-#define END   300'000
-#define STEP  50'000
+#define BEGIN 250'000
+#define END   2'500'000
+#define STEP  250'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
 enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = POP;
+constexpr BenchOp bench_op = ITER;
 
 typedef struct Big
 {
@@ -130,7 +130,7 @@ void bhive_print_sum(bbig_sp *sp)
     printed[i] = sp->count;
     
     unsigned int sum = 0;
-    HIVE_FOR_EACH(it, bbig_sp_begin(sp), bbig_sp_end(sp))
+    HIVE_FOR_EACH_(it, bbig_sp_begin(sp), bbig_sp_end(sp))
     {
         sum += *it.ptr;
     }
