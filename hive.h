@@ -870,9 +870,8 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     assert(_bucket->next_entries[_index].next_elm_index == _index);
     assert(_bucket->count != 0);
     
-    // TODO if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
-    // if prev and next are acutal elms, just change this elm's next_entry
-    // if prev is actual elm but next is hole, set this elm's next_entry to skip the entire hole
+    // if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
+    
     _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
     
     const uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
@@ -880,9 +879,6 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     
     _bucket->next_entries[_prev_elm + 1].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
     _bucket->prev_entries[_next_elm - 1].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
-    
-    // _bucket->next_entries[_index].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
-    // _bucket->prev_entries[_index].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
     
     if(_bucket->count == 1)
     {
@@ -1135,7 +1131,7 @@ hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
     memcpy(_old_prevs, _bucket->prev_entries, sizeof(_old_prevs));
     
     HIVE_TYPE *_old_elms = HIVE_ALLOC_N(HIVE_TYPE, HIVE_BUCKET_SIZE + 2);
-    memcpy(_old_elms, _bucket->elms, sizeof(_bucket->elms));
+    memcpy(_old_elms, _bucket->elms, sizeof(hive_entry_t[HIVE_BUCKET_SIZE + 2]));
     
     uint64_t _old_bitset[4];
     memcpy(_old_bitset, _bucket->empty_bitset, sizeof(_old_bitset));
