@@ -15,9 +15,9 @@
 #define TYPE Big
 #endif
 
-#define BEGIN 50'000
-#define END   300'000
-#define STEP  50'000
+#define BEGIN 100'000
+#define END   1'500'000
+#define STEP  100'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
 enum BenchOp {
