@@ -562,7 +562,7 @@ hive_iter hive_put_uninit(HIVE_NAME *_hv)
     }
     if(_hv->bucket_reserve.count == 0)
     {
-        size_t _nb_buckets_to_alloc = _hv->bucket_count + (_hv->bucket_count == 0); // double the number of current buckets
+        size_t _nb_buckets_to_alloc = 64; // _hv->bucket_count + (_hv->bucket_count == 0); // double the number of current buckets
         hive_bucket_t *_new_buckets = hive_allocate_buckets(_hv, _nb_buckets_to_alloc);
     }
     
@@ -871,19 +871,19 @@ HIVE_TYPE *hive_bucket_reserve_slot(HIVE_NAME *_hv, hive_bucket_t *_bucket)
 {
     assert(_bucket->count < HIVE_BUCKET_SIZE);
     
+    hive_next_entry_t *_next_entires = (typeof(_next_entires))__builtin_assume_aligned(_bucket->next_entries, 256);
+    hive_next_entry_t *_prev_entires = (typeof(_prev_entires))__builtin_assume_aligned(_bucket->prev_entries, 256);
+    
     uint8_t _empty_index = hive_bitset_set_first_empty(&_bucket->empty_bitset);
-    assert(_bucket->next_entries[_empty_index].next_elm_index != _empty_index);
+    assert(_next_entires[_empty_index].next_elm_index != _empty_index);
     
-    // if(_bucket->next_entries[_empty_index + 1].next_elm_index != _empty_index + 1)
-    {
-        uint8_t _next_elm_idx = _bucket->next_entries[_empty_index].next_elm_index;
-        
-        _bucket->next_entries[_empty_index  + 1].next_elm_index = _next_elm_idx;
-        _bucket->prev_entries[_next_elm_idx - 1].next_elm_index = _empty_index;
-    }
+    uint8_t _next_elm_idx = _next_entires[_empty_index].next_elm_index;
     
-    _bucket->next_entries[_empty_index].next_elm_index = _empty_index;
-    _bucket->prev_entries[_empty_index].next_elm_index = _empty_index;
+    _next_entires[_empty_index  + 1].next_elm_index = _next_elm_idx;
+    _prev_entires[_next_elm_idx - 1].next_elm_index = _empty_index;
+    
+    _next_entires[_empty_index].next_elm_index = _empty_index;
+    _prev_entires[_empty_index].next_elm_index = _empty_index;
     _bucket->count += 1;
     
     // TODO try not having `first_elm_idx` and instead use the bitset. might be faster, needs benchmarking.
@@ -900,18 +900,22 @@ HIVE_TYPE *hive_bucket_reserve_slot(HIVE_NAME *_hv, hive_bucket_t *_bucket)
 bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
 {
     (void)_hv;
-    assert(_bucket->next_entries[_index].next_elm_index == _index);
+    
+    hive_next_entry_t *_next_entires = (typeof(_next_entires))__builtin_assume_aligned(_bucket->next_entries, 256);
+    hive_next_entry_t *_prev_entires = (typeof(_prev_entires))__builtin_assume_aligned(_bucket->prev_entries, 256);
+    
+    assert(_next_entires[_index].next_elm_index == _index);
     assert(_bucket->count != 0);
     
     // if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
     
     _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
     
-    const uint8_t _next_elm = _bucket->next_entries[_index + 1].next_elm_index;
-    const uint8_t _prev_elm = _bucket->prev_entries[_index - 1].next_elm_index;
+    const uint8_t _next_elm = _next_entires[_index + 1].next_elm_index;
+    const uint8_t _prev_elm = _prev_entires[_index - 1].next_elm_index;
     
-    _bucket->next_entries[_prev_elm + 1].next_elm_index = _bucket->next_entries[_index + 1].next_elm_index;
-    _bucket->prev_entries[_next_elm - 1].next_elm_index = _bucket->prev_entries[_index - 1].next_elm_index;
+    _next_entires[_prev_elm + 1].next_elm_index = _next_entires[_index + 1].next_elm_index;
+    _prev_entires[_next_elm - 1].next_elm_index = _prev_entires[_index - 1].next_elm_index;
     
     if(_bucket->count == 1)
     {

@@ -16,7 +16,7 @@
 #endif
 
 #define BEGIN 100'000
-#define END   1'500'000
+#define END   1'200'000
 #define STEP  100'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
@@ -24,7 +24,7 @@ enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = POP;
+constexpr BenchOp bench_op = PUT;
 
 typedef struct Big
 {
