@@ -380,8 +380,8 @@ hive_bucket_t *hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
     
     for(size_t _i = 0 ; _i < _nb ; _i++)
     {
-        _new_buckets[_i].next_entries = &_new_nexts_and_prevs[_i * 2];
-        _new_buckets[_i].prev_entries = &_new_nexts_and_prevs[(_i * 2) + 1];
+        _new_buckets[_i].next_entries = &_new_nexts_and_prevs[_i];
+        _new_buckets[_i].prev_entries = &_new_nexts_and_prevs[_i + _nb];
         _new_buckets[_i].elms         = _new_elms[_i];
     }
     
@@ -585,8 +585,8 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
     
     for(size_t i = 0 ; i < _nb_allocated ; i++)
     {
-        _new_buckets[i].next_entries = &_new_nexts_and_prevs[i * 2];
-        _new_buckets[i].prev_entries = &_new_nexts_and_prevs[(i * 2) + 1];
+        _new_buckets[i].next_entries = &_new_nexts_and_prevs[i];
+        _new_buckets[i].prev_entries = &_new_nexts_and_prevs[i + _nb_allocated];
         _new_buckets[i].elms = _new_elms[i];
     }
     
