@@ -17,6 +17,16 @@
     #include <sys/mman.h>
 #endif
 
+#if defined(DEBUG)
+
+    #define mmap(addr, length, prot, flags, fd, offset) \
+    malloc(length)
+
+    #define munmap(ptr, size) \
+    free(ptr)
+
+#endif
+
 #if !defined(HIVE_TYPE) || !defined(HIVE_NAME)
 
 #error "HIVE_TYPE and HIVE_NAME must be defined"
@@ -228,7 +238,7 @@ long hive_get_page_size()
 #ifdef _WIN32
     return 65536;
 #else
-    return 4096;
+    return 65536;
 #endif
 }
 
@@ -375,8 +385,8 @@ hive_iter hive_get_iter_from_index(hive_bucket_t *_bucket, uint8_t _index);
 hive_allocation_t *hive_push_allocation(HIVE_NAME *_hv, void *_a, size_t _size);
 void hive_push_to_buckets_reserve(HIVE_NAME *_hv, hive_bucket_t *_new_buckets, size_t _nb_buckets);
 void hive_push_used_bucket_to_reserve(HIVE_NAME *_hv, hive_bucket_t *_bucket);
-hive_bucket_t *hive_increase_bucket_reserve(HIVE_NAME *_hv);
-hive_bucket_t *hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb);
+void hive_increase_bucket_reserve(HIVE_NAME *_hv);
+void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb);
 
 void *hive_mem_alloc(void *_ctx, size_t _size, size_t _alignment);
 void *hive_mem_realloc(void *_ctx, void *_ptr, size_t _old_size, size_t _new_size, size_t _alignment);
@@ -426,7 +436,7 @@ void hive_init(HIVE_NAME *_hv)
 
 // TODO hive_clear
 
-hive_bucket_t *hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
+void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
 {
     hive_bucket_t *_new_buckets = HIVE_BUCKET_ALLOC_N(hive_bucket_t, _nb);
     hive_entry_t (*_new_elms)[HIVE_BUCKET_SIZE + 2] = HIVE_BUCKET_ALLOC_N(hive_entry_t[HIVE_BUCKET_SIZE + 2], _nb);
@@ -445,11 +455,9 @@ hive_bucket_t *hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
     }
     
     hive_push_to_buckets_reserve(_hv, _new_buckets, _nb);
-    
-    return _new_buckets;
 }
 
-hive_bucket_t *hive_increase_bucket_reserve(HIVE_NAME *_hv)
+void hive_increase_bucket_reserve(HIVE_NAME *_hv)
 {
     long _page_size = hive_get_page_size();
     long _nb_buckets = _page_size / (sizeof(hive_next_entry_t[HIVE_BUCKET_SIZE + 2]) * 2);
@@ -461,7 +469,7 @@ hive_bucket_t *hive_increase_bucket_reserve(HIVE_NAME *_hv)
     
     hive_push_allocation(_hv, _new_buckets, _nb_buckets * sizeof(hive_bucket_t));
     hive_push_allocation(_hv, _next_prev_mem, _page_size);
-    hive_push_allocation(_hv, _new_elms, _nb_buckets * sizeof(hive_bucket_t));
+    hive_push_allocation(_hv, _new_elms, _nb_buckets * sizeof(hive_entry_t[HIVE_BUCKET_SIZE + 2]));
     
     for(size_t _i = 0 ; _i < _nb_buckets ; _i++)
     {
@@ -471,8 +479,6 @@ hive_bucket_t *hive_increase_bucket_reserve(HIVE_NAME *_hv)
     }
     
     hive_push_to_buckets_reserve(_hv, _new_buckets, _nb_buckets);
-    
-    return _new_buckets;
 }
 
 HIVE_NAME hive_clone(const HIVE_NAME * _hv)
@@ -489,7 +495,7 @@ HIVE_NAME hive_clone(const HIVE_NAME * _hv)
     }
     _ret.not_full_buckets.count = _hv->not_full_buckets.count;
     
-    hive_bucket_t *_new_buckets = hive_allocate_buckets(&_ret, _hv->bucket_count);
+    hive_allocate_buckets(&_ret, _hv->bucket_count);
     
     if(_hv->bucket_count > 0)
     {
@@ -619,7 +625,7 @@ hive_iter hive_put_uninit(HIVE_NAME *_hv)
     }
     if(_hv->bucket_reserve.count == 0)
     {
-        hive_bucket_t *_new_buckets = hive_increase_bucket_reserve(_hv);
+        hive_increase_bucket_reserve(_hv);
     }
     
     hive_bucket_t *_new_bucket = _hv->bucket_reserve.array[--_hv->bucket_reserve.count];
@@ -649,9 +655,6 @@ hive_iter hive_put_uninit(HIVE_NAME *_hv)
 
 void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
 {
-    typedef hive_next_entry_t _next_entries_array[HIVE_BUCKET_SIZE + 2];
-    typedef hive_entry_t _elms_array[HIVE_BUCKET_SIZE + 2];
-    
     size_t _buckets_to_fill = _nelms / HIVE_BUCKET_SIZE;
     ptrdiff_t _remaining = _nelms - (_buckets_to_fill * HIVE_BUCKET_SIZE);
     
