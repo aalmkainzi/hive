@@ -909,8 +909,8 @@ HIVE_TYPE *hive_bucket_reserve_slot(HIVE_NAME *_hv, hive_bucket_t *_bucket)
 #else
     hive_next_entry_t *_next_entires = _bucket->next_entries;
     hive_next_entry_t *_prev_entires = _bucket->prev_entries;
-    __assume(_next_entires % 256 == 0);
-    __assume(_prev_entires % 256 == 0);
+    __assume((size_t)_next_entires % 256 == 0);
+    __assume((size_t)_prev_entires % 256 == 0);
 #endif
     
     uint8_t _empty_index = hive_bitset_set_first_empty(&_bucket->empty_bitset);
@@ -944,6 +944,8 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
 #else
     hive_next_entry_t *_next_entires = _bucket->next_entries;
     hive_next_entry_t *_prev_entires = _bucket->prev_entries;
+    __assume((size_t)_next_entires % 256 == 0);
+    __assume((size_t)_prev_entires % 256 == 0);
 #endif
     
     assert(_next_entires[_index].next_elm_index == _index);
