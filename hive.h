@@ -424,7 +424,7 @@ void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
     hive_bucket_t *_new_buckets = HIVE_BUCKET_ALLOC_N(hive_bucket_t, _nb);
     hive_entry_t (*_new_elms)[256] = HIVE_BUCKET_ALLOC_N(hive_entry_t[256], _nb);
     
-    hive_next_entry_t (*_next_prev_mem)[256] = HIVE_BUCKET_ALLOC_N(hive_next_entry_t[256], _nb * 2);
+    hive_next_entry_t (*_next_prev_mem)[256] = (HIVE_TYPEOF(_next_prev_mem)) HIVE_BUCKET_ALLOC(HIVE_BUCKET_ALLOC_CTX, sizeof(hive_next_entry_t[256]) * 2 * _nb, 256);
     
     hive_push_allocation(_hv, _new_buckets, _nb * sizeof(hive_bucket_t));
     hive_push_allocation(_hv, _next_prev_mem, _nb * 2 * sizeof(hive_next_entry_t[256]));
@@ -448,10 +448,10 @@ void hive_increase_bucket_reserve(HIVE_NAME *_hv)
     hive_bucket_t *_new_buckets = HIVE_BUCKET_ALLOC_N(hive_bucket_t, _nb_buckets);
     hive_entry_t (*_new_elms)[256] = HIVE_BUCKET_ALLOC_N(hive_entry_t[256], _nb_buckets);
     
-    hive_next_entry_t (*_next_prev_mem)[256] = HIVE_BUCKET_ALLOC_N(hive_next_entry_t[256], _nb_buckets * 2);
+    hive_next_entry_t (*_next_prev_mem)[256] = (HIVE_TYPEOF(_next_prev_mem)) HIVE_BUCKET_ALLOC(HIVE_BUCKET_ALLOC_CTX, _allocation_size, 256);
     
     hive_push_allocation(_hv, _new_buckets, _nb_buckets * sizeof(hive_bucket_t));
-    hive_push_allocation(_hv, _next_prev_mem, _allocation_size); // _allocation_size should be same as `2 * sizeof(hive_next_entry_t[256])`
+    hive_push_allocation(_hv, _next_prev_mem, _allocation_size); // _allocation_size should be same as `2 * sizeof(hive_next_entry_t[256]) * _nb_buckets`
     hive_push_allocation(_hv, _new_elms, _nb_buckets * sizeof(hive_entry_t[256]));
     
     for(size_t _i = 0 ; _i < _nb_buckets ; _i++)
@@ -649,18 +649,18 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
     size_t _nb_buckets_to_alloc = _buckets_to_fill + (_remaining != 0);
     
     hive_bucket_t *_new_buckets = HIVE_BUCKET_ALLOC_N(hive_bucket_t, _nb_buckets_to_alloc);
-    hive_next_entry_t(*_nexts_and_prevs_mem)[256] = HIVE_BUCKET_ALLOC_N(hive_next_entry_t[256], _nb_buckets_to_alloc * 2);
+    hive_next_entry_t(*_next_prev_mem)[256] = (HIVE_TYPEOF(_next_prev_mem)) HIVE_BUCKET_ALLOC(HIVE_BUCKET_ALLOC_CTX, sizeof(hive_next_entry_t[256]) * 2 * _nb_buckets_to_alloc, 256);
     hive_entry_t(*_new_elms)[256] = HIVE_BUCKET_ALLOC_N(hive_entry_t[256], _nb_buckets_to_alloc);
     
     for(size_t i = 0 ; i < _nb_buckets_to_alloc ; i++)
     {
-        _new_buckets[i].next_entries = _nexts_and_prevs_mem[i];
-        _new_buckets[i].prev_entries = _nexts_and_prevs_mem[i + _nb_buckets_to_alloc];
+        _new_buckets[i].next_entries = _next_prev_mem[i];
+        _new_buckets[i].prev_entries = _next_prev_mem[i + _nb_buckets_to_alloc];
         _new_buckets[i].elms = _new_elms[i];
     }
     
     hive_push_allocation(_hv, _new_buckets, sizeof(hive_bucket_t) * _nb_buckets_to_alloc);
-    hive_push_allocation(_hv, _nexts_and_prevs_mem, sizeof(hive_next_entry_t[256]) * _nb_buckets_to_alloc * 2);
+    hive_push_allocation(_hv, _next_prev_mem, sizeof(hive_next_entry_t[256]) * 2 * _nb_buckets_to_alloc);
     hive_push_allocation(_hv, _new_elms, sizeof(hive_entry_t[256]) * _nb_buckets_to_alloc);
     
     for(size_t _i = 0 ; _i < _buckets_to_fill ; _i++)
