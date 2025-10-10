@@ -69,7 +69,12 @@ static void test_single_put_and_loop(void)
     ASSERT(p && *p == 42);
     ASSERT(sp.count == (size_t)1);
     struct Collector c = {NULL, 0, 0};
-    int_hv_foreach(&sp, collect_int, &c);
+    
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
+    
     ASSERT(c.idx == 1);
     ASSERT(c.data[0] == 42);
     free(c.data);
@@ -85,7 +90,10 @@ static void test_multiple_puts(void)
         ASSERT(int_hv_checked_put(&sp, i).ptr != NULL);
     ASSERT(sp.count == (size_t)N);
     struct Collector c = {NULL, 0, 0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
     ASSERT(c.idx == (size_t)N);
     
     qsort(c.data, c.idx, sizeof(int), compare_ints);
@@ -121,7 +129,10 @@ static void test_del_and_iteration(void)
     int_hv_del(&sp, b);
     ASSERT(sp.count == 2);
     struct Collector col = {NULL, 0, 0};
-    int_hv_foreach(&sp, collect_int, &col);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &col);
+    }
     ASSERT(col.idx == 2);
     
     qsort(col.data, col.idx, sizeof(int), compare_ints);
@@ -148,7 +159,10 @@ static void test_stress_inserts_dels(void)
         int_hv_del(&sp, ptrs[i]);
     ASSERT(sp.count == (size_t)M / 2);
     struct Collector c = {NULL, 0, 0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
     ASSERT(c.idx == (size_t)(M / 2));
     
     qsort(c.data, c.idx, sizeof(int), compare_ints);
@@ -180,7 +194,10 @@ static void test_smaller_stress_inserts_dels(void)
     ASSERT(sp.count == (size_t)M / 2);
     
     struct Collector c = {NULL, 0, 0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
     ASSERT(c.idx == (size_t)(M / 2));
     
     qsort(c.data, c.idx, sizeof(int), compare_ints);
@@ -377,7 +394,10 @@ static void test_int_iteration_equivalence_after_random_dels(void)
     struct Collector col2 = {NULL, 0, 0};
     struct Collector col3 = {NULL, 0, 0};
     
-    int_hv_foreach(&sp, collect_int, &col1);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &col1);
+    }
     
     for(int_hv_iter it = int_hv_begin(&sp) ; !int_hv_iter_eq(it, int_hv_end(&sp)) ; it = int_hv_iter_next(it))
     {
@@ -434,18 +454,21 @@ static void test_big_iteration_equivalence_after_random_dels(void)
     struct Collector col2 = {NULL, 0, 0};
     struct Collector col3 = {NULL, 0, 0};
     
-    big_hv_foreach(&sp, collect_big, &col1);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &col1);
+    }
     for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp))  ; it = big_hv_iter_next(it))
     {
         collect_big(it.ptr, &col2);
     }
     for (big_hv_iter it = big_hv_begin(&sp), end = big_hv_end(&sp); !big_hv_iter_eq(it, end);
          it = big_hv_iter_next(it))
-         {
-             collect_big(big_hv_iter_elm(it), &col3);
-         }
+    {
+        collect_big(big_hv_iter_elm(it), &col3);
+    }
          
-         ASSERT(col1.idx == col2.idx && col2.idx == col3.idx);
+    ASSERT(col1.idx == col2.idx && col2.idx == col3.idx);
     
     qsort(col1.data, col1.idx, sizeof(int), compare_ints);
     qsort(col2.data, col2.idx, sizeof(int), compare_ints);
@@ -508,7 +531,10 @@ static void test_against_dynamic_array(void)
     }
     
     struct Collector collector = {0};
-    int_hv_foreach(&sp, collect_int, &collector);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &collector);
+    }
     
     qsort(collector.data, collector.idx,    sizeof(int), compare_ints);
     qsort(expected,       arrlen(expected), sizeof(int), compare_ints);
@@ -568,7 +594,10 @@ static void test_big_against_dynamic_array(void)
     }
     
     struct Collector collector = {0};
-    big_hv_foreach(&sp, collect_big, &collector);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &collector);
+    }
     
     qsort(collector.data, collector.idx, sizeof(int), compare_ints);
     qsort(expected, arrlen(expected), sizeof(int), compare_ints);
@@ -636,7 +665,10 @@ static void test_insert_after_erase(void)
     ASSERT(sp.count == (size_t)arrlen(expected));
     
     struct Collector collector = {0};
-    int_hv_foreach(&sp, collect_int, &collector);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &collector);
+    }
     
     qsort(collector.data, collector.idx, sizeof(int), compare_ints);
     qsort(expected, arrlen(expected), sizeof(int), compare_ints);
@@ -704,7 +736,10 @@ static void test_big_insert_after_erase(void)
     ASSERT(sp.count == (size_t)arrlen(expected));
     
     struct Collector collector = {0};
-    big_hv_foreach(&sp, collect_big, &collector);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &collector);
+    }
     
     qsort(collector.data, collector.idx, sizeof(int), compare_ints);
     qsort(expected, arrlen(expected), sizeof(int), compare_ints);
@@ -771,7 +806,10 @@ static void test_empty_iteration(void)
     ASSERT(sp.count == 0);
     
     struct Collector c_foreach = {NULL, 0, 0};
-    int_hv_foreach(&sp, collect_int, &c_foreach);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c_foreach);
+    }
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
@@ -801,7 +839,10 @@ static void test_big_empty_iteration(void)
     ASSERT(sp.count == 0);
     
     struct Collector c_foreach = {NULL, 0, 0};
-    big_hv_foreach(&sp, collect_big, &c_foreach);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &c_foreach);
+    }
     ASSERT(c_foreach.idx == 0);
     
     struct Collector c_macro = {NULL, 0, 0};
@@ -853,7 +894,11 @@ static void test_int_erase_first_element(void)
     ASSERT(sp.count == 2);
     
     struct Collector c = {0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
+
     ASSERT(c.idx == 2);
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     if(elm == 1)
@@ -897,7 +942,11 @@ static void test_int_erase_last_element_during_iteration(void)
     ASSERT(sp.count == 2);
     
     struct Collector c = {0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
+
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     ASSERT(c.idx == 2);
     
@@ -943,7 +992,11 @@ static void test_int_erase_every_other_element(void)
     ASSERT(sp.count == N / 2);
     
     struct Collector c = {0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
+
     ASSERT(c.idx == N / 2);
     
     free(c.data);
@@ -973,7 +1026,11 @@ static void test_int_stress_iter_del(void)
     ASSERT(expected == M / 2);
     
     struct Collector c = {0};
-    int_hv_foreach(&sp, collect_int, &c);
+    HIVE_FOR_EACH(it, int_hv_begin(&sp), int_hv_end(&sp))
+    {
+        collect_int(it.ptr, &c);
+    }
+
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     for (size_t i = 0; i < c.idx; i++)
         ASSERT(c.data[i] == (int)(2 * i + 1));
@@ -1013,7 +1070,11 @@ static void test_big_erase_first_element(void)
     ASSERT(sp.count == 2);
     
     struct Collector c = {0};
-    big_hv_foreach(&sp, collect_big, &c);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &c);
+    }
+
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     ASSERT(c.idx == 2);
     
@@ -1058,7 +1119,11 @@ static void test_big_erase_last_element_during_iteration(void)
     ASSERT(sp.count == 2);
     
     struct Collector c = {0};
-    big_hv_foreach(&sp, collect_big, &c);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &c);
+    }
+
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     ASSERT(c.idx == 2);
     if(popped.i == 3)
@@ -1103,7 +1168,10 @@ static void test_big_erase_every_other_element(void)
     ASSERT(sp.count == N / 2);
     
     struct Collector c = {0};
-    big_hv_foreach(&sp, collect_big, &c);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &c);
+    }
     ASSERT(c.idx == N / 2);
     
     free(c.data);
@@ -1133,7 +1201,10 @@ static void test_big_stress_iter_del(void)
     ASSERT(expected == M / 2);
     
     struct Collector c = {0};
-    big_hv_foreach(&sp, collect_big, &c);
+    HIVE_FOR_EACH(it, big_hv_begin(&sp), big_hv_end(&sp))
+    {
+        collect_big(it.ptr, &c);
+    }
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     for (size_t i = 0; i < c.idx; i++)
         ASSERT(c.data[i] == (int)(2 * i + 1));
@@ -1371,7 +1442,11 @@ static void test_big_clone_independence_after_modification(void) {
     
     // Verify clone integrity
     struct Collector c = {0};
-    big_hv_foreach(&clone, collect_big, &c);
+    HIVE_FOR_EACH(it, big_hv_begin(&clone), big_hv_end(&clone))
+    {
+        collect_big(it.ptr, &c);
+    }
+
     qsort(c.data, c.idx, sizeof(int), compare_ints);
     ASSERT(c.idx == 2);
     ASSERT(c.data[0] == 1);

@@ -15,16 +15,16 @@
 #define TYPE Big
 #endif
 
-#define BEGIN 250'000
-#define END   1'500'000
-#define STEP  250'000
+#define BEGIN 100'000
+#define END   1'200'000
+#define STEP  100'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
 enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = PUT;
+constexpr BenchOp bench_op = ITER;
 
 typedef struct Big
 {
@@ -33,6 +33,11 @@ typedef struct Big
 
     bool operator==(const Big& other) const {
         return this->i == other.i;
+    }
+    
+    Big(int ii)
+    {
+        i = ii;
     }
     
     operator int() const
@@ -442,8 +447,130 @@ static void BM_plf(benchmark::State& state)
     free(ptrs);
 }
 
+void vec_print_sum(std::vector<TYPE> *plf)
+{
+    #if !defined(NDEBUG)
+    static bool inited = false;
+    static size_t printed[ITERS];
+    if(!inited)
+    {
+        for(int i = 0 ; i < ITERS ; i++)
+            printed[i] = UINT64_MAX;
+        inited = true;
+    }
+    for(size_t i : printed)
+    {
+        if(plf->size() == i) return;
+    }
+    int i;
+    for(i = 0 ; i < ITERS ; i++)
+    {
+        if(printed[i] == UINT64_MAX)
+        {
+            break;
+        }
+    }
+    printed[i] = plf->size();
+    
+    unsigned int sum = 0;
+    for(auto it : *plf)
+    {
+        sum += it;
+    }
+    
+    printf("PLF SUM = %u\n", sum);
+    #endif
+}
+
+static void BM_vec(benchmark::State& state)
+{
+    const int N = state.range(0);
+    std::mt19937 rng(42);
+    std::vector<TYPE> col;
+    
+    size_t *ptrs = (size_t*) malloc(N * sizeof(ptrs[0]));
+    
+    for(int i = 0 ; i < N ; i++)
+    {
+        col.push_back(TYPE{i});
+        ptrs[i] = i;
+    }
+    
+    std::vector<size_t> to_pop;
+    to_pop.reserve(N / 2);
+    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
+    
+    for (auto p : to_pop) {
+        col.erase(col.begin() + p);
+    }
+    
+    for(auto _ : state)
+    {
+        switch(bench_op)
+        {
+            case ITER:
+            {
+                unsigned int sum = 0;
+                for(auto it : col)
+                {
+                    sum += it;
+                }
+                #if !defined(NDEBUG)
+                vec_print_sum(&col);
+                #endif
+                benchmark::DoNotOptimize(sum);
+            }
+            break;
+            case PUT:
+            {
+                state.PauseTiming();
+                std::vector<TYPE> *clone = new std::vector<TYPE>(col);
+                state.ResumeTiming();
+                for(int i = 0 ; i < N / 2 ; i++)
+                {
+                    clone->push_back(TYPE{i});
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                vec_print_sum(clone);
+                delete clone;
+                state.ResumeTiming();
+            }
+            break;
+            case POP:
+            {
+                state.PauseTiming();
+                std::vector<TYPE> *clone = new std::vector<TYPE>(col);
+                state.ResumeTiming();
+                bool remove = true;
+                for(auto it = clone->begin() ; it != clone->end() ; )
+                {
+                    if(remove)
+                    {
+                        it = clone->erase(it);
+                    }
+                    else
+                    {
+                        it++;
+                    }
+                    remove = !remove;
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                vec_print_sum(clone);
+                delete clone;
+                state.ResumeTiming();
+            }
+            break;
+        }
+    }
+    
+    free(ptrs);
+}
+
 BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP);
 // BENCHMARK(BM_bhive)->DenseRange(BEGIN, END, STEP);
-// BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP);
+BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP);
+// BENCHMARK(BM_vec)  ->DenseRange(BEGIN, END, STEP);
 
 BENCHMARK_MAIN();
