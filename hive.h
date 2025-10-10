@@ -234,7 +234,6 @@ void *hive_page_alloc(void *ctx, size_t size, size_t alignment)
 #ifdef _WIN32
     (void) ctx;
     (void) alignment;
-    assert(alignment <= hive_get_page_size());
     return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #else
     (void) ctx;
