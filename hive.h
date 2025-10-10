@@ -121,22 +121,8 @@
 
 #if !defined(HIVE_DECLARED)
 
-#define HIVE__FOR_EACH_NEXT(it) \
-((it).next_entry->next_elm_index == HIVE_END_SENTINEL_INDEX ? \
-(HIVE_TYPEOF((it))){ \
-    .bucket = (it).bucket->next, \
-    .next_entry = &(it).bucket->next->next_entries[hive_bitset_first_elm(&(it).bucket->next->empty_bitset)] + 1, \
-    .ptr = &(it).bucket->next->elms[hive_bitset_first_elm(&(it).bucket->next->empty_bitset)] \
-} : \
-(HIVE_TYPEOF((it))){ \
-    .bucket = (it).bucket, \
-    .next_entry = &(it).bucket->next_entries[(it).next_entry->next_elm_index] + 1, \
-    .ptr = &(it).bucket->elms[(it).next_entry->next_elm_index] \
-} \
-)
-
 #define HIVE_FOR_EACH(name, from_it, to_it) \
-for(HIVE_TYPEOF(from_it) name = (from_it) ; name.ptr != (to_it).ptr ; name = HIVE__FOR_EACH_NEXT(name))
+for(HIVE_TYPEOF(from_it) name = (from_it) ; name.ptr != (to_it).ptr ; hive_generic_iter_next(&name, sizeof(*name.ptr)))
 
 typedef struct hive_allocation_t
 {
@@ -286,6 +272,40 @@ static inline uint8_t hive_bitset_set_first_empty(uint64_t (*_bitset)[4])
     return _bit_idx + (64 * _idx);
 }
 
+
+static inline void hive_generic_iter_next(void *iter, size_t elm_size)
+{
+    struct
+    {
+        struct generic_bucket
+        {
+            struct generic_bucket *next;
+            struct generic_bucket *prev;
+            uint64_t empty_bitset[4];
+            uint16_t not_full_idx;
+            uint8_t count;
+            void *elms;
+            uint8_t *next_entries;
+            uint8_t *prev_entries;
+        } *bucket;
+        uint8_t *next_entry;
+        void *elm;
+    } *_iter = (HIVE_TYPEOF(_iter)) iter;
+    if(*_iter->next_entry == HIVE_END_SENTINEL_INDEX)
+    {
+        _iter->bucket = _iter->bucket->next;
+        uint8_t idx = hive_bitset_first_elm(&_iter->bucket->empty_bitset);
+        _iter->next_entry = &_iter->bucket->next_entries[idx] + 1;
+        _iter->elm = (uint8_t*)_iter->bucket->elms + (idx * elm_size);
+    }
+    else
+    {
+        uint8_t idx = *_iter->next_entry;
+        _iter->next_entry = &_iter->bucket->next_entries[idx] + 1;
+        _iter->elm = (uint8_t*)_iter->bucket->elms + (idx * elm_size);
+    }
+}
+
 #endif
 
 void hive_init(HIVE_NAME *_hv);
@@ -300,7 +320,7 @@ hive_iter hive_begin(const HIVE_NAME *_hv);
 hive_iter hive_end(const HIVE_NAME *_hv);
 hive_iter hive_iter_next(hive_iter _it);
 hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it);
-bool hive_iter_eq(hive_iter _a, hive_iter _b);
+bool hive_iter_eq(const hive_iter _a, const hive_iter _b);
 hive_iter hive_ptr_to_iter(HIVE_NAME *_hive, hive_entry_t *_ptr); // O(bucket_count)
 
 hive_handle hive_iter_to_handle(hive_iter _it);
@@ -335,7 +355,6 @@ typedef struct hive_bucket_t
 #define hive_push_to_buckets_reserve     HIVE_CAT(HIVE_NAME, _push_to_buckets_reserve    )
 #define hive_push_used_bucket_to_reserve HIVE_CAT(HIVE_NAME, _push_used_bucket_to_reserve)
 #define hive_push_not_full_bucket        HIVE_CAT(HIVE_NAME, _push_not_full_bucket       )
-#define hive_foreach_updater             HIVE_CAT(HIVE_NAME, _foreach_updater            )
 
 #define hive_bucket_init                 HIVE_CAT(HIVE_NAME, _bucket_init         )
 #define hive_bucket_reserve_slot         HIVE_CAT(HIVE_NAME, _bucket_reserve_slot )
@@ -356,7 +375,6 @@ typedef struct hive_bucket_t
     hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter it);
 #endif
 
-void hive_foreach_updater(uint8_t *_index, hive_bucket_t **_bucket);
 void hive_bucket_init(hive_bucket_t *_bucket);
 void hive_push_not_full_bucket(HIVE_NAME *_hv, hive_bucket_t *_bucket);
 HIVE_TYPE *hive_bucket_reserve_slot(HIVE_NAME *_hv, hive_bucket_t *_bucket);
@@ -827,17 +845,6 @@ hive_iter hive_del(HIVE_NAME *_hv, HIVE_TYPE *_elm)
     return _ret;
 }
 
-void hive_foreach_updater(uint8_t *_index, hive_bucket_t **_bucket)
-{
-    ++(*_index);
-    (*_index) = (*_bucket)->next_entries[*_index].next_elm_index;
-    if(*_index == HIVE_END_SENTINEL_INDEX)
-    {
-        (*_bucket) = (*_bucket)->next;
-        (*_index) = hive_bucket_first_elm((*_bucket));;
-    }
-}
-
 void hive_deinit(HIVE_NAME *_hv)
 {
     for(size_t i = 0 ; i < _hv->allocations.count ; i++)
@@ -1012,7 +1019,7 @@ hive_iter hive_get_iter_from_index(hive_bucket_t *_bucket, uint8_t _index)
     return _ret;
 }
 
-bool hive_iter_eq(hive_iter _a, hive_iter _b)
+bool hive_iter_eq(const hive_iter _a, const hive_iter _b)
 {
     return (_a.ptr == _b.ptr);
 }
