@@ -16,7 +16,7 @@
 #endif
 
 #define BEGIN 250'000
-#define END   2'000'000
+#define END   1'500'000
 #define STEP  250'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
@@ -24,7 +24,7 @@ enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = PUT;
+constexpr BenchOp bench_op = POP;
 
 typedef struct Big
 {
@@ -51,14 +51,6 @@ typedef struct Big
         return *this;
     }
 } Big;
-
-#define COLONY_SIZE 56
-#define COLONY_ALIGNMENT 8
-#define HANDLE_SIZE 16
-#define HANDLE_ALIGNMENT 8
-#define ITERATOR_SIZE 24
-#define ITERATOR_ALIGNMENT 8
-#include "rust_colony/rs_col.h"
 
 #define HIVE_IMPL
 #define HIVE_TYPE TYPE
@@ -576,148 +568,9 @@ static void BM_vec(benchmark::State& state)
     free(ptrs);
 }
 
-void rcol_print_sum(ExposedColony *sp)
-{
-#if !defined(NDEBUG)
-    static bool inited = false;
-    static size_t printed[ITERS];
-    if(!inited)
-    {
-        for(int i = 0 ; i < ITERS ; i++)
-            printed[i] = UINT64_MAX;
-        inited = true;
-    }
-    for(size_t i : printed)
-    {
-        if(colony_size(sp) == i) return;
-    }
-    int i;
-    for(i = 0 ; i < ITERS ; i++)
-    {
-        if(printed[i] == UINT64_MAX)
-        {
-            break;
-        }
-    }
-    assert(i != ITERS);
-    printed[i] = colony_size(sp);
-    
-    unsigned int sum = 0;
-    
-    Big *bsp;
-    ExposedHandle handle;
-    ExposedIterator iter;
-    colony_iter_begin(sp, &iter);
-    
-    while(colony_iter_next(&iter, (const Big**) &bsp, &handle))
-    {
-        sum += bsp->i;
-    }
-    printf("RUST SUM: %u\n", sum);
-#endif
-}
-
-static void BM_rust_colony(benchmark::State& state)
-{
-    const int N = state.range(0);
-    std::mt19937 rng(42);
-    
-    ExposedHandle *ptrs = (ExposedHandle*) malloc(N * sizeof(ptrs[0]));
-    
-    ExposedColony sp;
-    colony_create(&sp);
-    
-    for(int i = 0 ; i < N ; i++)
-    {
-        ExposedHandle handle;
-        colony_insert(&sp, Big{i}, &handle);
-        ptrs[i] = handle;
-    }
-    
-    std::vector<ExposedHandle> to_pop;
-    to_pop.reserve(N / 2);
-    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
-    
-    for (size_t i = 0 ; i < to_pop.size() ; i++) {
-        colony_erase(&sp, &to_pop[i]);
-    }
-    
-    for(auto _ : state)
-    {
-        switch(bench_op)
-        {
-            case ITER:
-            {
-                unsigned int sum = 0;
-                ExposedIterator it;
-                colony_iter_begin(&sp, &it);
-                ExposedHandle handle;
-                Big *bptr;
-                while(colony_iter_next(&it, (const Big**)&bptr, &handle))
-                {
-                    sum += bptr->i;
-                }
-                rcol_print_sum(&sp);
-                benchmark::DoNotOptimize(sum);
-            }
-            break;
-            case PUT:
-            {
-                state.PauseTiming();
-                ExposedColony clone;;
-                colony_clone(&sp, &clone);
-                state.ResumeTiming();
-                for(int i = 0 ; i < N / 2 ; i++)
-                {
-                    ExposedHandle handle;
-                    colony_insert(&clone, Big{i}, &handle);
-                }
-                benchmark::DoNotOptimize(clone);
-                state.PauseTiming();
-                rcol_print_sum(&clone);
-                colony_destroy(&clone);
-                state.ResumeTiming();
-            }
-            break;
-            case POP:
-            {
-                state.PauseTiming();
-                ExposedColony clone;;
-                colony_clone(&sp, &clone);
-                state.ResumeTiming();
-                bool remove = true;
-                
-                Big *bsp;
-                ExposedHandle handle;
-                ExposedIterator iter;
-                colony_iter_begin(&clone, &iter);
-                
-                while(colony_iter_next(&iter, (const Big**) &bsp, &handle))
-                {
-                    if(remove)
-                    {
-                        colony_erase(&clone, &handle);
-                    }
-                    remove = !remove;
-                }
-                
-                benchmark::DoNotOptimize(clone);
-                state.PauseTiming();
-                rcol_print_sum(&clone);
-                colony_destroy(&clone);
-                state.ResumeTiming();
-            }
-            break;
-        }
-    }
-    colony_destroy(&sp);
-    free(ptrs);
-}
-
 BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP);
 // BENCHMARK(BM_bhive)->DenseRange(BEGIN, END, STEP);
 BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP);
 // BENCHMARK(BM_vec)  ->DenseRange(BEGIN, END, STEP);
-BENCHMARK(BM_rust_colony)  ->DenseRange(BEGIN, END, STEP);
 
 BENCHMARK_MAIN();
