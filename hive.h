@@ -66,8 +66,8 @@
 
 #if !defined(HIVE_BUCKET_ALLOC)
 
-    #define HIVE_BUCKET_ALLOC   hive_page_alloc
-    #define HIVE_BUCKET_FREE    hive_page_free
+    #define HIVE_BUCKET_ALLOC hive_page_alloc
+    #define HIVE_BUCKET_FREE  hive_page_free
 
 #endif
 
@@ -1248,10 +1248,8 @@ hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 
 #undef HIVE_BUCKET_ALLOC
 #undef HIVE_BUCKET_FREE
-#undef HIVE_BUCKET_REALLOC
 #undef HIVE_BUCKET_ALLOC_CTX
 #undef HIVE_BUCKET_ALLOC_N
-#undef HIVE_BUCKET_REALLOC_N
 #undef HIVE_BUCKET_FREE_N
 
 #undef HIVE_CAT
