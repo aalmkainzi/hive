@@ -114,9 +114,13 @@
 #define hive_ptr_to_handle  HIVE_CAT(HIVE_NAME, _ptr_to_handle )
 #define hive_handle_to_iter HIVE_CAT(HIVE_NAME, _handle_to_iter)
 
-#define HIVE_TYPEOF __typeof__
+#if defined(_MSC_VER) && defined(__cplusplus)
+    #define HIVE_TYPEOF decltype
+#else
+    #define HIVE_TYPEOF __typeof__
+#endif
 
-#define hive_entry_t HIVE_TYPEOF(HIVE_TYPE)
+#define hive_entry_t HIVE_TYPE
 
 #if !defined(HIVE_DECLARED)
 
