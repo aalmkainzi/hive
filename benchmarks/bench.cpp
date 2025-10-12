@@ -15,16 +15,16 @@
 #define TYPE Big
 #endif
 
-#define BEGIN 250'000
+#define BEGIN 125'000
 #define END   1'500'000
-#define STEP  250'000
+#define STEP  125'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
 enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = POP;
+constexpr BenchOp bench_op = ITER;
 
 typedef struct Big
 {
@@ -569,7 +569,7 @@ static void BM_vec(benchmark::State& state)
 }
 
 BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP);
-// BENCHMARK(BM_bhive)->DenseRange(BEGIN, END, STEP);
+BENCHMARK(BM_bhive)->DenseRange(BEGIN, END, STEP);
 BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP);
 // BENCHMARK(BM_vec)  ->DenseRange(BEGIN, END, STEP);
 

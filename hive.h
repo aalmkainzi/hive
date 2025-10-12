@@ -454,7 +454,7 @@ void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
 
 void hive_increase_bucket_reserve(HIVE_NAME *_hv)
 {
-    size_t _allocation_size = HIVE_BUCKET_ALLOC_IDEAL_SIZE;
+    size_t _allocation_size = HIVE_BUCKET_ALLOC_IDEAL_SIZE + HIVE_BUCKET_ALLOC_IDEAL_SIZE * (_hv->count / HIVE_BUCKET_ALLOC_IDEAL_SIZE);
     size_t _nb_buckets = _allocation_size / (sizeof(uint8_t[256]) * 2);
     
     hive_bucket_t *_new_buckets = HIVE_BUCKET_ALLOC_N(hive_bucket_t, _nb_buckets);
