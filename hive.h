@@ -472,7 +472,7 @@ void hive_increase_bucket_reserve(HIVE_NAME *_hv)
         0 : 
         (alignof(hive_entry_t) - alignof(hive_bucket_t));
     
-    const size_t _nb_buckets = HIVE_BUCKET_ALLOC_IDEAL_SIZE / (256 * 2);
+    const size_t _nb_buckets = (HIVE_BUCKET_ALLOC_IDEAL_SIZE / (256 * 2)) * (1 + _hv->bucket_count);
     const size_t _needed_mem = 
         (sizeof(uint8_t[256]) * 2 * _nb_buckets) +
         (sizeof(hive_bucket_t) * _nb_buckets) + 
@@ -1271,6 +1271,7 @@ hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 #undef HIVE_BUCKET_ALLOC_CTX
 #undef HIVE_BUCKET_ALLOC_N
 #undef HIVE_BUCKET_FREE_N
+#undef HIVE_BUCKET_ALLOC_IDEAL_SIZE
 
 #undef HIVE_CAT
 #undef HIVE_CAT_
