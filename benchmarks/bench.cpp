@@ -24,7 +24,7 @@ enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = POP;
+constexpr BenchOp bench_op = ITER;
 
 typedef struct Big
 {
@@ -60,6 +60,8 @@ typedef struct Big
 #define HIVE_IMPL
 #define HIVE_TYPE TYPE
 #define HIVE_NAME bbig_sp
+#define HIVE_BUCKET_ALLOC hive_default_alloc
+#define HIVE_BUCKET_FREE hive_default_free
 #if __has_include("../../hive_old/hive.h")
 #include "../../hive_old/hive.h"
 #else
