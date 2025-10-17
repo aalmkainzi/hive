@@ -467,33 +467,8 @@ void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
 
 void hive_increase_bucket_reserve(HIVE_NAME *_hv)
 {
-    const size_t _padding_between_buckets_and_entries = 
-        (alignof(hive_bucket_t) > alignof(hive_entry_t)) ? 
-        0 : 
-        (alignof(hive_entry_t) - alignof(hive_bucket_t));
-    
     const size_t _nb_buckets = (HIVE_BUCKET_ALLOC_IDEAL_SIZE / (256 * 2)) * (1 + _hv->bucket_count);
-    const size_t _needed_mem = 
-        (sizeof(uint8_t[256]) * 2 * _nb_buckets) +
-        (sizeof(hive_bucket_t) * _nb_buckets) + 
-        _padding_between_buckets_and_entries +
-        (sizeof(hive_entry_t[256]) * _nb_buckets);
-    
-    uint8_t *_allocation = (uint8_t*) HIVE_BUCKET_ALLOC(HIVE_BUCKET_ALLOC_CTX, _needed_mem, 256);
-    uint8_t(*_next_prev_mem)[256] = (uint8_t(*)[256]) _allocation;
-    hive_bucket_t *_new_buckets = (hive_bucket_t*) (_allocation + (sizeof(uint8_t[256]) * 2 * _nb_buckets));
-    hive_entry_t (*_new_elms)[256] = (hive_entry_t(*)[256]) ((uint8_t*)(_new_buckets + _nb_buckets) + _padding_between_buckets_and_entries);
-    
-    hive_push_allocation(_hv, _allocation, _needed_mem);
-    
-    for(size_t _i = 0 ; _i < _nb_buckets ; _i++)
-    {
-        _new_buckets[_i].next_entries = _next_prev_mem[_i];
-        _new_buckets[_i].prev_entries = _next_prev_mem[_i + _nb_buckets];
-        _new_buckets[_i].elms         = _new_elms[_i];
-    }
-    
-    hive_push_to_buckets_reserve(_hv, _new_buckets, _nb_buckets);
+    hive_allocate_buckets(_hv, _nb_buckets);
 }
 
 HIVE_NAME hive_clone(const HIVE_NAME * _hv)
