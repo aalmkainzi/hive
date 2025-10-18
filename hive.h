@@ -80,6 +80,33 @@
     #define HIVE_BUCKET_ALLOC_CTX NULL
 #endif
 
+#if defined(_MSC_VER) && defined(__cplusplus)
+    #define HIVE_TYPEOF decltype
+    #define HIVE_CLITERAL(type) type
+#else
+    #define HIVE_TYPEOF __typeof__
+    #define HIVE_CLITERAL(type) (type)
+#endif
+
+#if __STDC_VERSION__ >= 202311L
+
+    #define HIVE_UNREACHABLE() unreachable()
+
+#elif defined(__GNUC__)
+
+    #define HIVE_UNREACHABLE() __builtin_unreachable()
+
+#elif defined(_MSC_VER)
+
+    #define HIVE_UNREACHABLE() __assume(false)
+
+#else
+
+    #define HIVE_UNREACHABLE()
+
+#endif
+
+
 #if defined(__GNUC__)
     #define HIVE_LIKELY(x)   __builtin_expect(x, 1)
     #define HIVE_UNLIKELY(x) __builtin_expect(x, 0)
@@ -114,14 +141,6 @@
 #define hive_iter_to_handle HIVE_CAT(HIVE_NAME, _iter_to_handle)
 #define hive_ptr_to_handle  HIVE_CAT(HIVE_NAME, _ptr_to_handle )
 #define hive_handle_to_iter HIVE_CAT(HIVE_NAME, _handle_to_iter)
-
-#if defined(_MSC_VER) && defined(__cplusplus)
-    #define HIVE_TYPEOF decltype
-    #define HIVE_CLITERAL(type) type
-#else
-    #define HIVE_TYPEOF __typeof__
-    #define HIVE_CLITERAL(type) (type)
-#endif
 
 #define hive_entry_t HIVE_TYPE
 
@@ -187,20 +206,34 @@ extern "C" {
 
 static void *hive_default_alloc(void *ctx, size_t size, size_t alignment)
 {
-    (void)ctx, (void)alignment;
-    return malloc(size);
+    (void)ctx;
+#ifdef _WIN32
+    return _aligned_malloc(size, alignment);
+#else
+    return aligned_alloc(alignment, size);
+#endif
 }
 
 static void *hive_default_realloc(void *ctx, void *ptr, size_t old_size, size_t new_size, size_t alignment)
 {
     (void) ctx, (void) old_size, (void) alignment;
+#ifdef _WIN32
+    return _aligned_realloc(ptr, new_size, alignment);
+#else
+    if(alignment > alignof(max_align_t))
+        return NULL;
     return realloc(ptr, new_size);
+#endif
 }
 
 static void hive_default_free(void *ctx, void *ptr, size_t size)
 {
     (void)ctx, (void)size;
+#ifdef _WIN32
+    _aligned_free(ptr);
+#else
     free(ptr);
+#endif
 }
 
 static inline uint8_t hive_ctz(uint32_t i)
@@ -440,15 +473,21 @@ void hive_init(HIVE_NAME *_hv)
 void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb)
 {
     const size_t _padding_between_buckets_and_entries = 
-        (alignof(hive_bucket_t) > alignof(hive_entry_t)) ? 
+        (alignof(hive_bucket_t) >= alignof(hive_entry_t)) ? 
         0 : 
         (alignof(hive_entry_t) - alignof(hive_bucket_t));
         
-    const size_t _needed_mem = 
+    size_t _needed_mem = 
         (sizeof(uint8_t[256]) * 2 * _nb) +
         (sizeof(hive_bucket_t) * _nb) + 
         _padding_between_buckets_and_entries +
         (sizeof(hive_entry_t[256]) * _nb);
+    
+    if(_needed_mem % 256 != 0)
+    {
+        const size_t _extra = 256 - (_needed_mem % 256);
+        _needed_mem += _extra;
+    }
     
     uint8_t *_allocation = (uint8_t*) HIVE_BUCKET_ALLOC(HIVE_BUCKET_ALLOC_CTX, _needed_mem, 256);
     uint8_t(*_next_prev_mem)[256] = (uint8_t(*)[256]) _allocation;
@@ -804,7 +843,6 @@ hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_buck
     _hv->count -= 1;
     return _ret;
 }
-
 
 hive_iter hive_del(HIVE_NAME *_hv, HIVE_TYPE *_elm)
 {
