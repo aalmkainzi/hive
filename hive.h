@@ -88,25 +88,6 @@
     #define HIVE_CLITERAL(type) (type)
 #endif
 
-#if __STDC_VERSION__ >= 202311L
-
-    #define HIVE_UNREACHABLE() unreachable()
-
-#elif defined(__GNUC__)
-
-    #define HIVE_UNREACHABLE() __builtin_unreachable()
-
-#elif defined(_MSC_VER)
-
-    #define HIVE_UNREACHABLE() __assume(false)
-
-#else
-
-    #define HIVE_UNREACHABLE()
-
-#endif
-
-
 #if defined(__GNUC__)
     #define HIVE_LIKELY(x)   __builtin_expect(x, 1)
     #define HIVE_UNLIKELY(x) __builtin_expect(x, 0)
