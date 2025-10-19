@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stdalign.h>
 #include <string.h>
-#include <time.h>
 #include <assert.h>
 
 #ifdef _WIN32
@@ -217,6 +216,32 @@ static void hive_default_free(void *ctx, void *ptr, size_t size)
 #endif
 }
 
+static inline void *hive_page_alloc(void *ctx, size_t size, size_t alignment)
+{
+#ifdef _WIN32
+    (void) ctx;
+    (void) alignment;
+    return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+#else
+    (void) ctx;
+    (void) alignment;
+    assert(alignment <= 4096);
+    return mmap(NULL, size, PROT_READ | PROT_WRITE , MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#endif
+}
+
+static inline void hive_page_free(void *ctx, void *ptr, size_t size)
+{
+#ifdef _WIN32
+    (void)ctx;
+    (void)size;
+    VirtualFree(ptr, 0, MEM_RELEASE);
+#else
+    (void) ctx;
+    munmap(ptr, size);
+#endif
+}
+
 static inline uint8_t hive_ctz(uint32_t i)
 {
 #ifdef _MSC_VER
@@ -236,32 +261,6 @@ static inline uint8_t hive_ctz64(uint64_t i)
     return (uint8_t)index;
 #else
     return (uint8_t)__builtin_ctzll(i);
-#endif
-}
-
-void *hive_page_alloc(void *ctx, size_t size, size_t alignment)
-{
-#ifdef _WIN32
-    (void) ctx;
-    (void) alignment;
-    return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-#else
-    (void) ctx;
-    (void) alignment;
-    assert(alignment <= 4096);
-    return mmap(NULL, size, PROT_READ | PROT_WRITE , MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-#endif
-}
-
-void hive_page_free(void *ctx, void *ptr, size_t size)
-{
-#ifdef _WIN32
-    (void)ctx;
-    (void)size;
-    VirtualFree(ptr, 0, MEM_RELEASE);
-#else
-    (void) ctx;
-    munmap(ptr, size);
 #endif
 }
 

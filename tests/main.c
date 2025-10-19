@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
+#include <time.h>
 
 #define HIVE_TEST
 
