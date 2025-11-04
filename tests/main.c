@@ -1260,8 +1260,8 @@ static void test_int_clone_single_element(void) {
 static void test_int_clone_multiple_elements(void) {
     int_hv original;
     int_hv_init(&original);
-    constexpr int N = 10;
-    int *original_ptrs[N];
+    const int N = 10;
+    int **original_ptrs = malloc(sizeof(int*) * N);
     
     // Insert and track pointers
     for (int i = 0; i < N; ++i) {
@@ -1272,25 +1272,27 @@ static void test_int_clone_multiple_elements(void) {
     ASSERT(clone.count == N);
     
     // Collect clone pointers and verify uniqueness
-    int *clone_ptrs[N];
+    int **clone_ptrs = malloc(sizeof(int*) * N);
     size_t idx = 0;
     for (int_hv_iter it = int_hv_begin(&clone); 
          !int_hv_iter_eq(it, int_hv_end(&clone)); 
     it = int_hv_iter_next(it)) 
-         {
-             clone_ptrs[idx++] = int_hv_iter_elm(it);
-         }
-         
-         // Sort for binary search
-         qsort(original_ptrs, N, sizeof(int *), compare_pointers);
-         
-         // Verify all clone pointers are new
-         for (int i = 0; i < N; ++i) {
-             ASSERT(bsearch(&clone_ptrs[i], original_ptrs, N, sizeof(int *), compare_pointers) == NULL);
-         }
-         
-         int_hv_deinit(&original);
-         int_hv_deinit(&clone);
+    {
+        clone_ptrs[idx++] = int_hv_iter_elm(it);
+    }
+    
+    // Sort for binary search
+    qsort(original_ptrs, N, sizeof(int *), compare_pointers);
+    
+    // Verify all clone pointers are new
+    for (int i = 0; i < N; ++i) {
+        ASSERT(bsearch(&clone_ptrs[i], original_ptrs, N, sizeof(int *), compare_pointers) == NULL);
+    }
+    
+    int_hv_deinit(&original);
+    int_hv_deinit(&clone);
+    free(clone_ptrs);
+    free(original_ptrs);
 }
 
 static void test_int_clone_with_holes(void) {
@@ -1395,7 +1397,7 @@ static void test_big_clone_multiple_elements(void) {
     big_hv original;
     big_hv_init(&original);
     const int N = 100;
-    Big *original_ptrs[N];
+    Big **original_ptrs = malloc(sizeof(Big*) * N);
     
     // Insert and track pointers
     for (int i = 0; i < N; ++i) {
@@ -1406,25 +1408,27 @@ static void test_big_clone_multiple_elements(void) {
     ASSERT(clone.count == N);
     
     // Collect clone pointers and verify uniqueness
-    Big *clone_ptrs[N];
+    Big **clone_ptrs = malloc(sizeof(Big*) * N);
     size_t idx = 0;
     for (big_hv_iter it = big_hv_begin(&clone); 
          !big_hv_iter_eq(it, big_hv_end(&clone)); 
     it = big_hv_iter_next(it)) 
-         {
-             clone_ptrs[idx++] = big_hv_iter_elm(it);
-         }
-         
-         // Sort for binary search
-         qsort(original_ptrs, N, sizeof(Big *), compare_pointers);
-         
-         // Verify all clone pointers are new
-         for (int i = 0; i < N; ++i) {
-             ASSERT(bsearch(&clone_ptrs[i], original_ptrs, N, sizeof(Big *), compare_pointers) == NULL);
-         }
-         
-         big_hv_deinit(&original);
-         big_hv_deinit(&clone);
+    {
+        clone_ptrs[idx++] = big_hv_iter_elm(it);
+    }
+
+    // Sort for binary search
+    qsort(original_ptrs, N, sizeof(Big *), compare_pointers);
+
+    // Verify all clone pointers are new
+    for (int i = 0; i < N; ++i) {
+        ASSERT(bsearch(&clone_ptrs[i], original_ptrs, N, sizeof(Big *), compare_pointers) == NULL);
+    }
+
+    big_hv_deinit(&original);
+    big_hv_deinit(&clone);
+    free(clone_ptrs);
+    free(original_ptrs);
 }
 
 static void test_big_clone_independence_after_modification(void) {
@@ -1567,7 +1571,7 @@ static void test_big_clone_after_original_deinit(void) {
 }
 
 static Big random_big(void) {
-    constexpr int MAX_VALUE = 100000;
+    const int MAX_VALUE = 100000;
     Big b;
     // Fill the padding bytes with random data for testing
     for (size_t i = 0; i < sizeof(b._m); ++i) {
