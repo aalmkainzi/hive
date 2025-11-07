@@ -376,10 +376,6 @@ void hive_push_to_buckets_reserve(HIVE_NAME *_hv, hive_bucket_t *_new_buckets, s
 void hive_increase_bucket_reserve(HIVE_NAME *_hv);
 void hive_allocate_buckets(HIVE_NAME *_hv, size_t _nb);
 
-void *hive_default_alloc(void *_ctx, size_t _size, size_t _alignment);
-void *hive_default_realloc(void *_ctx, void *_ptr, size_t _old_size, size_t _new_size, size_t _alignment);
-void hive_default_free(void *_ctx, void *_ptr, size_t _size);
-
 #define HIVE_ALLOC_N(type, count) \
 HIVE_ALLOC(HIVE_ALLOC_CTX, sizeof(type) * (count), alignof(type))
 
