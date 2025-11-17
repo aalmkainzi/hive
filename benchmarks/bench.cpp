@@ -16,7 +16,7 @@
 #endif
 
 #define BEGIN 125'000
-#define END   1'500'000
+#define END   500'000
 #define STEP  125'000
 #define ITERS ((((END) - (BEGIN)) / (STEP)) + 1)
 
@@ -24,12 +24,12 @@ enum BenchOp {
     PUT, POP, ITER
 };
 
-constexpr BenchOp bench_op = ITER;
+constexpr BenchOp bench_op = POP;
 
 typedef struct Big
 {
     int i;
-    char _m[64 - sizeof(int)];
+    void *p = NULL;
 
     bool operator==(const Big& other) const {
         return this->i == other.i;
@@ -52,12 +52,18 @@ typedef struct Big
     }
 } Big;
 
+#define XCLUSTER_T Big
+#define XCLUSTER_NAME xc
+#define XCLUSTER_MAKE_SENTINEL(a) ((a)->i = -1)
+#define XCLUSTER_IS_SENTINEL(a) ((a)->i == -1)
+#define XCLUSTER_SENTINEL_SET_PTR(a,pp) ((a)->p=(void*)pp)
+#define XCLUSTER_SENTINEL_GET_PTR(a) ((a)->p)
+#define XCLUSTER_IMPL
+#include "xcluster.h"
+
 #define HIVE_IMPL
 #define HIVE_TYPE TYPE
 #define HIVE_NAME big_sp
-#define HIVE_BUCKET_ALLOC_IDEAL_SIZE 4096
-#define HIVE_BUCKET_ALLOC hive_default_alloc
-#define HIVE_BUCKET_FREE hive_default_free
 #include "hive.h"
 
 #define HIVE_IMPL
@@ -146,6 +152,132 @@ void bhive_print_sum(bbig_sp *sp)
 #endif
 }
 
+static void xc_print_sum(xc *c)
+{
+    #if !defined(NDEBUG)
+    static bool inited = false;
+    static size_t printed[ITERS];
+    if(!inited)
+    {
+        for(int i = 0 ; i < ITERS ; i++)
+            printed[i] = UINT64_MAX;
+        inited = true;
+    }
+    for(size_t i : printed)
+    {
+        if(c->count == i) return;
+    }
+    int i;
+    for(i = 0 ; i < ITERS ; i++)
+    {
+        if(printed[i] == UINT64_MAX)
+        {
+            break;
+        }
+    }
+    assert(i != ITERS);
+    printed[i] = c->count;
+    
+    unsigned int sum = 0;
+    
+    for(TYPE *it = xc_begin(c) ; it != xc_end(c) ; it = xc_next(it))
+    {
+        sum += *it;
+    }
+    
+    printf("XC SUM: %u\n", sum);
+#endif
+}
+
+static void BM_xc(benchmark::State& state)
+{
+    const int N = state.range(0);
+    std::mt19937 rng(42);
+    
+    TYPE **ptrs = (TYPE**) malloc(N * sizeof(ptrs[0]));
+    
+    xc sp;
+    xc_init(&sp);
+    
+    for(int i = 0 ; i < N ; i++)
+    {
+        auto it = xc_put(&sp, TYPE{i});
+        ptrs[i] = it;
+    }
+    
+    std::vector<TYPE*> to_pop;
+    to_pop.reserve(23);
+    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), 23, rng);
+    
+    for (TYPE *p : to_pop) {
+        xc_del(&sp, p);
+    }
+    
+    for(auto _ : state)
+    {
+        switch(bench_op)
+        {
+            case ITER:
+            {
+                unsigned int sum = 0;
+                for(TYPE *it = xc_begin(&sp),
+                    *end = xc_end(&sp) ;
+                it != end ;
+                it = xc_next(it))
+                {
+                    sum += *it;
+                }
+                xc_print_sum(&sp);
+                benchmark::DoNotOptimize(sum);
+            }
+            break;
+            case PUT:
+            {
+                state.PauseTiming();
+                xc clone = xc_clone(&sp);
+                state.ResumeTiming();
+                for(int i = 0 ; i < 23 ; i++)
+                {
+                    auto it = xc_put(&clone, TYPE{i});
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                xc_print_sum(&clone);
+                xc_deinit(&clone);
+                state.ResumeTiming();
+            }
+            break;
+            case POP:
+            {
+                state.PauseTiming();
+                xc clone = xc_clone(&sp);
+                state.ResumeTiming();
+                bool remove = true;
+                for(TYPE *it = xc_begin(&clone) ; it != xc_end(&clone) ; )
+                {
+                    if(remove)
+                    {
+                        it = xc_del(&clone, it);
+                    }
+                    else
+                    {
+                        it = xc_next(it);
+                    }
+                    remove = !remove;
+                }
+                benchmark::DoNotOptimize(clone);
+                state.PauseTiming();
+                xc_print_sum(&clone);
+                xc_deinit(&clone);
+                state.ResumeTiming();
+            }
+            break;
+        }
+    }
+    xc_deinit(&sp);
+    free(ptrs);
+}
+
 static void BM_hive(benchmark::State& state)
 {
     const int N = state.range(0);
@@ -164,8 +296,8 @@ static void BM_hive(benchmark::State& state)
     }
     
     std::vector<TYPE*> to_pop;
-    to_pop.reserve(N / 2);
-    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
+    to_pop.reserve(23);
+    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), 23, rng);
     
     for (TYPE *p : to_pop) {
         big_sp_del(&sp, p);
@@ -194,7 +326,7 @@ static void BM_hive(benchmark::State& state)
                 state.PauseTiming();
                 big_sp clone = big_sp_clone(&sp);
                 state.ResumeTiming();
-                for(int i = 0 ; i < N / 2 ; i++)
+                for(int i = 0 ; i < 23 ; i++)
                 {
                     auto it = big_sp_put_uninit(&clone);
                     *it.ptr = i;
@@ -255,8 +387,8 @@ static void BM_bhive(benchmark::State& state)
     }
     
     std::vector<TYPE*> to_pop;
-    to_pop.reserve(N / 2);
-    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
+    to_pop.reserve(23);
+    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), 23, rng);
     
     for (TYPE *p : to_pop) {
         bbig_sp_del(&sp, p);
@@ -285,7 +417,7 @@ static void BM_bhive(benchmark::State& state)
                 state.PauseTiming();
                 bbig_sp clone = bbig_sp_clone(&sp);
                 state.ResumeTiming();
-                for(int i = 0 ; i < N / 2 ; i++)
+                for(int i = 0 ; i < 23 ; i++)
                 {
                     auto it = bbig_sp_put_uninit(&clone);
                     *it.ptr = TYPE{i};
@@ -379,8 +511,8 @@ static void BM_plf(benchmark::State& state)
     }
     
     std::vector<decltype(col.begin())> to_pop;
-    to_pop.reserve(N / 2);
-    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
+    to_pop.reserve(23);
+    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), 23, rng);
     
     for (auto p : to_pop) {
         col.erase(p);
@@ -408,7 +540,7 @@ static void BM_plf(benchmark::State& state)
                 state.PauseTiming();
                 plf::colony<TYPE> *clone = new plf::colony<TYPE>(col);
                 state.ResumeTiming();
-                for(int i = 0 ; i < N / 2 ; i++)
+                for(int i = 0 ; i < 23 ; i++)
                 {
                     auto it = clone->insert(TYPE{i});
                 }
@@ -500,8 +632,8 @@ static void BM_vec(benchmark::State& state)
     }
     
     std::vector<size_t> to_pop;
-    to_pop.reserve(N / 2);
-    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), N / 2, rng);
+    to_pop.reserve(23);
+    std::sample(ptrs, ptrs + N, std::back_inserter(to_pop), 23, rng);
     
     for (auto p : to_pop) {
         col.erase(col.begin() + p);
@@ -529,7 +661,7 @@ static void BM_vec(benchmark::State& state)
                 state.PauseTiming();
                 std::vector<TYPE> *clone = new std::vector<TYPE>(col);
                 state.ResumeTiming();
-                for(int i = 0 ; i < N / 2 ; i++)
+                for(int i = 0 ; i < 23 ; i++)
                 {
                     clone->push_back(TYPE{i});
                 }
@@ -571,9 +703,8 @@ static void BM_vec(benchmark::State& state)
     free(ptrs);
 }
 
-BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP);
-BENCHMARK(BM_bhive)->DenseRange(BEGIN, END, STEP);
-BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP);
-// BENCHMARK(BM_vec)  ->DenseRange(BEGIN, END, STEP);
+BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP)->Iterations(1);
+BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP)->Iterations(1);
+BENCHMARK(BM_xc)  ->DenseRange(BEGIN, END, STEP )->Iterations(1);
 
 BENCHMARK_MAIN();
