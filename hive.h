@@ -43,7 +43,6 @@
 
 #endif
 
-
 #ifndef HIVE_BUCKET_ALLOC_IDEAL_SIZE
 
     #define HIVE_BUCKET_ALLOC_IDEAL_SIZE 512
@@ -71,6 +70,10 @@
 
 #if !defined(HIVE_BUCKET_ALLOC_CTX)
     #define HIVE_BUCKET_ALLOC_CTX NULL
+#endif
+
+#if defined(HIVE_MAKE_SENTINEL) && defined(HIVE_IS_SENTINEL)
+    #define HIVE_USE_SENTINELS
 #endif
 
 #if defined(_MSC_VER) && defined(__cplusplus)
@@ -730,6 +733,10 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
 
 hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_bucket_t *_bucket, uint8_t _index)
 {
+#if defined(HIVE_USE_SENTINELS)
+    HIVE_MAKE_SENTINEL((&_bucket->elms[_index]));
+#endif
+    
     hive_iter _ret;
     if(hive_bucket_del(_hv, _bucket, _index))
     {
@@ -985,6 +992,29 @@ bool hive_iter_eq(const hive_iter _a, const hive_iter _b)
 
 hive_iter hive_iter_next(hive_iter _it)
 {
+#if defined(HIVE_USE_SENTINELS)
+    if(HIVE_IS_SENTINEL(_it.ptr))
+    {
+        uint8_t _index = *_it.next_entry;
+        
+        if (HIVE_UNLIKELY(_index == HIVE_END_SENTINEL_INDEX))
+        {
+            _it.bucket = _it.bucket->next;
+            _index = hive_bucket_first_elm(_it.bucket);
+        }
+        _it.ptr = &_it.bucket->elms[_index];
+        _it.next_entry = &_it.bucket->next_entries[_index] + 1;
+        
+        return _it;
+    }
+    else
+    {
+        _it.ptr += 1;
+        _it.next_entry += 1;
+        return _it;
+    }
+#else
+    
     uint8_t _index = *_it.next_entry;
     
     if (HIVE_UNLIKELY(_index == HIVE_END_SENTINEL_INDEX))
@@ -996,6 +1026,7 @@ hive_iter hive_iter_next(hive_iter _it)
     _it.next_entry = &_it.bucket->next_entries[_index] + 1;
     
     return _it;
+#endif
 }
 
 hive_iter hive_iter_del(HIVE_NAME *_hv, hive_iter _it)
