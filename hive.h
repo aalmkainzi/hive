@@ -76,6 +76,14 @@
     #define HIVE_USE_SENTINELS
 #endif
 
+// #if sizeof(HIVE_TYPE) >= 2
+//     TODO sentinel bytes into the elms array.
+//          this doesn't work, cant use sizeof in #if 
+//          instead have a predefined user macro that enables the omitting of the next/prev arrays
+//          OR: always do this if HIVE_USE_SENTINELS is enabled. but only for next array, not prev array.
+//              at least one byte always guaranteed, so will work.
+// #endif
+
 #if defined(_MSC_VER) && defined(__cplusplus)
     #define HIVE_TYPEOF decltype
     #define HIVE_CLITERAL(type) type
