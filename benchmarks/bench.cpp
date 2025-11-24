@@ -717,12 +717,15 @@ static void BM_vec(benchmark::State& state)
 BENCHMARK(BM_hive) ->DenseRange(BEGIN, END, STEP)
 ITERATIONS
 ;
+BENCHMARK(BM_bhive) ->DenseRange(BEGIN, END, STEP)
+ITERATIONS
+;
 BENCHMARK(BM_plf)  ->DenseRange(BEGIN, END, STEP)
 ITERATIONS
 ;
-BENCHMARK(BM_xc)  ->DenseRange(BEGIN, END, STEP )
-ITERATIONS
-;
+// BENCHMARK(BM_xc)  ->DenseRange(BEGIN, END, STEP )
+// ITERATIONS
+// ;
 // BENCHMARK(BM_vec)  ->DenseRange(BEGIN, END, STEP )
 // ITERATIONS
 // ;

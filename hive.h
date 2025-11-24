@@ -576,6 +576,7 @@ void hive_push_to_buckets_reserve(HIVE_NAME *_hv, hive_bucket_t *_new_buckets, s
     _hv->bucket_reserve.count += _nb_buckets;
 }
 
+// TODO now this doesn't make sense since we're dealing with sentinel elms now
 hive_iter hive_put_uninit(HIVE_NAME *_hv)
 {
     HIVE_TYPE *_elm_added = NULL;
@@ -854,6 +855,10 @@ void hive_bucket_init(hive_bucket_t *_bucket)
     for(int i = 1 ; i <= 2 ; i++)
         _bucket->empty_bitset[i] = UINT64_MAX;
     _bucket->empty_bitset[3] = UINT64_MAX & ~((uint64_t)1 << 63);
+    
+#if defined(HIVE_USE_SENTINELS)
+    HIVE_MAKE_SENTINEL((&_bucket->elms[255]));
+#endif
 }
 
 void hive_push_not_full_bucket(HIVE_NAME *_hv, hive_bucket_t *_bucket)
@@ -993,7 +998,11 @@ bool hive_iter_eq(const hive_iter _a, const hive_iter _b)
 hive_iter hive_iter_next(hive_iter _it)
 {
 #if defined(HIVE_USE_SENTINELS)
-    if(HIVE_IS_SENTINEL(_it.ptr))
+    hive_iter _new_it = _it;
+    _new_it.ptr += 1;
+    _new_it.next_entry += 1;
+    
+    if(HIVE_IS_SENTINEL(_new_it.ptr))
     {
         uint8_t _index = *_it.next_entry;
         
@@ -1009,12 +1018,9 @@ hive_iter hive_iter_next(hive_iter _it)
     }
     else
     {
-        _it.ptr += 1;
-        _it.next_entry += 1;
-        return _it;
+        return _new_it;
     }
 #else
-    
     uint8_t _index = *_it.next_entry;
     
     if (HIVE_UNLIKELY(_index == HIVE_END_SENTINEL_INDEX))
@@ -1237,6 +1243,10 @@ hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 #undef HIVE_TYPE
 #undef HIVE_NAME
 #undef HIVE_IMPL
+
+#undef HIVE_MAKE_SENTINEL
+#undef HIVE_IS_SENTINEL
+#undef HIVE_USE_SENTINELS
 
 #undef HIVE_ALLOC
 #undef HIVE_FREE
