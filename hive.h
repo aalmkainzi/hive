@@ -84,6 +84,10 @@
 //              at least one byte always guaranteed, so will work.
 // #endif
 
+#if defined(HIVE_SET_BYTE1) && defined(HIVE_GET_BYTE1) && defined(HIVE_SET_BYTE2) && defined(HIVE_GET_BYTE2)
+    #define HIVE_USE_SENTINEL_BYTES
+#endif
+
 #if defined(_MSC_VER) && defined(__cplusplus)
     #define HIVE_TYPEOF decltype
     #define HIVE_CLITERAL(type) type
@@ -345,8 +349,10 @@ typedef struct hive_bucket_t
     uint16_t not_full_idx; // if this bucket is not full, this will be set to its index inside the `not_full_buckets` array
     uint8_t count;
     hive_entry_t *elms;
+#if !defined(HIVE_USE_SENTINEL_BYTES)
     uint8_t *next_entries;
     uint8_t *prev_entries;
+#endif
 } hive_bucket_t;
 
 #define hive_increase_bucket_reserve     HIVE_CAT(HIVE_NAME, _increase_bucket_reserve    )
