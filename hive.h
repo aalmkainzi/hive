@@ -355,11 +355,11 @@ typedef struct hive_bucket_t
 #endif
 } hive_bucket_t;
 
-#define hive_increase_bucket_reserve     HIVE_CAT(HIVE_NAME, _increase_bucket_reserve    )
-#define hive_allocate_buckets            HIVE_CAT(HIVE_NAME, _allocate_buckets           )
-#define hive_push_allocation             HIVE_CAT(HIVE_NAME, _push_allocation            )
-#define hive_push_to_buckets_reserve     HIVE_CAT(HIVE_NAME, _push_to_buckets_reserve    )
-#define hive_push_not_full_bucket        HIVE_CAT(HIVE_NAME, _push_not_full_bucket       )
+#define hive_increase_bucket_reserve     HIVE_CAT(HIVE_NAME, _increase_bucket_reserve)
+#define hive_allocate_buckets            HIVE_CAT(HIVE_NAME, _allocate_buckets       )
+#define hive_push_allocation             HIVE_CAT(HIVE_NAME, _push_allocation        )
+#define hive_push_to_buckets_reserve     HIVE_CAT(HIVE_NAME, _push_to_buckets_reserve)
+#define hive_push_not_full_bucket        HIVE_CAT(HIVE_NAME, _push_not_full_bucket   )
 
 #define hive_bucket_init                 HIVE_CAT(HIVE_NAME, _bucket_init         )
 #define hive_bucket_reserve_slot         HIVE_CAT(HIVE_NAME, _bucket_reserve_slot )
