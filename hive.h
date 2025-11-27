@@ -166,7 +166,9 @@ typedef struct HIVE_NAME
 typedef struct hive_iter
 {
     struct hive_bucket_t *bucket;
+#ifndef HIVE_USE_SENTINEL_BYTES
     uint8_t *next_entry;
+#endif
     hive_entry_t *ptr;
 } hive_iter;
 
@@ -952,13 +954,13 @@ HIVE_TYPE *hive_bucket_reserve_slot(HIVE_NAME *_hv, hive_bucket_t *_bucket)
     uint8_t _empty_index = hive_bitset_set_first_empty(&_bucket->empty_bitset);
     assert(*HIVE_GET_BYTE1((&_bucket->elms[_empty_index])) != _empty_index);
     
-    uint8_t _next_elm_idx = _next_entires[_empty_index];
+    uint8_t _next_elm_idx = *HIVE_GET_BYTE1((&_bucket->elms[_empty_index]));
     
-    _next_entires[_empty_index  + 1] = _next_elm_idx;
-    _prev_entires[_next_elm_idx - 1] = _empty_index;
+    *HIVE_GET_BYTE1((&_bucket->elms[_empty_index + 1])) = _next_elm_idx;
+    *HIVE_GET_BYTE2((&_bucket->elms[_empty_index - 1])) = _empty_index;
     
-    _next_entires[_empty_index] = _empty_index;
-    _prev_entires[_empty_index] = _empty_index;
+    *HIVE_GET_BYTE1((&_bucket->elms[_empty_index])) = _empty_index;
+    *HIVE_GET_BYTE2((&_bucket->elms[_empty_index])) = _empty_index;
 #endif
     
 
@@ -977,6 +979,7 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
 {
     (void)_hv;
     
+#ifndef HIVE_USE_SENTINEL_BYTES
 #ifdef __GNUC__
     uint8_t *_next_entires = (HIVE_TYPEOF(_next_entires))__builtin_assume_aligned(_bucket->next_entries, 256);
     uint8_t *_prev_entires = (HIVE_TYPEOF(_prev_entires))__builtin_assume_aligned(_bucket->prev_entries, 256);
@@ -999,6 +1002,20 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     
     _next_entires[_prev_elm + 1] = _next_entires[_index + 1];
     _prev_entires[_next_elm - 1] = _prev_entires[_index - 1];
+#else
+    assert(*HIVE_GET_BYTE1((&_bucket->elms[_index])) == _index);
+    assert(_bucket->count != 0);
+
+    // if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
+
+    _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
+
+    const uint8_t _next_elm = *HIVE_GET_BYTE1((&_bucket->elms[_index + 1]));
+    const uint8_t _prev_elm = *HIVE_GET_BYTE2((&_bucket->elms[_index - 1]));
+
+    *HIVE_GET_BYTE1((&_bucket->elms[_prev_elm + 1])) = *HIVE_GET_BYTE1((&_bucket->elms[_index + 1]));
+    *HIVE_GET_BYTE2((&_bucket->elms[_next_elm - 1])) = *HIVE_GET_BYTE2((&_bucket->elms[_index - 1]));
+#endif
     
     if(_bucket->count == 1)
     {
@@ -1048,7 +1065,9 @@ hive_iter hive_get_iter_from_index(hive_bucket_t *_bucket, uint8_t _index)
     hive_iter _ret;
     _ret.bucket = _bucket;
     _ret.ptr = &_bucket->elms[_index];
+#ifndef HIVE_USE_SENTINEL_BYTES
     _ret.next_entry = &_ret.bucket->next_entries[_index + 1];
+#endif
     return _ret;
 }
 
@@ -1060,28 +1079,52 @@ bool hive_iter_eq(const hive_iter _a, const hive_iter _b)
 hive_iter hive_iter_next(hive_iter _it)
 {
 #if defined(HIVE_USE_SENTINELS)
-    hive_iter _new_it = _it;
-    _new_it.ptr += 1;
-    _new_it.next_entry += 1;
-    
-    if(HIVE_IS_SENTINEL(_new_it.ptr))
-    {
-        uint8_t _index = *_it.next_entry;
+    #if defined(HIVE_USE_SENTINEL_BYTES)
+        hive_iter _new_it = _it;
+        _new_it.ptr += 1;
         
-        if (HIVE_UNLIKELY(_index == HIVE_END_SENTINEL_INDEX))
+        if(HIVE_IS_SENTINEL(_new_it.ptr))
         {
-            _it.bucket = _it.bucket->next;
-            _index = hive_bucket_first_elm(_it.bucket);
+            
+            uint8_t _index = *HIVE_GET_BYTE1(_new_it.ptr);
+            
+            if (HIVE_UNLIKELY(_index == HIVE_END_SENTINEL_INDEX))
+            {
+                _it.bucket = _it.bucket->next;
+                _index = hive_bucket_first_elm(_it.bucket);
+            }
+            _it.ptr = &_it.bucket->elms[_index];
+            
+            return _it;
         }
-        _it.ptr = &_it.bucket->elms[_index];
-        _it.next_entry = &_it.bucket->next_entries[_index] + 1;
+        else
+        {
+            return _new_it;
+        }
+    #else
+        hive_iter _new_it = _it;
+        _new_it.ptr += 1;
+        _new_it.next_entry += 1;
         
-        return _it;
-    }
-    else
-    {
-        return _new_it;
-    }
+        if(HIVE_IS_SENTINEL(_new_it.ptr))
+        {
+            uint8_t _index = *_it.next_entry;
+            
+            if (HIVE_UNLIKELY(_index == HIVE_END_SENTINEL_INDEX))
+            {
+                _it.bucket = _it.bucket->next;
+                _index = hive_bucket_first_elm(_it.bucket);
+            }
+            _it.ptr = &_it.bucket->elms[_index];
+            _it.next_entry = &_it.bucket->next_entries[_index] + 1;
+            
+            return _it;
+        }
+        else
+        {
+            return _new_it;
+        }
+    #endif
 #else
     uint8_t _index = *_it.next_entry;
     
@@ -1256,42 +1299,7 @@ hive_iter hive_checked_del(HIVE_NAME *_hive, HIVE_TYPE *_elm)
 
 hive_iter hive_checked_iter_del(HIVE_NAME *_hive, hive_iter _it)
 {
-    hive_bucket_t *_bucket = _it.bucket;
-    
-    if(_bucket->count == 1)
-    {
-        return hive_iter_del(_hive, _it);
-    }
-    
-    uint16_t _old_not_full_count = _hive->not_full_buckets.count;
-    uint8_t _old_count = _bucket->count;
-    bool _will_unfill = (_bucket->count == HIVE_BUCKET_SIZE);
-    
-    uint8_t _old_nexts[256];
-    memcpy(_old_nexts, _bucket->next_entries, sizeof(_old_nexts));
-    
-    uint8_t _old_prevs[256];
-    memcpy(_old_prevs, _bucket->prev_entries, sizeof(_old_prevs));
-    
-    hive_entry_t *_old_elms = (hive_entry_t*) HIVE_ALLOC_N(HIVE_TYPE, 256);
-    memcpy(_old_elms, _bucket->elms, sizeof(hive_entry_t[256]));
-    
-    uint64_t _old_bitset[4];
-    memcpy(_old_bitset, _bucket->empty_bitset, sizeof(_old_bitset));
-    
-    hive_iter _ret = hive_iter_del(_hive, _it);
-    
-    assert(_bucket->count == _old_count - 1);
-    
-    if(_will_unfill)
-    {
-        assert(_bucket->not_full_idx != UINT16_MAX);
-        assert(_old_not_full_count == _hive->not_full_buckets.count - 1);
-    }
-    
-    HIVE_FREE_N(_old_elms, 256);
-    
-    return _ret;
+    return hive_iter_del(_hive, _it);
 }
 
 #endif // HIVE_TEST
