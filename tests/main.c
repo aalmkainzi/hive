@@ -219,6 +219,11 @@ typedef struct Big
 #define HIVE_IMPL
 #define HIVE_TYPE Big
 #define HIVE_NAME big_hv
+#define HIVE_MAKE_SENTINEL(b) ((b)->i = -1)
+#define HIVE_IS_SENTINEL(b) ((b)->i == -1)
+#define HIVE_GET_BYTE1(b) ((b)->_m)
+#define HIVE_GET_BYTE2(b) ((b)->_m + 1)
+
 #include "hive.h"
 
 static void collect_big(Big *v, void *arg)
@@ -253,7 +258,9 @@ static void test_big_single_put_and_loop(void)
     
     struct Collector c = {NULL, 0, 0};
     
-    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp)) ; it = big_hv_iter_next(it) )
+    for(big_hv_iter it = big_hv_begin(&sp) ; 
+        !big_hv_iter_eq(it, big_hv_end(&sp)) ; 
+        it = big_hv_iter_next(it) )
     {
         collect_big(it.ptr, &c);
     }

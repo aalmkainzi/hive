@@ -883,8 +883,11 @@ void hive_bucket_init(hive_bucket_t *_bucket)
     
     for(int _i = 0 ; _i <= HIVE_END_SENTINEL_INDEX ; _i++)
     {
-#ifdef HIVE_USE_SENTINEL_BYTES
+#ifdef HIVE_USE_SENTINELS
+        HIVE_MAKE_SENTINEL((&_bucket->elms[_i]));
+    #ifdef HIVE_USE_SENTINEL_BYTES
         *HIVE_GET_BYTE1((&_bucket->elms[_i])) = (uint8_t) HIVE_END_SENTINEL_INDEX;
+    #endif
 #else
         _bucket->next_entries[_i] = HIVE_END_SENTINEL_INDEX;
 #endif
