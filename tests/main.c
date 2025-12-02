@@ -325,11 +325,13 @@ static void test_big_del_and_iteration(void)
     big_hv_checked_del(&sp, b);
     ASSERT(sp.count == 2);
     
-    struct Collector col = {NULL, 0, 0};
-    for(big_hv_iter it = big_hv_begin(&sp) ; !big_hv_iter_eq(it, big_hv_end(&sp))  ; it = big_hv_iter_next(it))
-{
-    collect_big(it.ptr, &col);
-}
+    struct Collector col = { NULL, 0, 0 };
+    for(big_hv_iter it = big_hv_begin(&sp)   ;
+        !big_hv_iter_eq(it, big_hv_end(&sp)) ;
+        it = big_hv_iter_next(it))
+    {
+        collect_big(it.ptr, &col);
+    }
     ASSERT(col.idx == 2);
     
     qsort(col.data, col.idx, sizeof(int), compare_ints);

@@ -770,9 +770,9 @@ void hive_put_all(HIVE_NAME *_hv, const HIVE_TYPE *_elms, size_t _nelms)
 
 hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_bucket_t *_bucket, uint8_t _index)
 {
-#if defined(HIVE_USE_SENTINELS)
-    HIVE_MAKE_SENTINEL((&_bucket->elms[_index]));
-#endif
+// #if defined(HIVE_USE_SENTINELS)
+//     HIVE_MAKE_SENTINEL((&_bucket->elms[_index]));
+// #endif
     
     hive_iter _ret;
     if(hive_bucket_del(_hv, _bucket, _index))
@@ -816,7 +816,7 @@ hive_iter hive_del_helper(HIVE_NAME *_hv, hive_bucket_t *_prev_bucket, hive_buck
     else
     {
 #ifdef HIVE_USE_SENTINEL_BYTES
-        uint8_t _next_elm = *HIVE_GET_BYTE1((&_bucket->elms[_index + 1]));
+        uint8_t _next_elm = *HIVE_GET_BYTE1((&_bucket->elms[_index]));
 #else
         uint8_t _next_elm = _bucket->next_entries[_index + 1];
 #endif
@@ -1006,16 +1006,18 @@ bool hive_bucket_del(HIVE_NAME *_hv, hive_bucket_t *_bucket, uint8_t _index)
     _next_entires[_prev_elm + 1] = _next_entires[_index + 1];
     _prev_entires[_next_elm - 1] = _prev_entires[_index - 1];
 #else
-    assert(*HIVE_GET_BYTE1((&_bucket->elms[_index])) == _index);
+    assert(!HIVE_IS_SENTINEL(&(_bucket->elms[_index])));
     assert(_bucket->count != 0);
-
+    
+    HIVE_MAKE_SENTINEL(&(_bucket->elms[_index]));
+    
     // if prev and next elms are holes, make the prev actual elm point to the end of the new big hole
-
+    
     _bucket->empty_bitset[_index / 64] |= ((uint64_t)1 << (_index % 64));
-
+    
     const uint8_t _next_elm = *HIVE_GET_BYTE1((&_bucket->elms[_index + 1]));
     const uint8_t _prev_elm = *HIVE_GET_BYTE2((&_bucket->elms[_index - 1]));
-
+    
     *HIVE_GET_BYTE1((&_bucket->elms[_prev_elm + 1])) = *HIVE_GET_BYTE1((&_bucket->elms[_index + 1]));
     *HIVE_GET_BYTE2((&_bucket->elms[_next_elm - 1])) = *HIVE_GET_BYTE2((&_bucket->elms[_index - 1]));
 #endif
