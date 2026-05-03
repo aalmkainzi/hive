@@ -8,7 +8,12 @@
 #include <assert.h>
 
 #if __STDC_VERSION__ >= 202311L
-    #include <stdbit.h>
+    #if defined(__has_include)
+        #if __has_include(<stdbit.h>)
+            #define HIVE__STDBIT 1
+            #include <stdbit.h>
+        #endif
+    #endif
 #endif
 
 #ifdef _MSC_VER
@@ -220,7 +225,7 @@ static inline uint8_t hive_ctz(uint32_t i)
     unsigned long index;
     _BitScanForward(&index, i);
     return (uint8_t)index;
-#elif __STDC_VERSION__ >= 202311L
+#elif defined(HIVE__STDBIT)
     return (uint8_t)stdc_trailing_zeros(i);
 #else
     return (uint8_t)__builtin_ctz(i);
